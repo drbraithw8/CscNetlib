@@ -1,13 +1,5 @@
 // Author: Dr Stephen Braithwaite.
 // This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
-/* ------------------------------------------------------------------------
- * Copyright 1991 Stephen Braithwaite
- * Permission is granted to anyone to use this software for any purpose on
- * any computer system, and to alter it and redistribute it, subject
- * to The Artistic Licence 1.0
- * http://www.perlfoundation.org/artistic_license_1_0
- * ------------------------------------------------------------------------
- */ 
 
 
 #include <stdlib.h>
