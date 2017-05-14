@@ -1,0 +1,283 @@
+// Author: Dr Stephen Braithwaite.
+// This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define EXTRA_SIZE (sizeof(memchk_type) + sizeof(csc_ulong))
+#define CKVAL (1431655765)
+#define BNDY_MSK  7
+#define align_err(p)    ((unsigned long)(p) & BNDY_MSK)
+
+#define TRUE 1
+#define FALSE 0
+#define affirm(ex) (ex?0:(fprintf(stderr, \
+            "Memcheck: Internal error (%s): file %s, line %d\n", \
+            "ex", __FILE__, __LINE__),exit(1),1))
+
+typedef unsigned int csc_uint;
+typedef unsigned long csc_ulong;
+
+typedef struct memchk       /* size must be integral no *sizeof(double) */
+{   struct memchk *next;
+    struct memchk *prev;
+    char *end;
+    char *fname;
+    long line_no;
+    csc_ulong ckval;
+} memchk_type;
+
+
+long mck_maxchunks = ((unsigned long)-1 >> 1);
+
+static long nmlc=0;
+static memchk_type anchor = { &anchor, &anchor, (char*)NULL, 0 };
+static memchk_type *lo_adr = (memchk_type*)NULL;
+static memchk_type *hi_adr = (memchk_type*)NULL;
+
+static void freecheck(memchk_type *header, int line, char *file);
+static void msg_quit(char *msg, char *file, int line);
+int csc_mck_checkmem(int flag, int line, char *file);
+void csc_mck_exit(int status, int line, char *file);
+void csc_mck_sexit(int status, int line, char *file);
+char *csc_mck_realloc(char *block, csc_uint size, int line, char *file);
+void csc_mck_free(char *block, int line, char *file);
+char *csc_mck_strdup(char *str, int line, char *file);
+char *csc_mck_calloc(csc_uint nelem, csc_uint elsize, int line, char *file);
+char *csc_mck_malloc(csc_uint size, int line, char *file);
+long csc_mck_nchunks();
+
+
+long csc_mck_nchunks()
+{   return nmlc;
+}
+
+
+char *csc_mck_malloc(csc_uint size, int line, char *file)
+{   char *block;
+    memchk_type *header;
+    memchk_type *hi;
+ 
+/* Get the memory. */
+    if (nmlc >= mck_maxchunks)
+        return NULL;
+    if ((header=(memchk_type*)malloc((csc_uint)(size+EXTRA_SIZE))) == NULL)
+        return NULL;
+    affirm(!align_err(header));
+ 
+/* Set upper and lower boundaries. */
+    hi = (memchk_type*)((char*)header + size + EXTRA_SIZE);
+    if (lo_adr == NULL)     /* 1st time called for prog. */
+    {   lo_adr = header;
+        hi_adr = hi;
+        affirm(sizeof(memchk_type) % sizeof(double) == 0);
+        /* If this turns out to be false, the padding in memchk_type
+         *  must be adjusted.  The size affects alignment of allocated chunks.
+         */
+        affirm(BNDY_MSK+1 == sizeof(double));
+        /* If this turns out to be false, the align_err() macro may
+         * need to be re written.
+         */
+    }
+    else
+    {   if (hi > hi_adr)
+            hi_adr = hi;
+        else if (header < lo_adr)
+            lo_adr = header;
+    }
+ 
+/* Set up 'block' and 'end'. */
+    block = (char*)header + sizeof(memchk_type);
+    header->ckval = CKVAL;
+    header->end = block+size;
+    memcpy(header->end, (char*)(&header->ckval), sizeof(csc_ulong));
+    header->fname = file;
+    header->line_no = line;
+ 
+/* Link the header block into the doubly linked list. */
+    header->prev = &anchor;
+    header->next = anchor.next;
+    anchor.next = header;
+    if ((header->next)->prev != &anchor)
+        msg_quit("Non allocated memory overwritten", file, line);
+    (header->next)->prev = header;
+ 
+/* OK. */
+    nmlc++;
+    return block;
+}
+
+
+char *csc_mck_calloc(csc_uint nelem, csc_uint elsize, int line, char *file)
+{   char *block;
+    csc_uint size;
+    
+    size = nelem*elsize;
+    if ((block=csc_mck_malloc(size, line, file)) == NULL)
+        return NULL;
+    memset(block,0,size);
+    return block;
+}
+
+
+char *csc_mck_strdup(char *str, int line, char *file)
+{   char *block;
+    
+    if ((block=csc_mck_malloc(strlen(str)+1, line, file)) == NULL)
+        return NULL;
+    strcpy(block,str);
+    return block;
+}
+
+
+void csc_mck_free(char *block, int line, char *file)
+{   memchk_type *header;
+ 
+    header = (memchk_type*)(block - sizeof(memchk_type));
+    freecheck(header, line,file);
+    (header->next)->prev = header->prev;
+    (header->prev)->next = header->next;
+    /* header->prev = NULL; */
+    /* header->next = NULL; */
+    free((char*)header);
+    nmlc--;
+}
+
+
+char *csc_mck_realloc(char *block, csc_uint size, int line, char *file)
+{   memchk_type *header;
+    memchk_type *hi;
+
+/* Is this a disguised call to malloc() or free(). */
+	if (block == NULL)
+	{	return csc_mck_malloc(size, line, file);
+	}
+	else if (size == 0)
+	{	csc_mck_free(block, line, file);
+		return NULL;
+	}
+ 
+/* Check the old memory. */
+    header = (memchk_type*)(block - sizeof(memchk_type));
+    freecheck(header, line,file);
+ 
+/* Get the memory. */
+    header = (memchk_type*)realloc((char*)header, (csc_uint)(size+EXTRA_SIZE));
+    if (header == NULL)
+        return NULL;
+ 
+/* Set upper and lower boundaries. */
+    hi = (memchk_type*)((char*)header + size + EXTRA_SIZE);
+    if (hi > hi_adr)
+        hi_adr = hi;
+    else if (header < lo_adr)
+        lo_adr = header;
+    
+/* Set up 'block' and 'end'. */
+    block = (char*)header + sizeof(memchk_type);
+    header->ckval = CKVAL;
+    header->end = block+size;
+    memcpy(header->end, (char*)(&header->ckval), sizeof(csc_ulong));
+ 
+/* Link the header block into the doubly linked list. */
+    (header->next)->prev = header;
+    (header->prev)->next = header;
+ 
+/* OK. */
+    return block;
+}
+
+
+void csc_mck_sexit(int status, int line, char *file)
+{   if (nmlc != 0)
+    {   fprintf(stderr, "memcheck: line %d file \"%s\" :-\n", line, file);
+        fprintf(stderr, "\t%ld memory chunks not released.\n", nmlc);
+    }
+    exit(status);
+}
+
+
+void csc_mck_exit(int status, int line, char *file)
+{   if (nmlc != 0)
+    {   fprintf(stderr, "memcheck: line %d file \"%s\" :-\n", line, file);
+        fprintf(stderr, "\t%ld memory chunks not released.\n", nmlc);
+    }
+    else
+        fprintf(stderr, "memcheck: All allocated memory chunks released.\n");
+    exit(status);
+}
+
+
+int csc_mck_checkmem(int flag, int line, char *file)
+{   memchk_type *pt;
+    int err=FALSE;
+    if ((anchor.next)->prev != &anchor)
+        err = TRUE;
+    for (pt=anchor.next; pt!=&anchor && !err; pt=pt->next)
+    {   if (  ((pt->next<lo_adr || pt->next>hi_adr) && pt->next!=&anchor)
+         ||  align_err(pt->next) && pt->next!=&anchor
+         || (pt->next)->prev!=pt 
+         ||  (memchk_type*)(pt->end)<pt || (memchk_type*)(pt->end)>hi_adr
+         ||  pt->ckval != CKVAL
+         ||  memcmp(pt->end, (char*)(&pt->ckval), sizeof(csc_ulong))  )
+            err = TRUE;
+    }
+    if (err)
+    {   if (flag)
+            msg_quit("Non allocated memory overwritten", file, line);
+        else
+            return FALSE;
+    }
+    return TRUE;
+}
+
+
+static void freecheck(memchk_type *header, int line, char *file)
+{   memchk_type *pt;
+    if (align_err(header) || header<lo_adr || header>hi_adr)
+        msg_quit("free'd memory was not allocated", file, line);
+    if ( ((header->next<lo_adr || header->next>hi_adr) && header->next!=&anchor)
+     ||  ((header->prev<lo_adr || header->prev>hi_adr) && header->prev!=&anchor)
+     ||  align_err(header->next) && header->next!=&anchor 
+     || (header->next)->prev!=header
+     ||  align_err(header->prev) && header->prev!=&anchor
+     || (header->prev)->next!=header )
+    {   fprintf(stderr, "memcheck: Non allocated memory overwritten");
+        fprintf(stderr, "  or  free'd memory not allocated\n\n");
+    }
+    else if (  (memchk_type*)(header->end) < header
+          ||   (memchk_type*)(header->end) > hi_adr 
+          ||    header->ckval != CKVAL 
+          ||    memcmp(header->end, (char*)(&header->ckval), sizeof(csc_ulong)) )
+        msg_quit("Non allocated memory overwritten", file, line);
+    else
+        return;
+ 
+/* Diagnostics. */
+    fprintf(stderr, "Performing diagnostic to determine which one ...\n\n");
+    for (pt=anchor.next; pt!=&anchor; pt=pt->next)
+    {   if (  ((pt->next<lo_adr || pt->next>hi_adr) && pt->next!=&anchor)
+                || align_err(pt->next) && pt->next!=&anchor
+                || (pt->next)->prev!=pt )
+            msg_quit("Non allocated memory overwritten", file, line);
+    }
+    msg_quit("free'd memory was not allocated", file, line);
+}
+
+
+static void msg_quit(char *msg, char *file, int line)
+{   fprintf(stderr, "memcheck: line %d file \"%s\" :-\n\t%s!\n",line,file,msg);
+    exit(1);
+}
+
+
+void csc_mck_print(FILE *fout)
+{   memchk_type *pt;
+ 
+    for (pt=anchor.next; pt!=&anchor; pt=pt->next)
+    {   fprintf(fout, "%ld %s\n", pt->line_no, pt->fname);
+    }
+}
+
+

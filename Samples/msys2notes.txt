@@ -1,0 +1,8 @@
+The MSYS2 environiment compiles these sample programs OK on windows.
+They will run just fine using the MSYS2 bash command line prompt.
+
+Running the resulting executables from a normal DOS prompt, e.g. in a
+machine without MSYS2 installed, however will result in an error,
+possibly a popup stating that the file msys-2.0.dll is missing.  One way
+around this is to copy /bin/msys-2.0.dll into the directory of the
+executable (or possibly the current directory).
