@@ -1,0 +1,35 @@
+
+								Framework for validation suite
+								==============================
+
+Directory names within the validation directory tree are used to
+associate the enclosed validation tests with the corresponding parts of
+cscNetLib.
+
+Description of test run.
+-----------------------
+
+*	Any files or directories in the top level validation directory tree
+	recursively matching any of the patterns "csc_temp_*", "Csc_temp_*",
+	"csc_testOut_*.txt", or "csc_testFails_*.txt",  will be recursively
+	removed.
+
+*	During a testing run the top level testing script searches for
+	directories by the name "Csc_valDir".  This directory contains a set
+	of tests that validate part of the library.  The validation script
+	looks for directories with this name, and then does the following:-
+
+	*	If a file by the name of "makefile" is found in this directory (not
+		recursively), then "make tests" will be invoked.
+
+	*	If a file by the name of "csc_testRun.sh" is found in this
+		directory (not recursively), then it will be invoked.
+
+	*	Any files in this directory or its subdirectories recursively
+		matching the pattern "csc_testOut_*.txt" will be concatenated
+		into the main file for the test output.
+
+	*	Any files in this directory or its subdirectories recursively
+		matching the pattern "csc_testFails_*.txt" will be concatenated
+		into the main file for the test failures if it contains non-empty
+		lines.
