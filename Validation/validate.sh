@@ -20,7 +20,7 @@ testFail='csc_testFails.txt'
 function removeIfPresent ()
 {	for i in $* 
 	do
-		if [ -f $i -o -d $i ]
+		if [[ -f $i || -d $i ]]
 		then
 			rm -r $i
 		fi
@@ -47,18 +47,24 @@ do
 	cd $topLevelValDir
 	cd $valDir
 	
-#  If a file by the name of "makefile" is found in this directory (not
-#  recursively), then invoke "make tests" will be invoked.
-	if [ -f $makefile ]
+#  make tests" will be invoked, if a makefile exists.
+#  "csc_testRun.sh" will be invoked, if a such a file exists.
+	if [[ -f $makefile ]]
 	then
-		make $target
-	fi
-
-#  If a file by the name of "csc_testRun.sh" is found in this
-#  directory (not recursively), then it will be invoked.
-	if [ -f $runFile ]
-	then
-		bash $runFile
+		if make $target
+		then
+			if [[ -f $runFile ]] 
+			then
+				bash $runFile
+			fi
+		else
+			echo 'FAILED build' > $testOut
+		fi
+	else
+		if [[ -f $runFile ]] 
+		then
+			bash $runFile
+		fi
 	fi
 
 # Find any resulting output files and concatenate them into the top level out file.
@@ -70,17 +76,8 @@ do
 		cat $outFile >> $topLevelOutFile
 	done
 
-# Find any resulting failure files and concatenate them into the top level failure file.
-	echo >> $topLevelFailsFile
-	echo '['"$valDir"']' >> $topLevelFailsFile
-	failFiles=$( find . -name $testFail )
-	for failFile in $failFiles
-	do
-		cat $failFile >> $topLevelFailsFile
-	done
-
 # Cleanup
-	if [ -f $makefile ]
+	if [[ -f $makefile ]]
 	then
 		make $targetClean
 	fi

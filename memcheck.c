@@ -10,8 +10,8 @@
 #define BNDY_MSK  7
 #define align_err(p)    ((unsigned long)(p) & BNDY_MSK)
 
-#define TRUE 1
-#define FALSE 0
+#define csc_TRUE 1
+#define csc_FALSE 0
 #define affirm(ex) (ex?0:(fprintf(stderr, \
             "Memcheck: Internal error (%s): file %s, line %d\n", \
             "ex", __FILE__, __LINE__),exit(1),1))
@@ -211,9 +211,9 @@ void csc_mck_exit(int status, int line, char *file)
 
 int csc_mck_checkmem(int flag, int line, char *file)
 {   memchk_type *pt;
-    int err=FALSE;
+    int err=csc_FALSE;
     if ((anchor.next)->prev != &anchor)
-        err = TRUE;
+        err = csc_TRUE;
     for (pt=anchor.next; pt!=&anchor && !err; pt=pt->next)
     {   if (  ((pt->next<lo_adr || pt->next>hi_adr) && pt->next!=&anchor)
          ||  align_err(pt->next) && pt->next!=&anchor
@@ -221,15 +221,15 @@ int csc_mck_checkmem(int flag, int line, char *file)
          ||  (memchk_type*)(pt->end)<pt || (memchk_type*)(pt->end)>hi_adr
          ||  pt->ckval != CKVAL
          ||  memcmp(pt->end, (char*)(&pt->ckval), sizeof(csc_ulong))  )
-            err = TRUE;
+            err = csc_TRUE;
     }
     if (err)
     {   if (flag)
             msg_quit("Non allocated memory overwritten", file, line);
         else
-            return FALSE;
+            return csc_FALSE;
     }
-    return TRUE;
+    return csc_TRUE;
 }
 
 

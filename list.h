@@ -54,8 +54,8 @@ void csc_list_addend(csc_list_t **pt, void *data);
  */
 
 int csc_list_rm_item(csc_list_t **lst, void *item);
-/* Removes item 'item' from list 'lst' and returns TRUE, on success. 
- * Returns FALSE on failure to find 'item'.  Does not free 'item'.
+/* Removes item 'item' from list 'lst' and returns csc_TRUE, on success. 
+ * Returns csc_FALSE on failure to find 'item'.  Does not free 'item'.
  * This is inherently slow for a long list.  If this operation HAS to
  * be fast, use some other storage mechanism. 
  */

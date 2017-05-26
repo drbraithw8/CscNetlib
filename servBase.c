@@ -43,7 +43,7 @@ typedef struct
 
 static void sigHandler(int sigNum, void *context)
 {   servSig_t *servSig = context;
-    servSig->isQuit = TRUE;
+    servSig->isQuit = csc_TRUE;
     csc_log_printf(servSig->log, csc_log_NOTICE,
                 "Received SIGNAL %d", sigNum);
 }
@@ -66,7 +66,7 @@ static int serv_OneByOne( csc_srv_t *srv
     
 // Set up the signal handling.
     servSig_t servSig;
-    servSig.isQuit = FALSE;
+    servSig.isQuit = csc_FALSE;
     servSig.log = log;
     csc_signal_addHndl(SIGINT, sigHandler, &servSig);
     csc_signal_addHndl(SIGTERM, sigHandler, &servSig);
@@ -81,7 +81,7 @@ static int serv_OneByOne( csc_srv_t *srv
         }
         else if (rwSock < 0)
         {   csc_log_str(log, csc_log_FATAL, csc_srv_getErrMsg(srv)); 
-            servSig.isQuit = TRUE;
+            servSig.isQuit = csc_TRUE;
             retVal = 0;
         }
         else
@@ -116,13 +116,13 @@ static int serv_Forking( csc_srv_t *srv
     const char *cliAddr = NULL;
     int retVal = -2;
     int numThreads = 0;
-    int isMoreDeadChildren = FALSE;
+    int isMoreDeadChildren = csc_FALSE;
     pid_t newChildProcId = 0;
     pid_t deadChildProcId = 0;
     
 // Set up the signal handling.
     servSig_t servSig;
-    servSig.isQuit = FALSE;
+    servSig.isQuit = csc_FALSE;
     servSig.log = log;
     csc_signal_addHndl(SIGINT, sigHandler, &servSig);
     csc_signal_addHndl(SIGTERM, sigHandler, &servSig);
@@ -137,7 +137,7 @@ static int serv_Forking( csc_srv_t *srv
         }
         else if (rwSock < 0)
         {   csc_log_str(log, csc_log_FATAL, csc_srv_getErrMsg(srv)); 
-            servSig.isQuit = TRUE;
+            servSig.isQuit = csc_TRUE;
             retVal = 0;
         }
         else
@@ -147,7 +147,7 @@ static int serv_Forking( csc_srv_t *srv
             if (newChildProcId < 0)  // Error.  Fork failed.
             {   csc_log_printf(log, csc_log_ERROR,
                                 "fork: %s", strerror(errno)); 
-                servSig.isQuit = TRUE;
+                servSig.isQuit = csc_TRUE;
                 retVal = 0;
             }
             else if (newChildProcId == 0)  // This is the child process.
@@ -179,11 +179,11 @@ static int serv_Forking( csc_srv_t *srv
                 }
  
             // Collect all available dead children without blocking.
-                isMoreDeadChildren = TRUE;
+                isMoreDeadChildren = csc_TRUE;
                 while (isMoreDeadChildren && numThreads>0)
                 {   deadChildProcId = waitpid(-1,NULL,WNOHANG);
                     if (deadChildProcId == 0)
-                    {   isMoreDeadChildren = FALSE;  // Failed.  No more dead.  Terminate loop.
+                    {   isMoreDeadChildren = csc_FALSE;  // Failed.  No more dead.  Terminate loop.
                         // fprintf(stderr, "no more dead children\n");
                     }
                     else
@@ -196,11 +196,11 @@ static int serv_Forking( csc_srv_t *srv
     } // While we are not quitting.
  
 // Collect all available dead children without blocking.
-    isMoreDeadChildren = TRUE;
+    isMoreDeadChildren = csc_TRUE;
     while (isMoreDeadChildren && numThreads>0)
     {   deadChildProcId = waitpid(-1,NULL,WNOHANG);
         if (deadChildProcId == 0)
-        {   isMoreDeadChildren = FALSE;  // Failed.  No more dead.  Terminate loop.
+        {   isMoreDeadChildren = csc_FALSE;  // Failed.  No more dead.  Terminate loop.
             // fprintf(stderr, "no more dead children\n");
         }
         else
@@ -233,7 +233,7 @@ int csc_servBase_server( char *connType
 							 )
 					   , void *local      // Values to pass to doConn() and to doInit().
 					   )
-{   int retVal = TRUE;
+{   int retVal = csc_TRUE;
     const char *logLevelStr, *portNumStr, *backlogStr, *ipStr, *maxThreadsStr;
     int iniFileLineNum, portNum, srvModel, backlog, maxThreads, result;
  
@@ -246,7 +246,7 @@ int csc_servBase_server( char *connType
     log = csc_log_new(logPath, initialLogLevel);
     if (log == NULL)
     {   fprintf(stderr, "Failed to initialise logging!\n");
-        retVal = FALSE; 
+        retVal = csc_FALSE; 
         goto cleanup;
     }
  
@@ -255,11 +255,11 @@ int csc_servBase_server( char *connType
         srvModel = srvModel_OneByOne;
     else if (csc_streq(srvModelStr,srvModelStr_Forking))
     {   srvModel = srvModel_Forking;
-        csc_log_setIsShowPid(log, TRUE);
+        csc_log_setIsShowPid(log, csc_TRUE);
     }
     else
     {   csc_log_printf( log , csc_log_FATAL , "Invalid server model");
-        retVal = FALSE; 
+        retVal = csc_FALSE; 
         goto cleanup;
     }
  
@@ -268,7 +268,7 @@ int csc_servBase_server( char *connType
     if (ini == NULL)
     {   csc_log_str(log, csc_log_FATAL
                     , "Failed to create iniFile object");
-        retVal = FALSE; 
+        retVal = csc_FALSE; 
         goto cleanup;
     }
  
@@ -278,14 +278,14 @@ int csc_servBase_server( char *connType
     {   csc_log_printf(log, csc_log_FATAL
                     , "Error reading ini file \"%s\" on line number %d"
                     , configPath, iniFileLineNum);
-        retVal = FALSE; 
+        retVal = csc_FALSE; 
         goto cleanup;
     }
     else if (iniFileLineNum < 0)
     {   csc_log_printf(log, csc_log_FATAL 
                     , "Error reading ini file \"%s\".  Could not open."
                     , configPath);
-        retVal = FALSE; 
+        retVal = csc_FALSE; 
         goto cleanup;
     }
  
@@ -300,7 +300,7 @@ int csc_servBase_server( char *connType
                          , ConfSection
                          , configPath
                          );
-            retVal = FALSE; 
+            retVal = csc_FALSE; 
             goto cleanup;
         }
     }
@@ -315,7 +315,7 @@ int csc_servBase_server( char *connType
                      , ConfSection
                      , configPath
                      );
-        retVal = FALSE; 
+        retVal = csc_FALSE; 
         goto cleanup;
     }
     portNum = atoi(portNumStr);;
@@ -336,7 +336,7 @@ int csc_servBase_server( char *connType
                      , ConfSection
                      , configPath
                      );
-        retVal = FALSE; 
+        retVal = csc_FALSE; 
         goto cleanup;
     }
     backlog = atoi(backlogStr);
@@ -353,7 +353,7 @@ int csc_servBase_server( char *connType
                      , ConfSection
                      , configPath
                      );
-        retVal = FALSE; 
+        retVal = csc_FALSE; 
         goto cleanup;
     }
     maxThreads = atoi(maxThreadsStr);
@@ -369,14 +369,14 @@ int csc_servBase_server( char *connType
     result = csc_srv_setAddr(srv, connType, ipStr, portNum, backlog);
     if (!result)
     {   csc_log_str(log , csc_log_FATAL, csc_srv_getErrMsg(srv));
-        retVal = FALSE; 
+        retVal = csc_FALSE; 
         goto cleanup;
     }
  
 // Perform initialisations.
     if (doInit != NULL)
     {	if (!doInit(ini, log, local))
-		{	retVal = FALSE; 
+		{	retVal = csc_FALSE; 
 			goto cleanup;
 		}
     }

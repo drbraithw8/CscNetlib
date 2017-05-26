@@ -31,8 +31,8 @@ csc_hash_t *csc_hash_new(int offset, int (*cmp)(void*,void*),
 
 int csc_hash_addex(csc_hash_t *hash, void *rec);
 /*  If a key matching 'rec' already exists in 'hash' then this 
- * function will return FALSE.  Otherwise it will add 'rec' to 'hash' 
- * and return TRUE.
+ * function will return csc_FALSE.  Otherwise it will add 'rec' to 'hash' 
+ * and return csc_TRUE.
  */
 
 void csc_hash_add(csc_hash_t *hash, void *rec);
@@ -55,8 +55,8 @@ void *csc_hash_out(csc_hash_t *hash, void *key);
 
 int csc_hash_del(csc_hash_t *hash, void *key);
 /*  If no record with a key of 'key' exists in 'hash', this function 
- * will return FALSE.  Otherwise it will remove the last added record 
- * with a key of 'key', free it and return TRUE.
+ * will return csc_FALSE.  Otherwise it will remove the last added record 
+ * with a key of 'key', free it and return csc_TRUE.
  */   
 
 void csc_hash_free(csc_hash_t *hash);

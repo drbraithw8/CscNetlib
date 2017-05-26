@@ -18,7 +18,7 @@
 #define csc_isalu(ch) (isalpha(ch) || (ch)=='_')
 #define csc_ungetc(ch,fp)  ((ch)==EOF?(ch):ungetc(ch,fp))
 
-typedef enum csc_bool_e { FALSE=0, TRUE=1 } csc_bool_t;
+typedef enum csc_bool_e { csc_FALSE=0, csc_TRUE=1 } csc_bool_t;
 
 #define csc_CKCK fprintf(stderr, \
                 "Got to line %d in file %s !\n", __LINE__, __FILE__)

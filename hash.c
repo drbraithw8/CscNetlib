@@ -135,8 +135,8 @@ void csc_hash_add(csc_hash_t *h, void *rec)
 
 int csc_hash_addex(csc_hash_t *h, void *rec)
 /*  If a key matching 'rec' already exists in 'h' then this 
- * function will return FALSE.  Otherwise it will add 'rec' to 'hash' 
- * and return TRUE.
+ * function will return csc_FALSE.  Otherwise it will add 'rec' to 'hash' 
+ * and return csc_TRUE.
  */
 {   csc_ulong ndx;
     csc_ulong hash_val;
@@ -161,10 +161,10 @@ int csc_hash_addex(csc_hash_t *h, void *rec)
  
         if (h->count++ == h->maxcount)
             csc_hash_resize(h);
-        return TRUE;
+        return csc_TRUE;
     }
     else
-        return FALSE;
+        return csc_FALSE;
 }
 
 
@@ -227,17 +227,17 @@ void *csc_hash_out(csc_hash_t *h, void *key)
 
 int csc_hash_del(csc_hash_t *h, void *key)
 /*  If no record with a key of 'key' exists in 'h', this function 
- * will return FALSE.  Otherwise it will remove any record 
- * with a key of 'key', free it and return TRUE.
+ * will return csc_FALSE.  Otherwise it will remove any record 
+ * with a key of 'key', free it and return csc_TRUE.
  */   
 {   void *p;
     p = csc_hash_out(h, key);
     if (p == NULL)
-        return FALSE;
+        return csc_FALSE;
     else
     {   h->free_rec(p);
         h->count--;
-        return TRUE;
+        return csc_TRUE;
     }
 }
 

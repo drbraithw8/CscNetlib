@@ -24,7 +24,7 @@ csc_log_t *csc_log_new(const char *path, csc_log_level_t logLevel);
 
 
 // Change the logging level to 'logLevel'
-// Returns TRUE if logLevel has acceptable value, FALSE otherwise.
+// Returns csc_TRUE if logLevel has acceptable value, csc_FALSE otherwise.
 csc_bool_t csc_log_setLogLevel(csc_log_t *logger, csc_log_level_t logLevel);
 
 

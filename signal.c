@@ -59,7 +59,7 @@ int csc_signal_delHndl(int sigNum, void *context)
             break;
     }
     if (pls == NULL)
-        return FALSE;
+        return csc_FALSE;
  
 // Search for context on the regList
     prevPt = &regs->regLst;
@@ -70,7 +70,7 @@ int csc_signal_delHndl(int sigNum, void *context)
         prevPt = &pls->next;
     }
     if (pls == NULL)
-        return FALSE;
+        return csc_FALSE;
  
 // Unlink the matched context record.
     *prevPt = pls->next;
@@ -78,7 +78,7 @@ int csc_signal_delHndl(int sigNum, void *context)
 // Free the unlinked record.
     free(pls->data);
     free(pls);
-    return TRUE;
+    return csc_TRUE;
 }
                 
 

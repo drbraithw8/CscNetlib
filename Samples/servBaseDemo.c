@@ -30,24 +30,24 @@ int configGetCheckFloat( csc_log_t *log
 	{	csc_log_printf(log, csc_log_FATAL
 			, "Missing floating configuration property \"%s\" in section \"%s\""
 			, ident, sect);
-		return FALSE;
+		return csc_FALSE;
 	}
 	else if (!csc_isValid_float(str))
 	{	csc_log_printf(log, csc_log_FATAL
 			, "Invalid floating configuration property \"%s\" in section \"%s\""
 			, ident, sect);
-		return FALSE;
+		return csc_FALSE;
 	}
 	value = atof(str);
 	if (value<min || value>max)
 	{	csc_log_printf(log, csc_log_FATAL
 			, "Floating configuration property \"%s\" in section \"%s\" is out of range"
 			, ident, sect);
-		return FALSE;
+		return csc_FALSE;
 	}
  
 	*val = value;
-	return TRUE;
+	return csc_TRUE;
 }
 
 
@@ -57,17 +57,17 @@ int doInit(csc_ini_t *conf, csc_log_t *log, void *local)
  
 // Get height from configuration.
 	if (!configGetCheckFloat(log, conf, "Demo", "Height", &boxDim->height, 0, FLT_MAX))
-		return FALSE;
+		return csc_FALSE;
  
 // Get width from configuration.
 	if (!configGetCheckFloat(log, conf, "Demo", "Width", &boxDim->width, 0, FLT_MAX))
-		return FALSE;
+		return csc_FALSE;
  
 // Get depth from configuration.
 	if (!configGetCheckFloat(log, conf, "Demo", "Depth", &boxDim->depth, 0, FLT_MAX))
-		return FALSE;
+		return csc_FALSE;
  
-	return TRUE;
+	return csc_TRUE;
 }
 
  
