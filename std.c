@@ -4,8 +4,39 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <time.h>
 #include "std.h"
+
+
+int csc_fgetwd(FILE *fp, char *wd, int wdmax)
+{	int len=0;
+	int ch = getc(fp);
+ 
+/* Skip whitespace */
+	while(isspace(ch))
+		ch = getc(fp);
+ 
+/* Deal with a possible EOF */
+	if(ch==EOF)
+		return -1;
+ 
+/* read in the word */
+	while(!isspace(ch) && ch!=EOF && len<wdmax)
+	{	wd[len++] = ch;
+		ch = getc(fp);
+	}
+	wd[len]='\0';
+ 
+/* Skip remainder of the word */
+	while(!isspace(ch) && ch != EOF)
+	{	len++;
+		ch = getc(fp);
+	}
+	if (ch != EOF)
+		ungetc(ch, fp);
+	return len;
+}
 
 
 int csc_fgetline(FILE *fp, char *line, int max)

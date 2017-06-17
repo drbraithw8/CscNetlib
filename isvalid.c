@@ -122,7 +122,7 @@ csc_bool_t csc_isValid_domain(const char *str)
  
 // Look at each character in turn.
     segLen = 0;
-    nSegs = 0;
+    nSegs = 1;
     for(i=0; i<sLen; i++)
     {   if (str[i] == '.')
         {   if (segLen == 0)
@@ -141,7 +141,7 @@ csc_bool_t csc_isValid_domain(const char *str)
     }
 
 // Reject single segment cases.
-	if (nSegs == 0)
+	if (nSegs == 1)
 		return csc_FALSE;
  
     return csc_TRUE;

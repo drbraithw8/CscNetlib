@@ -34,6 +34,24 @@ typedef unsigned short csc_ushort;
 #define csc_fsizeof(type,field)     (sizeof(((type *)NULL)->field))
 
 
+// This function takes its input from the stream 'fp'.
+// It will skip whitespace and then read the next word into the
+// array 'wd'.  For this function, a word is defined to be a
+// series of non whitespace characters seperated by whitespace.
+// 
+// If the word is longer than 'max' characters, then only
+// the first 'max' characters of the word will be placed into
+// 'wd'.  The remainder of the word will be skipped.
+// This function will append a '\0' to the characters read
+// into 'wd'  Hence 'wd' should have room for 'wdmax'+1
+// characters.
+// 
+// If no characters were read in due to end of file, -1 will
+// be returned.  Otherwise, the length of the word in the stream
+// 'fp' will be returned.
+int csc_fgetwd(FILE *fp, char *wd, int max);
+
+
 // Reads a line from the stream 'fp' into the array 'line'.  The
 // terminating newline is not included into 'line', but it is consumed.
 // 

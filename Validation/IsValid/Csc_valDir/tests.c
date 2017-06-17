@@ -19,7 +19,7 @@ testReport_t *testReport_new(csc_bool_t (*valid)(const char*), char *func)
 {	testReport_t *tr = csc_allocOne(testReport_t);
 	tr->fout = fopen("csc_testOut.txt", "a"); assert(tr->fout);
 	tr->validFn = valid;
-	tr->funcName = csc_alloc_str(func);  // Not allocated.  Not freed.
+	tr->funcName = csc_alloc_str(func);
 	return tr;
 }
 
@@ -162,11 +162,11 @@ void main(int argc, char **argv)
 	testReport_test(tr, "emptyString", "", csc_FALSE);
 	testReport_test(tr, "good1", "google.com", csc_TRUE);
 	testReport_test(tr, "good2", "google.COM.au", csc_TRUE);
+	testReport_test(tr, "good3", "go-ogle.com", csc_TRUE);
 	testReport_test(tr, "bad1", "google", csc_FALSE);
 	testReport_test(tr, "bad2", ".google.com", csc_FALSE);
-	testReport_test(tr, "bad3", ".google.com.", csc_FALSE);
+	testReport_test(tr, "bad3", "google.com.", csc_FALSE);
 	testReport_test(tr, "bad4", "google@com", csc_FALSE);
-	testReport_test(tr, "bad5", ".google.c-m.", csc_FALSE);
 	testReport_free(tr);
 
 }
