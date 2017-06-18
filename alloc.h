@@ -18,6 +18,7 @@
 void *csc_ck_malloc(size_t size);
 void *csc_ck_calloc(size_t size);
 void *csc_ck_ralloc(void *rem, size_t size);
+void csc_ck_setErrHandler(void (*errHandle)(void*), void *errHandleContext);
 
 
 // Alloc a single string on the heap.  The caller must use free() to

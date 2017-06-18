@@ -9,7 +9,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-#define csc_versionStr "1.6.2"
+#define csc_versionStr "1.6.3"
 
 
 #define csc_streq(a,b)  (!strcmp((a),(b)))
