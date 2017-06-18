@@ -37,7 +37,7 @@ void csc_log_setIsShowPid(csc_log_t *logger, csc_bool_t isShow);
 
 
 // Destructor.
-void csc_log_close(csc_log_t *logger);
+void csc_log_free(csc_log_t *logger);
 
 
 // Create an entry in the log file with the message 'msg' if 'logLevel' is

@@ -14,7 +14,7 @@ csc_fileProp_t *csc_fileProp_new(const char *path);
 
 
 // Destructor.
-void csc_fileProp_close(csc_fileProp_t *fprop);
+void csc_fileProp_free(csc_fileProp_t *fprop);
 
 
 // Returns TRUE on successfully obtaining information about the file.

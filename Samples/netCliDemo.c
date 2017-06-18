@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     ntp = csc_cli_new();
     csc_cli_setServAddr(ntp, "TCP", "www.usq.edu.au", 80);
     fdes = csc_cli_connect(ntp);
-    csc_cli_close(ntp);
+    csc_cli_free(ntp);
 
 // Copy one line.
     fp = fdopen(fdes, "r+");

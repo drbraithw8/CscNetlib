@@ -47,7 +47,7 @@ csc_log_t *csc_log_new(const char *path, csc_log_level_t logLevel)
     {   fprintf( stderr
 			   , "Error: Logger failed to write intial entry to log file:"
 			           "\n\"%s\"!\n" , path);
-        csc_log_close(lgr);
+        csc_log_free(lgr);
         return NULL;
     }
     lgr->isShowProcessId = FALSE;
@@ -78,7 +78,7 @@ csc_bool_t csc_log_setLogLevel(csc_log_t *logger, csc_log_level_t logLevel)
 }
 
 
-void csc_log_close(csc_log_t *logger)
+void csc_log_free(csc_log_t *logger)
 {   int retVal;
 	free(logger->path);
 	if (logger->idStr != NULL)

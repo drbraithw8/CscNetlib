@@ -60,7 +60,7 @@ csc_fileProp_t *csc_fileProp_new(const char *path)
 }
 
 
-void csc_fileProp_close(csc_fileProp_t *this)
+void csc_fileProp_free(csc_fileProp_t *this)
 {
 // Free any error message.
     if (this->errMsg != NULL)

@@ -7,6 +7,21 @@
 
 #include "std.h"
 
+
+static void csc_ck_defaultErrorHandler(void *context)
+{   fprintf(stderr, "Error: Out of Memory!\n");
+	exit(1);
+}
+
+static void (*errHndl)(void*) = csc_ck_defaultErrorHandler;
+static void *errHndlContext = NULL;
+
+void csc_ck_setErrHandler(void (*errHandle)(void*), void *errHandleContext)
+{	errHndl = errHandle;
+	errHndlContext = errHandleContext;
+}
+
+
 #ifndef csc_mck_IS_ON 
 
 void *csc_ck_ralloc(void *rem, size_t size)
@@ -17,9 +32,7 @@ void *csc_ck_ralloc(void *rem, size_t size)
  */ 
 {   void *p;
     if((p=realloc(rem, size)) == NULL)
-    {   fprintf(stderr, "Error: Out of Memory!\n");
-        exit(1);
-    }
+		errHndl(errHndlContext);
     return(p);
 }
 
@@ -32,9 +45,7 @@ void *csc_ck_calloc(size_t size)
  */
 {   void *p;
     if((p=calloc((size_t)1, size)) == NULL)
-    {   fprintf(stderr, "Error: Out of Memory!\n");
-        exit(1);
-    }
+		errHndl(errHndlContext);
     return(p);
 }
 
@@ -47,9 +58,7 @@ void *csc_ck_malloc(size_t size)
  */
 {   void *p;
     if((p=malloc(size)) == NULL)
-    {   fprintf(stderr, "Error: Out of Memory!\n");
-        exit(1);
-    }
+		errHndl(errHndlContext);
     return(p);
 }
 
@@ -160,9 +169,7 @@ void *csc_ck_ralloc_debug(void *rem, size_t size, int line, char *file)
  */ 
 {   void *p;
     if((p=csc_mck_realloc(rem, size, line, file)) == NULL)
-    {   fprintf(stderr, "Error: Out of Memory!\n");
-        exit(1);
-    }
+		errHndl(errHndlContext);
     return(p);
 }
 
@@ -175,9 +182,7 @@ void *csc_ck_calloc_debug(size_t size, int line, char *file)
  */
 {   void *p;
     if((p=csc_mck_calloc((size_t)1, size, line, file)) == NULL)
-    {   fprintf(stderr, "Error: Out of Memory!\n");
-        exit(1);
-    }
+		errHndl(errHndlContext);
     return(p);
 }
 
@@ -190,9 +195,7 @@ void *csc_ck_malloc_debug(size_t size, int line, char *file)
  */
 {   void *p;
     if((p=csc_mck_malloc(size, line, file)) == NULL)
-    {   fprintf(stderr, "Error: Out of Memory!\n");
-        exit(1);
-    }
+		errHndl(errHndlContext);
     return(p);
 }
 

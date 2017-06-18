@@ -44,9 +44,9 @@ int main(int argc, char **argv)
  
 // Free resources.
 	if (srv != NULL)
-		csc_srv_close(srv);
+		csc_srv_free(srv);
 	if (log != NULL)
-		csc_log_close(log);
+		csc_log_free(log);
 
 	exit(0);
 }

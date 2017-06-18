@@ -11,7 +11,7 @@ typedef struct csc_ini_t csc_ini_t;
 csc_ini_t *csc_ini_new(void);
 
 // Destructor.
-void csc_ini_close(csc_ini_t *ini);
+void csc_ini_free(csc_ini_t *ini);
 
 
 // Read the ini file, whose path is given by 'iniFilePath' into the ini

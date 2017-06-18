@@ -59,7 +59,7 @@ const char *csc_srv_acceptAddr(csc_srv_t *srv);
 
 
 // Free up resources.
-void csc_srv_close(csc_srv_t *srv);
+void csc_srv_free(csc_srv_t *srv);
 
 
 // Returns a string representation of details of a previous error.  The

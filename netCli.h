@@ -38,7 +38,7 @@ int csc_cli_connect(csc_cli_t *cli);
 
 
 // Destructor.  Cleans up memory associated with a netCli object.
-void csc_cli_close(csc_cli_t *cli);
+void csc_cli_free(csc_cli_t *cli);
 
 
 

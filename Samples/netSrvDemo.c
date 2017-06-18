@@ -21,7 +21,7 @@ int main(int argc, char **argv)
         fclose(fin);
     }
  
-    csc_srv_close(ntp);
+    csc_srv_free(ntp);
 	exit(0);
 }
 

@@ -1,10 +1,10 @@
 .c.o :
-	gcc -c -I /usr/local/include  $<
+	gcc -c -I $(HOME)/include  $<
 
-LIBS :=  -L /usr/local/lib -lCscNet -lpthread
+LIBS :=  -L $(HOME)/lib -lCscNet -lpthread
 
 all: netCliDemo netSrvDemo servBaseDemo filePropertiesDemo \
-	 parseWordsOnLines iniDemo
+	 parseWordsOnLines 
 
 netCliDemo: netCliDemo.o
 	gcc netCliDemo.o $(LIBS) -o netCliDemo
@@ -21,9 +21,6 @@ filePropertiesDemo: filePropertiesDemo.o
 parseWordsOnLines: parseWordsOnLines.o
 	gcc parseWordsOnLines.o $(LIBS) -o parseWordsOnLines
 
-iniDemo: iniDemo.o
-	gcc iniDemo.o $(LIBS) -o iniDemo
-
 clean:
 	rm netSrvDemo servBaseDemo parseWordsOnLines filePropertiesDemo \
-        netCliDemo iniDemo *.o test.log
+        netCliDemo *.o test.log

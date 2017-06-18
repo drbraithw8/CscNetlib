@@ -34,7 +34,7 @@ int main(int argc, char **argv)
     if (!csc_fileProp_isOK(fprops))
     {   printf("Error getting info about file \"%s\": %s\n",
                 filePath, csc_fileProp_getErrMsg(fprops));
-        csc_fileProp_close(fprops);
+        csc_fileProp_free(fprops);
         exit(1);
     }
  
@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     else
         printf("File \"%s\" is something else.\n", filePath);
  
-    csc_fileProp_close(fprops);
+    csc_fileProp_free(fprops);
     exit(0);
 }
  

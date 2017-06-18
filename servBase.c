@@ -398,11 +398,11 @@ int csc_servBase_server( char *connType
  
 cleanup:  // Free resources.
     if (ini != NULL)
-        csc_ini_close(ini);
+        csc_ini_free(ini);
     if (log != NULL)
-        csc_log_close(log);
+        csc_log_free(log);
     if (srv != NULL)
-        csc_srv_close(srv);
+        csc_srv_free(srv);
  
     return 0;
 }
