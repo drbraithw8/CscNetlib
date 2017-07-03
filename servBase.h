@@ -11,6 +11,7 @@
 
 
 #include <stdlib.h>
+#include "std.h"
 #include "iniFile.h"
 #include "logger.h"
 

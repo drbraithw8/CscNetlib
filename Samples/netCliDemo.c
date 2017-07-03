@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 	{	csc_fgetline(fp, line, LINE_MAX);
 		printf("Got: \"%s\"\n", line);
 		if (csc_streq(line,""))
-			isFin = TRUE;
+			isFin = csc_TRUE;
 	}
     fclose(fp);
 

@@ -9,6 +9,8 @@
 #ifndef csc_SRV_H
 #define csc_SRV_H 1
 
+#include "std.h"
+
 typedef struct csc_srv_t csc_srv_t ;
 
 

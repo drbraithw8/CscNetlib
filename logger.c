@@ -42,7 +42,7 @@ csc_log_t *csc_log_new(const char *path, csc_log_level_t logLevel)
 	retVal = sem_init(&lgr->sem, 1, 1); assert(retVal==0);
  
 // Test the logger with an initial entry.
-    lgr->isShowProcessId = TRUE;
+    lgr->isShowProcessId = csc_TRUE;
     if (!csc_log_str(lgr, logLevel, "Logging commenced"))
     {   fprintf( stderr
 			   , "Error: Logger failed to write intial entry to log file:"
@@ -50,7 +50,7 @@ csc_log_t *csc_log_new(const char *path, csc_log_level_t logLevel)
         csc_log_free(lgr);
         return NULL;
     }
-    lgr->isShowProcessId = FALSE;
+    lgr->isShowProcessId = csc_FALSE;
  
     return lgr;
 }
@@ -70,10 +70,10 @@ void csc_log_setIdStr(csc_log_t *logger, const char *str)
 
 csc_bool_t csc_log_setLogLevel(csc_log_t *logger, csc_log_level_t logLevel)
 {   if (logLevel<csc_log_TRACE || logLevel>csc_log_FATAL)
-        return FALSE;
+        return csc_FALSE;
     else
     {   logger->level = logLevel;
-        return TRUE;
+        return csc_TRUE;
     }
 }
 
@@ -93,7 +93,7 @@ static FILE *logGuts(csc_log_t *logger, csc_log_level_t logLevel, int *retVal)
  
 // Only log if logLevel is greater or equal to the threshold.
     if (logLevel < logger->level)
-    {   *retVal = TRUE;
+    {   *retVal = csc_TRUE;
         return NULL;
     }
 
@@ -103,7 +103,7 @@ static FILE *logGuts(csc_log_t *logger, csc_log_level_t logLevel, int *retVal)
 // Open the file for append.
     FILE *fp = fopen(logger->path, "a");
     if (fp == NULL)
-    {   *retVal = FALSE;
+    {   *retVal = csc_FALSE;
         return NULL;
     }
  
@@ -139,7 +139,7 @@ int csc_log_str(csc_log_t *logger, csc_log_level_t logLevel, const char *msg)
 // Allow other threads to write to the logfile.
     sem_post(&logger->sem);
  
-    return TRUE;
+    return csc_TRUE;
 }
 
 
@@ -168,6 +168,6 @@ int csc_log_printf( csc_log_t *logger
 // Allow other threads to write to the logfile.
     sem_post(&logger->sem);
 
-    return TRUE;
+    return csc_TRUE;
 }
 

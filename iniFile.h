@@ -4,6 +4,8 @@
 #ifndef csc_INI_H
 #define csc_INI_H 1
 
+#include "std.h"
+
 typedef struct csc_ini_t csc_ini_t;
 
 // Constructor.  Returns a new iniFile object with no configuration

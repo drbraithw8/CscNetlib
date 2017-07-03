@@ -191,26 +191,26 @@ void csc_list_XferAll(csc_list_t **LstFrom, csc_list_t **LstTo)
 
 int csc_list_XferOne(csc_list_t **LstFrom, csc_list_t **LstTo)
 /* Transfers the first element of the list *'LstFrom' to the head of list
- * *'LstTo'.  Returns TRUE on success, or FALSE if *'LstFrom' was empty.
+ * *'LstTo'.  Returns csc_TRUE on success, or csc_FALSE if *'LstFrom' was empty.
  */ 
 {   csc_list_t *last, *pt, *head;
     
 /* Get ahead. */
     head = *LstFrom;
     if (head == NULL)
-        return FALSE;
+        return csc_FALSE;
  
 /* Move 'head' onto beginning of *'LstTo'. */
     *LstFrom = head->next;
     head->next = *LstTo;
     *LstTo = head;
-    return TRUE;
+    return csc_TRUE;
 }
 
 
 int csc_list_rm_item(csc_list_t **lst, void *item)
-/* Removes item 'item' from list 'lst' and returns TRUE, on success. 
- * Returns FALSE on failure to find 'item'.  
+/* Removes item 'item' from list 'lst' and returns csc_TRUE, on success. 
+ * Returns csc_FALSE on failure to find 'item'.  
  * Does not free 'item'.
  * This is inherently slow for a long list.  If this operation HAS to
  * be fast, use some other storage mechanism. 
@@ -221,13 +221,13 @@ int csc_list_rm_item(csc_list_t **lst, void *item)
  
 /* Null list special case. */
    if (this == NULL)
-      return FALSE;
+      return csc_FALSE;
  
 /* First item special case. */
    if (this->data == item)
    {  *lst = this->next;
       free(this);
-      return TRUE;
+      return csc_TRUE;
    }
  
 /* Every other case. */
@@ -236,12 +236,12 @@ int csc_list_rm_item(csc_list_t **lst, void *item)
       this = this->next;
  
       if (this == NULL)
-         return FALSE;
+         return csc_FALSE;
  
       if (this->data == item)
       {  prev->next = this->next;
          free(this);
-         return TRUE;
+         return csc_TRUE;
       }
    }
 }

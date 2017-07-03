@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 
+#include "std.h"
 
 typedef struct csc_str_t csc_str_t;
 

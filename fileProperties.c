@@ -41,19 +41,19 @@ csc_fileProp_t *csc_fileProp_new(const char *path)
 // Allocate the object.
     csc_fileProp_t *this = csc_allocOne(csc_fileProp_t);
     this->errMsg = NULL;
-    this->isOK = TRUE;
-    this->isExist = TRUE;
+    this->isOK = csc_TRUE;
+    this->isExist = csc_TRUE;
  
 // Get the properties.
     retval = stat(path, &this->props);
     if (retval == -1)
     {   setErrMsg(this, csc_alloc_str3("stat: ", strerror(errno), NULL));
-        this->isOK = FALSE;
+        this->isOK = csc_FALSE;
         if (errno == ENOENT)
-            this->isExist = FALSE;
+            this->isExist = csc_FALSE;
     }
     else
-        this->isOK = TRUE;
+        this->isOK = csc_TRUE;
     
 // Bye
     return this;
@@ -83,14 +83,14 @@ int csc_fileProp_isExist(csc_fileProp_t *this)
 
 int csc_fileProp_isRegFile(csc_fileProp_t *this)
 {   if (!this->isOK)
-        return FALSE;
+        return csc_FALSE;
     return S_ISREG(this->props.st_mode);
 }
 
 
 int csc_fileProp_isDir(csc_fileProp_t *this)
 {   if (!this->isOK)
-        return FALSE;
+        return csc_FALSE;
     return S_ISDIR(this->props.st_mode);
 }
 

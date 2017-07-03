@@ -6,6 +6,7 @@
 #define csc_DYNARRAY_H 1
 
 #include <stdlib.h>
+#include "std.h"
 #include "alloc.h"
 
 

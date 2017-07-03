@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 // Create the logging object.
 	csc_log_t *log = csc_log_new(argv[1], logLevel);
 	if (log == NULL)
-		return FALSE;
+		return csc_FALSE;
  
 // Make a log at each level.
 	for (int iLvl=csc_log_TRACE; iLvl<=csc_log_FATAL; iLvl++)
