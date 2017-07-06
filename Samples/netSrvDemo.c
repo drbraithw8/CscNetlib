@@ -22,7 +22,7 @@ int main(int argc, char **argv)
     }
  
     csc_srv_free(ntp);
-	exit(0);
+    exit(0);
 }
 
  

@@ -150,13 +150,13 @@ char *csc_mck_realloc(char *block, csc_uint size, int line, char *file)
     memchk_type *hi;
 
 /* Is this a disguised call to malloc() or free(). */
-	if (block == NULL)
-	{	return csc_mck_malloc(size, line, file);
-	}
-	else if (size == 0)
-	{	csc_mck_free(block, line, file);
-		return NULL;
-	}
+    if (block == NULL)
+    {   return csc_mck_malloc(size, line, file);
+    }
+    else if (size == 0)
+    {   csc_mck_free(block, line, file);
+        return NULL;
+    }
  
 /* Check the old memory. */
     header = (memchk_type*)(block - sizeof(memchk_type));

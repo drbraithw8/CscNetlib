@@ -75,12 +75,12 @@ void csc_list_free(csc_list_t *lst)
 int csc_list_count(csc_list_t *lst)
 /*      Returns the number of items in the list.
  */
-{	int count = 0;
-	while (lst != NULL)
-	{	count++;
-		lst = lst->next;
-	}
-	return count;
+{   int count = 0;
+    while (lst != NULL)
+    {   count++;
+        lst = lst->next;
+    }
+    return count;
 }
 
 

@@ -15,17 +15,17 @@ csc_bool_t csc_isValid_hex(const char *word)
     if (ch == '\0')
         return(csc_FALSE);
     while((ch = *(word++)) != '\0')
-    {	if (!((ch>='0' && ch<='9') || (ch>='a' && ch<='f') || (ch>='A' && ch<='F')))
+    {   if (!((ch>='0' && ch<='9') || (ch>='a' && ch<='f') || (ch>='A' && ch<='F')))
             return(csc_FALSE);
-	}
+    }
     return(csc_TRUE);
 }
 
 
 csc_bool_t csc_isValid_int(const char *word)
 {   char ch = *word;
-	if (ch=='-')
-		ch = *(++word);
+    if (ch=='-')
+        ch = *(++word);
     if (ch == '\0')
         return(csc_FALSE);
     while((ch = *(word++)) != '\0')
@@ -36,14 +36,14 @@ csc_bool_t csc_isValid_int(const char *word)
 
 
 csc_bool_t csc_isValidRange_int(const char *word, int min, int max, int *value)
-{	int val;
-	if (!csc_isValid_int(word))
-		return csc_FALSE;
-	val = atoi(word);
-	if (val<min || val>max)
-		return csc_FALSE;
-	*value = val;
-	return csc_TRUE;
+{   int val;
+    if (!csc_isValid_int(word))
+        return csc_FALSE;
+    val = atoi(word);
+    if (val<min || val>max)
+        return csc_FALSE;
+    *value = val;
+    return csc_TRUE;
 }
 
 
@@ -82,14 +82,14 @@ csc_bool_t csc_isValid_float(const char *str)
 
 
 csc_bool_t csc_isValidRange_float(const char *word, double min, double max, double *value)
-{	double val;
-	if (!csc_isValid_float(word))
-		return csc_FALSE;
-	val = atof(word);
-	if (val<min || val>max)
-		return csc_FALSE;
-	*value = val;
-	return csc_TRUE;
+{   double val;
+    if (!csc_isValid_float(word))
+        return csc_FALSE;
+    val = atof(word);
+    if (val<min || val>max)
+        return csc_FALSE;
+    *value = val;
+    return csc_TRUE;
 }
 
 

@@ -99,7 +99,7 @@ void csc_signal_addHndl( int sigNum
  
 // Add a new reglist if sigNum not already present.
     if (pls == NULL)
-    {	struct sigaction sigAction;
+    {   struct sigaction sigAction;
 
     // Add the list for sigNum.
         regs = csc_allocOne(sigRegs_t);

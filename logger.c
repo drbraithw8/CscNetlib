@@ -19,16 +19,16 @@
 
 typedef struct csc_log_t
 {   char *path;
-	char *idStr;
+    char *idStr;
     csc_log_level_t level;
     csc_bool_t isShowProcessId;
-	sem_t sem;
+    sem_t sem;
 } csc_log_t;    
 
 
 csc_log_t *csc_log_new(const char *path, csc_log_level_t logLevel)
 {   csc_log_t *lgr;
-	int retVal;
+    int retVal;
  
 // Check the log level.
     if (logLevel<csc_log_TRACE || logLevel>csc_log_FATAL)
@@ -38,15 +38,15 @@ csc_log_t *csc_log_new(const char *path, csc_log_level_t logLevel)
     lgr = csc_allocOne(csc_log_t);
     lgr->path = csc_alloc_str(path);
     lgr->level = logLevel;
-	lgr->idStr = NULL;
-	retVal = sem_init(&lgr->sem, 1, 1); assert(retVal==0);
+    lgr->idStr = NULL;
+    retVal = sem_init(&lgr->sem, 1, 1); assert(retVal==0);
  
 // Test the logger with an initial entry.
     lgr->isShowProcessId = csc_TRUE;
     if (!csc_log_str(lgr, logLevel, "Logging commenced"))
     {   fprintf( stderr
-			   , "Error: Logger failed to write intial entry to log file:"
-			           "\n\"%s\"!\n" , path);
+               , "Error: Logger failed to write intial entry to log file:"
+                       "\n\"%s\"!\n" , path);
         csc_log_free(lgr);
         return NULL;
     }
@@ -62,9 +62,9 @@ void csc_log_setIsShowPid(csc_log_t *logger, csc_bool_t isShow)
 
 
 void csc_log_setIdStr(csc_log_t *logger, const char *str)
-{	if (logger->idStr)
-		free(logger->idStr);
-	logger->idStr = csc_alloc_str(str);
+{   if (logger->idStr)
+        free(logger->idStr);
+    logger->idStr = csc_alloc_str(str);
 }
 
 
@@ -80,10 +80,10 @@ csc_bool_t csc_log_setLogLevel(csc_log_t *logger, csc_log_level_t logLevel)
 
 void csc_log_free(csc_log_t *logger)
 {   int retVal;
-	free(logger->path);
-	if (logger->idStr != NULL)
-		free(logger->idStr);
-	retVal = sem_destroy(&logger->sem); assert(retVal==0);
+    free(logger->path);
+    if (logger->idStr != NULL)
+        free(logger->idStr);
+    retVal = sem_destroy(&logger->sem); assert(retVal==0);
     free(logger);
 }
 
@@ -108,7 +108,7 @@ static FILE *logGuts(csc_log_t *logger, csc_log_level_t logLevel, int *retVal)
     }
  
 // Create and format the time.
-	csc_dateTimeStr(timeStr);
+    csc_dateTimeStr(timeStr);
  
 // Make the entry.
     fprintf(fp, "%d[%s]", (int)logLevel, timeStr);
