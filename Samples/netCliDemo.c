@@ -12,6 +12,7 @@ int main(int argc, char **argv)
     int fdes;
 	int isFin;
     FILE *fp;
+	int lineNo;
     csc_cli_t *ntp;
 
 // Make the connection.
@@ -20,15 +21,29 @@ int main(int argc, char **argv)
     fdes = csc_cli_connect(ntp);
     csc_cli_free(ntp);
 
-// Send a request.
+
+// Make FILE* of file descriptor.
     fp = fdopen(fdes, "r+");
-    fprintf( fp,
-			"GET /index.html HTTP/1.0\n\n"
-		   );
+
+// Data to send.
+	const char *sendData[] = 
+	{ "GET /index.html HTTP/1.1"
+	, "Host: localhost" 
+	, "Connection: close" 
+	, "" 
+	};
+
+// Send a request.
+	lineNo = 0;
+	for (int i=0; i<csc_dim(sendData); i++)
+	{	fprintf(fp, "%s\n", sendData[i]);
+		fprintf(stdout, "Sent %3d \"%s\"\n", ++lineNo, sendData[i]);
+	}
     fflush(fp);
 
 // Get the response.
 	isFin = csc_FALSE;
+	lineNo = 0;
 	while(!isFin)
 	{	int lineLen = csc_fgetline(fp, line, LINE_MAX);
 		if (lineLen < 0)
@@ -36,7 +51,7 @@ int main(int argc, char **argv)
 			isFin = csc_TRUE;
 		}
 		else
-		{	printf("Got: \"%s\"\n", line);
+		{	printf("Got %3d \"%s\"\n", ++lineNo, line);
 			// if (csc_streq(line,""))
 			// {	isFin = csc_TRUE;
 			// }
