@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include "std.h"
+#include "cstr.h"
 
 typedef struct csc_jsonArr_s csc_jsonArr_t;
 typedef struct csc_json_s csc_json_t;
 
 typedef enum csc_jsonErr_e
 {	csc_jsonErr_Ok = 0
+,	csc_jsonErr_Null   // Requested element not there.
 ,	csc_jsonErr_Missing   // Requested element not there.
 ,	csc_jsonErr_WrongType  // e.g. Requested int is a float.
 ,	csc_jsonErr_OutOfRange  // Too big or too small.
@@ -15,6 +17,7 @@ typedef enum csc_jsonErr_e
 typedef enum csc_jsonType_e
 {	csc_jsonType_Bad = 0
 ,	csc_jsonType_Missing 
+,	csc_jsonType_Null
 ,	csc_jsonType_Obj 
 ,	csc_jsonType_Arr
 ,	csc_jsonType_String
@@ -42,7 +45,17 @@ csc_jsonArr_t *csc_jsonArr_new();
 void csc_jsonArr_free(csc_jsonArr_t *ja);
 
 
+//------- Input and output -------------
+
+void csc_json_writeCstr(csc_json_t *js, csc_str_t *cstr);
+void csc_json_writeStream(csc_json_t *js, FILE *fout);
+
+
+
 //------- Add to a JSON object -------------
+
+// Add an element with no value to a JSON object.
+void csc_json_addNull(csc_json_t *js, char *name);
 
 // Add a string value to a JSON object.  This makes its own copy of the
 // string 'val'.
@@ -140,6 +153,9 @@ const csc_json_t *csc_json_ndxObj(csc_json_t *js, int ndx, csc_jsonErr_t *errNum
 const csc_jsonArr_t *csc_json_ndxArr(csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
 
 //------- Append to a JSON array -------------
+
+// Add an element with no value to a JSON array.
+void csc_jsonArr_apndNull(csc_jsonArr_t *jas);
 
 // Append a string value to a JSON array.  This makes its own copy of the
 // string 'val'.

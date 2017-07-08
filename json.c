@@ -1,9 +1,12 @@
 #include <stdio.h>
+
 #include "std.h"
 #include "alloc.h"
-
-#include "json.h"
 #include "dynArray.h"
+#include "json.h"
+
+#define MaxIntLen 22
+#define MaxFloatLen 44
 
 typedef union val_u
 {	int iVal;
@@ -27,6 +30,9 @@ typedef struct csc_json_s
     int nEls;
     int mEls;
 } csc_json_t;
+
+
+typedef void (*writeStr_t)(void *context, const char *str);
 
 
 static void elem_free(elem_t *el)
@@ -111,7 +117,8 @@ static elem_t *findByName(csc_json_t *js, char *name)
 	int nEls = js->nEls;
 	int i;
 	for (i=0; i<nEls; i++)
-	{	if (csc_streq(els[i].name, name))
+	{	char *eName = els[i].name;
+		if (eName!=NULL && csc_streq(eName, name))
 			break;
 	}
 	if (i < nEls)
@@ -126,6 +133,16 @@ static elem_t *findByIndex(csc_json_t *js, int ndx)
 		return NULL;
 	else
 		return &js->els[ndx];
+}
+
+
+void csc_json_addNull(csc_json_t *js, char *name)
+{	val_t v;
+	v.bVal = csc_FALSE;
+	csc_json_add(js, csc_jsonType_Null, name, v);
+}
+void csc_jsonArr_apndNull(csc_jsonArr_t *jas)
+{	csc_json_addNull((csc_json_t*)jas, NULL);
 }
 
 
@@ -214,13 +231,17 @@ static int getBool(elem_t *el,  csc_jsonErr_t *errNum)
 	{	*errNum = csc_jsonErr_Missing;
 		return csc_FALSE;
 	}
-	else if (el->type != csc_jsonType_Bool)
-	{	*errNum = csc_jsonErr_WrongType;
+	else if (el->type == csc_jsonType_Bool)
+	{	*errNum = csc_jsonErr_Ok;
+		return el->val.bVal;
+	}
+	else if (el->type == csc_jsonType_Null)
+	{	*errNum = csc_jsonErr_Null;
 		return csc_FALSE;
 	}
 	else
-	{	*errNum = csc_jsonErr_Ok;
-		return el->val.bVal;
+	{	*errNum = csc_jsonErr_WrongType;
+		return csc_FALSE;
 	}
 }
 csc_bool_t csc_json_getBool(csc_json_t *js, char *name, csc_jsonErr_t *errNum)
@@ -239,13 +260,17 @@ static int getInt(elem_t *el,  csc_jsonErr_t *errNum)
 	{	*errNum = csc_jsonErr_Missing;
 		return 0;
 	}
-	else if (el->type != csc_jsonType_Int)
-	{	*errNum = csc_jsonErr_WrongType;
+	else if (el->type == csc_jsonType_Int)
+	{	*errNum = csc_jsonErr_Ok;
+		return el->val.iVal;
+	}
+	else if (el->type == csc_jsonType_Null)
+	{	*errNum = csc_jsonErr_Null;
 		return 0;
 	}
 	else
-	{	*errNum = csc_jsonErr_Ok;
-		return el->val.iVal;
+	{	*errNum = csc_jsonErr_WrongType;
+		return 0;
 	}
 }
 int csc_json_getInt(csc_json_t *js, char *name, csc_jsonErr_t *errNum)
@@ -272,6 +297,10 @@ static double getFloat(elem_t *el,  csc_jsonErr_t *errNum)
 	{	*errNum = csc_jsonErr_Ok;
 		return el->val.fVal;
 	}
+	else if (el->type == csc_jsonType_Null)
+	{	*errNum = csc_jsonErr_Null;
+		return 0;
+	}
 	else
 	{	*errNum = csc_jsonErr_WrongType;
 		return 0;
@@ -293,13 +322,17 @@ static const char *getStr(elem_t *el,  csc_jsonErr_t *errNum)
 	{	*errNum = csc_jsonErr_Missing;
 		return NULL;
 	}
-	else if (el->type != csc_jsonType_String)
-	{	*errNum = csc_jsonErr_WrongType;
+	else if (el->type == csc_jsonType_String)
+	{	*errNum = csc_jsonErr_Ok;
+		return el->val.sVal;
+	}
+	else if (el->type == csc_jsonType_Null)
+	{	*errNum = csc_jsonErr_Null;
 		return NULL;
 	}
 	else
-	{	*errNum = csc_jsonErr_Ok;
-		return el->val.sVal;
+	{	*errNum = csc_jsonErr_WrongType;
+		return NULL;
 	}
 }
 const char *csc_json_getStr(csc_json_t *js, char *name, csc_jsonErr_t *errNum)
@@ -318,13 +351,17 @@ static const csc_json_t *getObj(elem_t *el,  csc_jsonErr_t *errNum)
 	{	*errNum = csc_jsonErr_Missing;
 		return NULL;
 	}
-	else if (el->type != csc_jsonType_Obj)
-	{	*errNum = csc_jsonErr_WrongType;
+	else if (el->type == csc_jsonType_Obj)
+	{	*errNum = csc_jsonErr_Ok;
+		return el->val.oVal;
+	}
+	else if (el->type == csc_jsonType_Null)
+	{	*errNum = csc_jsonErr_Null;
 		return NULL;
 	}
 	else
-	{	*errNum = csc_jsonErr_Ok;
-		return el->val.oVal;
+	{	*errNum = csc_jsonErr_WrongType;
+		return NULL;
 	}
 }
 const csc_json_t *csc_json_getObj(csc_json_t *js, char *name, csc_jsonErr_t *errNum)
@@ -343,13 +380,17 @@ static const csc_jsonArr_t *getArr(elem_t *el,  csc_jsonErr_t *errNum)
 	{	*errNum = csc_jsonErr_Missing;
 		return NULL;
 	}
-	else if (el->type != csc_jsonType_Arr)
-	{	*errNum = csc_jsonErr_WrongType;
+	else if (el->type == csc_jsonType_Arr)
+	{	*errNum = csc_jsonErr_Ok;
+		return el->val.aVal;
+	}
+	else if (el->type == csc_jsonType_Null)
+	{	*errNum = csc_jsonErr_Null;
 		return NULL;
 	}
 	else
-	{	*errNum = csc_jsonErr_Ok;
-		return el->val.aVal;
+	{	*errNum = csc_jsonErr_WrongType;
+		return NULL;
 	}
 }
 const csc_jsonArr_t *csc_json_getArr(csc_json_t *js, char *name, csc_jsonErr_t *errNum)
@@ -363,15 +404,120 @@ const csc_jsonArr_t *csc_jsonArr_getArr(csc_jsonArr_t *jas, int ndx, csc_jsonErr
 }
 
 
+static void writeInt(writeStr_t writer, void *context, int val)
+{	char buf[MaxIntLen+1];
+	sprintf(buf, "%d", val);
+	writer(context, buf);
+}
+
+static void writeFloat(writeStr_t writer, void *context, double val)
+{	char buf[MaxFloatLen+1];
+	sprintf(buf, "%16g", val);
+	char *p = buf;
+	while (*p == ' ')
+		p++;
+	writer(context, p);
+}
+
+static void writeBool(writeStr_t writer, void *context, csc_bool_t val)
+{	if (val)
+		writer(context, "true");
+	else
+		writer(context, "false");
+}
+
+static void writeStr(writeStr_t writer, void *context, const char *val)
+{	writer(context, "\"");
+	writer(context, val);
+	writer(context, "\"");
+}
+
+static void writeArr(writeStr_t writer, void *context, csc_jsonArr_t *jas);
+static void writeObj(writeStr_t writer, void *context, csc_json_t *js);
+
+static void writeEl(writeStr_t writer, void *context, elem_t *el)
+{	if (el->type == csc_jsonType_Bool)
+		writeBool(writer, context, el->val.bVal);
+	else if (el->type == csc_jsonType_Int)
+		writeInt(writer, context, el->val.iVal);
+	else if (el->type == csc_jsonType_Float)
+		writeFloat(writer, context, el->val.fVal);
+	else if (el->type == csc_jsonType_String)
+		writeStr(writer, context, el->val.sVal);
+	else if (el->type == csc_jsonType_Obj)
+		writeObj(writer, context, el->val.oVal);
+	else if (el->type == csc_jsonType_Arr)
+		writeArr(writer, context, el->val.aVal);
+	else
+		writer(context, "null");
+}
+
+static void writeObj(writeStr_t writer, void *context, csc_json_t *js)
+{	int nEls = js->nEls;
+	elem_t *els = js->els;
+	writer(context, "{");
+	for (int i=0; i<nEls; i++)
+	{	writeStr(writer, context, els[i].name);
+		writer(context, ":");
+		writeEl(writer, context, &els[i]);
+		if (i < nEls-1)
+			writer(context, ",");
+	}
+	writer(context, "}");
+}
+
+static void writeArr(writeStr_t writer, void *context, csc_jsonArr_t *jas)
+{	csc_json_t *js = (csc_json_t*)jas;
+	int nEls = js->nEls;
+	elem_t *els = js->els;
+	writer(context, "[");
+	for (int i=0; i<nEls; i++)
+	{	writeEl(writer, context, &els[i]);
+		if (i < nEls-1)
+			writer(context, ",");
+	}
+	writer(context, "]");
+}
+
+
+static void writeStream(void *context, const char *str)
+{	fprintf((FILE*)context, "%s", str);
+}
+void csc_json_writeStream(csc_json_t *js, FILE *fout)
+{	writeObj(writeStream, (void*)fout, js);
+}
+
+static void writeCstr(void *context, const char *str)
+{	csc_str_append((csc_str_t*)context, str);
+}
+void csc_json_writeCstr(csc_json_t *js, csc_str_t *cstr)
+{	writeObj(writeCstr, (void*)cstr, js);
+}
+
+
+
 void main(int argc, char **argv)
 {	csc_jsonErr_t errNum;
 	csc_json_t *js = csc_json_new();
 
 	csc_json_addInt(js, "fred", 7);
 	csc_json_addInt(js, "mark", 37);
+
+	csc_jsonArr_t *jas = csc_jsonArr_new();
+	csc_jsonArr_apndInt(jas, 11);
+	csc_jsonArr_apndInt(jas, 12);
+	csc_jsonArr_apndInt(jas, 13);
+	csc_json_addArr(js, "pvalues", jas);
+
 	csc_json_addFloat(js, "freda", 7.1);
-	csc_json_addFloat(js, "lucy", 3.7);
-	csc_json_addStr(js, "Fido", "FidoS");
+	csc_json_addNull(js, "lucy");
+
+	csc_json_t *jane = csc_json_new();
+	csc_json_addFloat(jane, "height", 1.45);
+	csc_json_addFloat(jane, "weight", 31.5);
+	csc_json_addObj(js, "pvalues", jane);
+
+	csc_json_addBool(js, "Fido", csc_FALSE);
 	csc_json_addStr(js, "Rover", "RoverS");
  
 	int fred = csc_json_getInt(js, "fred", &errNum);
@@ -393,7 +539,13 @@ void main(int argc, char **argv)
 	const char *rover = csc_json_getStr(js, "Rover", &errNum);
 	printf("\"%s\" %d\n", rover, errNum);
 	const char *bo = csc_json_getStr(js, "Bo", &errNum);
-	printf("\"%s\" %d\n", bo, errNum);
+	printf("\"%s\" %d\n\n", bo, errNum);
+
+	csc_json_writeStream(js, stdout);
+	csc_str_t *cjs = csc_str_new(NULL);
+	csc_json_writeCstr(js, cjs);
+	printf("\n%s\n\n", csc_str_charr(cjs));
+	csc_str_free(cjs);
  
 	csc_json_free(js);
 	exit(0);
