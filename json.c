@@ -33,6 +33,83 @@ typedef struct csc_json_s
 
 
 typedef void (*writeStr_t)(void *context, const char *str);
+typedef int (*readChar_t)(void *context);
+
+
+// Class to that can read single chars from a string.
+typedef struct readCharStr_s
+{	const char *str;
+	const char *p;
+} readCharStr_t;
+readCharStr_t *readCharStr_new(const char *str)
+{	readCharStr_t *rcs = csc_allocOne(readCharStr_t);
+	rcs->str = str;
+	rcs->p = str;
+}
+void readCharStr_free(readCharStr_t *rcs)
+{	free(rcs);
+}
+int readCharStr_getc(readCharStr_t *rcs)
+{	int ch = *rcs->p++;
+	if (ch == '\0')
+	{	rcs->p--;
+		return EOF;
+	}
+	else
+		return ch;
+}
+
+// Class to that can read single chars from whatever.
+typedef struct readCharAny_s
+{	readChar_t readChar;
+	void *context;
+} readCharAny_t;
+readCharAny_t *readCharAny_new(readChar_t readChar, void *context)
+{	readCharAny_t *rca = csc_allocOne(readCharAny_t);
+	rca->readChar = readChar;
+	rca->context = context;
+}
+void readCharAny_free(readCharAny_t *rca)
+{	free(rca);
+}
+int readCharAny_getc(readCharAny_t *rca)
+{	return rca->readChar(rca->context);
+}
+
+
+// Reading from a string.
+int readCharStr(void *context)
+{	return readCharStr_getc((readCharStr_t*)context);
+}
+
+// Reading from a file.
+int readCharFile(void *context)
+{	return getc((FILE*)context);
+}
+
+
+void main(int argc, char **argv)
+{	int ch;
+ 
+	// Test reading from a string.
+	{	char *testStr = "Hello from a string.\n";
+		readCharStr_t *rcs = readCharStr_new(testStr);
+		readCharAny_t *rca = readCharAny_new(readCharStr, (void*)rcs);
+		while ((ch=readCharAny_getc(rca)) != EOF)
+			putchar(ch);
+		readCharAny_free(rca);
+		readCharStr_free(rcs);
+	}
+ 
+	// Test reading from a stream.
+	{	readCharAny_t *rca = readCharAny_new(readCharFile, (void*)stdin);
+		while ((ch=readCharAny_getc(rca)) != EOF)
+			putchar(ch);
+		readCharAny_free(rca);
+	}
+ 
+	exit(0);
+}
 
 
 static void elem_free(elem_t *el)
@@ -112,7 +189,7 @@ static void csc_json_add(csc_json_t *js, csc_jsonType_t type, char *name, val_t 
 }
 
 
-static elem_t *findByName(csc_json_t *js, char *name)
+static elem_t *findByName(const csc_json_t *js, char *name)
 {	elem_t *els = js->els;
 	int nEls = js->nEls;
 	int i;
@@ -128,7 +205,7 @@ static elem_t *findByName(csc_json_t *js, char *name)
 }
 
 
-static elem_t *findByIndex(csc_json_t *js, int ndx)
+static elem_t *findByIndex(const csc_json_t *js, int ndx)
 {	if (ndx<0 || ndx>js->nEls)
 		return NULL;
 	else
@@ -209,15 +286,15 @@ void csc_jsonArr_apndArr(csc_jsonArr_t *jas, csc_jsonArr_t *val)
 }
 
 
-int csc_json_length(csc_json_t *js)
+int csc_json_length(const csc_json_t *js)
 {	return js->nEls;
 }
-int csc_jsonArr_length(csc_jsonArr_t *jas)
+int csc_jsonArr_length(const csc_jsonArr_t *jas)
 {	return csc_json_length((csc_json_t*)jas);
 }
 
 
-csc_jsonType_t csc_json_getType(csc_json_t *js, char *name)
+csc_jsonType_t csc_json_getType(const csc_json_t *js, char *name)
 {	elem_t *el = findByName(js, name);
 	if (el == NULL)
 		return csc_jsonType_Missing;
@@ -226,7 +303,7 @@ csc_jsonType_t csc_json_getType(csc_json_t *js, char *name)
 }
 
 
-static int getBool(elem_t *el,  csc_jsonErr_t *errNum)
+static int getBool(const elem_t *el,  csc_jsonErr_t *errNum)
 {	if (el == NULL)
 	{	*errNum = csc_jsonErr_Missing;
 		return csc_FALSE;
@@ -244,18 +321,18 @@ static int getBool(elem_t *el,  csc_jsonErr_t *errNum)
 		return csc_FALSE;
 	}
 }
-csc_bool_t csc_json_getBool(csc_json_t *js, char *name, csc_jsonErr_t *errNum)
+csc_bool_t csc_json_getBool(const csc_json_t *js, char *name, csc_jsonErr_t *errNum)
 {	return getBool(findByName(js,name), errNum);
 }
-csc_bool_t csc_json_ndxBool(csc_json_t *js, int ndx, csc_jsonErr_t *errNum)
+csc_bool_t csc_json_ndxBool(const csc_json_t *js, int ndx, csc_jsonErr_t *errNum)
 {	return getBool(findByIndex(js,ndx), errNum);
 }
-csc_bool_t csc_jsonArr_getBool(csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum)
+csc_bool_t csc_jsonArr_getBool(const csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum)
 {	return csc_json_ndxBool((csc_json_t*)jas, ndx, errNum);
 }
 
 
-static int getInt(elem_t *el,  csc_jsonErr_t *errNum)
+static int getInt(const elem_t *el,  csc_jsonErr_t *errNum)
 {	if (el == NULL)
 	{	*errNum = csc_jsonErr_Missing;
 		return 0;
@@ -273,18 +350,18 @@ static int getInt(elem_t *el,  csc_jsonErr_t *errNum)
 		return 0;
 	}
 }
-int csc_json_getInt(csc_json_t *js, char *name, csc_jsonErr_t *errNum)
+int csc_json_getInt(const csc_json_t *js, char *name, csc_jsonErr_t *errNum)
 {	return getInt(findByName(js,name), errNum);
 }
-int csc_json_ndxInt(csc_json_t *js, int ndx, csc_jsonErr_t *errNum)
+int csc_json_ndxInt(const csc_json_t *js, int ndx, csc_jsonErr_t *errNum)
 {	return getInt(findByIndex(js,ndx), errNum);
 }
-int csc_jsonArr_getInt(csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum)
+int csc_jsonArr_getInt(const csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum)
 {	return csc_json_ndxInt((csc_json_t*)jas, ndx, errNum);
 }
 
 
-static double getFloat(elem_t *el,  csc_jsonErr_t *errNum)
+static double getFloat(const elem_t *el,  csc_jsonErr_t *errNum)
 {	if (el == NULL)
 	{	*errNum = csc_jsonErr_Missing;
 		return 0;
@@ -306,18 +383,18 @@ static double getFloat(elem_t *el,  csc_jsonErr_t *errNum)
 		return 0;
 	}
 }
-double csc_json_getFloat(csc_json_t *js, char *name, csc_jsonErr_t *errNum)
+double csc_json_getFloat(const csc_json_t *js, char *name, csc_jsonErr_t *errNum)
 {	return getFloat(findByName(js,name), errNum);
 }
-double csc_json_ndxFloat(csc_json_t *js, int ndx, csc_jsonErr_t *errNum)
+double csc_json_ndxFloat(const csc_json_t *js, int ndx, csc_jsonErr_t *errNum)
 {	return getFloat(findByIndex(js,ndx), errNum);
 }
-double csc_jsonArr_getFloat(csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum)
+double csc_jsonArr_getFloat(const csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum)
 {	return csc_json_ndxFloat((csc_json_t*)jas, ndx, errNum);
 }
 
 
-static const char *getStr(elem_t *el,  csc_jsonErr_t *errNum)
+static const char *getStr(const elem_t *el,  csc_jsonErr_t *errNum)
 {	if (el == NULL)
 	{	*errNum = csc_jsonErr_Missing;
 		return NULL;
@@ -335,18 +412,18 @@ static const char *getStr(elem_t *el,  csc_jsonErr_t *errNum)
 		return NULL;
 	}
 }
-const char *csc_json_getStr(csc_json_t *js, char *name, csc_jsonErr_t *errNum)
+const char *csc_json_getStr(const csc_json_t *js, char *name, csc_jsonErr_t *errNum)
 {	return getStr(findByName(js,name), errNum);
 }
-const char *csc_json_ndxStr(csc_json_t *js, int ndx, csc_jsonErr_t *errNum)
+const char *csc_json_ndxStr(const csc_json_t *js, int ndx, csc_jsonErr_t *errNum)
 {	return getStr(findByIndex(js,ndx), errNum);
 }
-const char *csc_jsonArr_getStr(csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum)
+const char *csc_jsonArr_getStr(const csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum)
 {	return csc_json_ndxStr((csc_json_t*)jas, ndx, errNum);
 }
 
 
-static const csc_json_t *getObj(elem_t *el,  csc_jsonErr_t *errNum)
+static const csc_json_t *getObj(const elem_t *el,  csc_jsonErr_t *errNum)
 {	if (el == NULL)
 	{	*errNum = csc_jsonErr_Missing;
 		return NULL;
@@ -364,18 +441,18 @@ static const csc_json_t *getObj(elem_t *el,  csc_jsonErr_t *errNum)
 		return NULL;
 	}
 }
-const csc_json_t *csc_json_getObj(csc_json_t *js, char *name, csc_jsonErr_t *errNum)
+const csc_json_t *csc_json_getObj(const csc_json_t *js, char *name, csc_jsonErr_t *errNum)
 {	return getObj(findByName(js,name), errNum);
 }
-const csc_json_t *csc_json_ndxObj(csc_json_t *js, int ndx, csc_jsonErr_t *errNum)
+const csc_json_t *csc_json_ndxObj(const csc_json_t *js, int ndx, csc_jsonErr_t *errNum)
 {	return getObj(findByIndex(js,ndx), errNum);
 }
-const csc_json_t *csc_jsonArr_getObj(csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum)
+const csc_json_t *csc_jsonArr_getObj(const csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum)
 {	return csc_json_ndxObj((csc_json_t*)jas, ndx, errNum);
 }
 
 
-static const csc_jsonArr_t *getArr(elem_t *el,  csc_jsonErr_t *errNum)
+static const csc_jsonArr_t *getArr(const elem_t *el,  csc_jsonErr_t *errNum)
 {	if (el == NULL)
 	{	*errNum = csc_jsonErr_Missing;
 		return NULL;
@@ -393,13 +470,13 @@ static const csc_jsonArr_t *getArr(elem_t *el,  csc_jsonErr_t *errNum)
 		return NULL;
 	}
 }
-const csc_jsonArr_t *csc_json_getArr(csc_json_t *js, char *name, csc_jsonErr_t *errNum)
+const csc_jsonArr_t *csc_json_getArr(const csc_json_t *js, char *name, csc_jsonErr_t *errNum)
 {	return getArr(findByName(js,name), errNum);
 }
-const csc_jsonArr_t *csc_json_ndxArr(csc_json_t *js, int ndx, csc_jsonErr_t *errNum)
+const csc_jsonArr_t *csc_json_ndxArr(const csc_json_t *js, int ndx, csc_jsonErr_t *errNum)
 {	return getArr(findByIndex(js,ndx), errNum);
 }
-const csc_jsonArr_t *csc_jsonArr_getArr(csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum)
+const csc_jsonArr_t *csc_jsonArr_getArr(const csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum)
 {	return csc_json_ndxArr((csc_json_t*)jas, ndx, errNum);
 }
 
@@ -432,10 +509,10 @@ static void writeStr(writeStr_t writer, void *context, const char *val)
 	writer(context, "\"");
 }
 
-static void writeArr(writeStr_t writer, void *context, csc_jsonArr_t *jas);
-static void writeObj(writeStr_t writer, void *context, csc_json_t *js);
+static void writeArr(writeStr_t writer, void *context, const csc_jsonArr_t *jas);
+static void writeObj(writeStr_t writer, void *context, const csc_json_t *js);
 
-static void writeEl(writeStr_t writer, void *context, elem_t *el)
+static void writeEl(writeStr_t writer, void *context, const elem_t *el)
 {	if (el->type == csc_jsonType_Bool)
 		writeBool(writer, context, el->val.bVal);
 	else if (el->type == csc_jsonType_Int)
@@ -452,7 +529,7 @@ static void writeEl(writeStr_t writer, void *context, elem_t *el)
 		writer(context, "null");
 }
 
-static void writeObj(writeStr_t writer, void *context, csc_json_t *js)
+static void writeObj(writeStr_t writer, void *context, const csc_json_t *js)
 {	int nEls = js->nEls;
 	elem_t *els = js->els;
 	writer(context, "{");
@@ -466,7 +543,7 @@ static void writeObj(writeStr_t writer, void *context, csc_json_t *js)
 	writer(context, "}");
 }
 
-static void writeArr(writeStr_t writer, void *context, csc_jsonArr_t *jas)
+static void writeArr(writeStr_t writer, void *context, const csc_jsonArr_t *jas)
 {	csc_json_t *js = (csc_json_t*)jas;
 	int nEls = js->nEls;
 	elem_t *els = js->els;
@@ -483,40 +560,41 @@ static void writeArr(writeStr_t writer, void *context, csc_jsonArr_t *jas)
 static void writeStream(void *context, const char *str)
 {	fprintf((FILE*)context, "%s", str);
 }
-void csc_json_writeStream(csc_json_t *js, FILE *fout)
+void csc_json_writeStream(const csc_json_t *js, FILE *fout)
 {	writeObj(writeStream, (void*)fout, js);
 }
 
 static void writeCstr(void *context, const char *str)
 {	csc_str_append((csc_str_t*)context, str);
 }
-void csc_json_writeCstr(csc_json_t *js, csc_str_t *cstr)
+void csc_json_writeCstr(const csc_json_t *js, csc_str_t *cstr)
 {	writeObj(writeCstr, (void*)cstr, js);
 }
 
 
 
+#if 0
 void main(int argc, char **argv)
 {	csc_jsonErr_t errNum;
 	csc_json_t *js = csc_json_new();
-
+ 
 	csc_json_addInt(js, "fred", 7);
 	csc_json_addInt(js, "mark", 37);
-
+ 
 	csc_jsonArr_t *jas = csc_jsonArr_new();
 	csc_jsonArr_apndInt(jas, 11);
 	csc_jsonArr_apndInt(jas, 12);
 	csc_jsonArr_apndInt(jas, 13);
 	csc_json_addArr(js, "pvalues", jas);
-
+ 
 	csc_json_addFloat(js, "freda", 7.1);
 	csc_json_addNull(js, "lucy");
-
+ 
 	csc_json_t *jane = csc_json_new();
 	csc_json_addFloat(jane, "height", 1.45);
 	csc_json_addFloat(jane, "weight", 31.5);
 	csc_json_addObj(js, "pvalues", jane);
-
+ 
 	csc_json_addBool(js, "Fido", csc_FALSE);
 	csc_json_addStr(js, "Rover", "RoverS");
  
@@ -540,7 +618,7 @@ void main(int argc, char **argv)
 	printf("\"%s\" %d\n", rover, errNum);
 	const char *bo = csc_json_getStr(js, "Bo", &errNum);
 	printf("\"%s\" %d\n\n", bo, errNum);
-
+ 
 	csc_json_writeStream(js, stdout);
 	csc_str_t *cjs = csc_str_new(NULL);
 	csc_json_writeCstr(js, cjs);
@@ -550,4 +628,4 @@ void main(int argc, char **argv)
 	csc_json_free(js);
 	exit(0);
 }
-
+#endif

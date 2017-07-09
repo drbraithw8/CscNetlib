@@ -47,8 +47,8 @@ void csc_jsonArr_free(csc_jsonArr_t *ja);
 
 //------- Input and output -------------
 
-void csc_json_writeCstr(csc_json_t *js, csc_str_t *cstr);
-void csc_json_writeStream(csc_json_t *js, FILE *fout);
+void csc_json_writeCstr(const csc_json_t *js, csc_str_t *cstr);
+void csc_json_writeStream(const csc_json_t *js, FILE *fout);
 
 
 
@@ -83,74 +83,74 @@ void csc_json_addArr(csc_json_t *js, char *name, csc_jsonArr_t *arr);
 
 // Get the type of an element of a JSON object.
 // Returns csc_jsonType_Missing if no such element.
-csc_jsonType_t csc_json_getType(csc_json_t *js, char *name);
+csc_jsonType_t csc_json_getType(const csc_json_t *js, char *name);
 
 // Get a string value from a JSON object.
 // The caller may inspect, but not alter or free the returned string.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
-const char *csc_json_getStr(csc_json_t *js, char *name, csc_jsonErr_t *errNum);
+const char *csc_json_getStr(const csc_json_t *js, char *name, csc_jsonErr_t *errNum);
 
 // Get a boolean value from a JSON object.
 // Returns FALSE if returned errNum is not csc_jsonErr_Ok.
-csc_bool_t csc_json_getBool(csc_json_t *js, char *name, csc_jsonErr_t *errNum);
+csc_bool_t csc_json_getBool(const csc_json_t *js, char *name, csc_jsonErr_t *errNum);
 
 // Get an integer value from a JSON object.
 // Returns 0 if returned errNum is not csc_jsonErr_Ok.
-int csc_json_getInt(csc_json_t *js, char *name, csc_jsonErr_t *errNum);
+int csc_json_getInt(const csc_json_t *js, char *name, csc_jsonErr_t *errNum);
 
 // Get a floating value from a JSON object.
 // Returns 0 if returned errNum is not csc_jsonErr_Ok.
-double csc_json_getFloat(csc_json_t *js, char *name, csc_jsonErr_t *errNum);
+double csc_json_getFloat(const csc_json_t *js, char *name, csc_jsonErr_t *errNum);
 
 // Get a JSON child object from a JSON object.
 // The caller may inspect, but not alter or free the returned object.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
-const csc_json_t *csc_json_getObj(csc_json_t *js, char *name, csc_jsonErr_t *errNum);
+const csc_json_t *csc_json_getObj(const csc_json_t *js, char *name, csc_jsonErr_t *errNum);
 
 // Get a JSON array from a JSON object.
 // The caller may inspect, but not alter or free the returned array.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
-const csc_jsonArr_t *csc_json_getArr(csc_json_t *js, char *name, csc_jsonErr_t *errNum);
+const csc_jsonArr_t *csc_json_getArr(const csc_json_t *js, char *name, csc_jsonErr_t *errNum);
 
 //------- Get by index from a JSON object -------------
 
 // Get the number of elements in a JSON object.
-int csc_json_length(csc_json_t *js);
+int csc_json_length(const csc_json_t *js);
 
 // Get the name of nth element of a JSON object.
 // Returns NULL if no such element.
-const char *csc_json_ndxName(csc_json_t *js, int ndx);
+const char *csc_json_ndxName(const csc_json_t *js, int ndx);
 
 // Get the type of nth element of a JSON object.
 // Returns NULL if no such element.
-csc_jsonType_t csc_json_ndxType(csc_json_t *js, int ndx);
+csc_jsonType_t csc_json_ndxType(const csc_json_t *js, int ndx);
 
 // Get a string value from a JSON object.
 // The caller may inspect, but not alter or free the returned string.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
-const char *csc_json_ndxStr(csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
+const char *csc_json_ndxStr(const csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
 
 // Get a boolean value from a JSON object.
 // Returns FALSE if returned errNum is not csc_jsonErr_Ok.
-csc_bool_t csc_json_ndxBool(csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
+csc_bool_t csc_json_ndxBool(const csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
 
 // Get an integer value from a JSON object.
 // Returns 0 if returned errNum is not csc_jsonErr_Ok.
-int csc_json_ndxInt(csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
+int csc_json_ndxInt(const csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
 
 // Get a floating value from a JSON object.
 // Returns 0 if returned errNum is not csc_jsonErr_Ok.
-double csc_json_ndxFloat(csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
+double csc_json_ndxFloat(const csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
 
 // Get a JSON child object from a JSON object.
 // The caller may inspect, but not alter or free the returned object.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
-const csc_json_t *csc_json_ndxObj(csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
+const csc_json_t *csc_json_ndxObj(const csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
 
 // Get a JSON array from a JSON object.
 // The caller may inspect, but not alter or free the returned array.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
-const csc_jsonArr_t *csc_json_ndxArr(csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
+const csc_jsonArr_t *csc_json_ndxArr(const csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
 
 //------- Append to a JSON array -------------
 
@@ -182,37 +182,37 @@ void csc_jsonArr_apndArr(csc_jsonArr_t *parent, csc_jsonArr_t *child);
 //------- Get from a JSON array -------------
 
 // Get the number of elements in a JSON array.
-int csc_jsonArr_length(csc_jsonArr_t *jas);
+int csc_jsonArr_length(const csc_jsonArr_t *jas);
 
 // Get the type of nth element of a JSON object.
 // Returns csc_jsonType_Missing if no such element.
-csc_jsonType_t csc_jsonArr_getType(csc_jsonArr_t *jas, int ndx);
+csc_jsonType_t csc_jsonArr_getType(const csc_jsonArr_t *jas, int ndx);
 
 // Get a string value from a JSON array.
 // The caller may inspect, but not alter or free the returned string.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
-const char *csc_jsonArr_getStr(csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum);
+const char *csc_jsonArr_getStr(const csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum);
 
 // Get a boolean value from a JSON array.
 // Returns FALSE if returned errNum is not csc_jsonErr_Ok.
-csc_bool_t csc_jsonArr_getBool(csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum);
+csc_bool_t csc_jsonArr_getBool(const csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum);
 
 // Get an integer value from a JSON array.
 // Returns 0 if returned errNum is not csc_jsonErr_Ok.
-int csc_jsonArr_getInt(csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum);
+int csc_jsonArr_getInt(const csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum);
 
 // Get a floating value from a JSON array.
 // Returns 0 if returned errNum is not csc_jsonErr_Ok.
-double csc_jsonArr_getFloat(csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum);
+double csc_jsonArr_getFloat(const csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum);
 
 // Get a JSON object from a JSON array.
 // The caller may inspect, but not alter or free the returned object.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
-const csc_json_t *csc_jsonArr_getObj(csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum);
+const csc_json_t *csc_jsonArr_getObj(const csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum);
 
 // Get a JSON child array from a JSON parent array.
 // The caller may inspect, but not alter or free the returned array.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
-const csc_jsonArr_t *csc_jsonArr_getArr(csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum);
+const csc_jsonArr_t *csc_jsonArr_getArr(const csc_jsonArr_t *jas, int ndx, csc_jsonErr_t *errNum);
 
 
