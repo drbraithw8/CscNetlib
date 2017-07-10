@@ -11,6 +11,7 @@ typedef enum csc_jsonErr_e
 ,	csc_jsonErr_Missing   // Requested element not there.
 ,	csc_jsonErr_WrongType  // e.g. Requested int is a float.
 ,	csc_jsonErr_OutOfRange  // Too big or too small.
+,	csc_jsonErr_Expected  // Expected something else while parsing.
 } csc_jsonErr_t;
 
 

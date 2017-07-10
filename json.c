@@ -17,13 +17,11 @@ typedef union val_u
 	csc_jsonArr_t *aVal;
 } val_t;
 
-
 typedef struct elem_s
 {	csc_jsonType_t type;
 	char *name;
 	val_t val;
 } elem_t;
-
 
 typedef struct csc_json_s
 {   elem_t *els;  
@@ -31,85 +29,7 @@ typedef struct csc_json_s
     int mEls;
 } csc_json_t;
 
-
 typedef void (*writeStr_t)(void *context, const char *str);
-typedef int (*readChar_t)(void *context);
-
-
-// Class to that can read single chars from a string.
-typedef struct readCharStr_s
-{	const char *str;
-	const char *p;
-} readCharStr_t;
-readCharStr_t *readCharStr_new(const char *str)
-{	readCharStr_t *rcs = csc_allocOne(readCharStr_t);
-	rcs->str = str;
-	rcs->p = str;
-}
-void readCharStr_free(readCharStr_t *rcs)
-{	free(rcs);
-}
-int readCharStr_getc(readCharStr_t *rcs)
-{	int ch = *rcs->p++;
-	if (ch == '\0')
-	{	rcs->p--;
-		return EOF;
-	}
-	else
-		return ch;
-}
-
-// Class to that can read single chars from whatever.
-typedef struct readCharAny_s
-{	readChar_t readChar;
-	void *context;
-} readCharAny_t;
-readCharAny_t *readCharAny_new(readChar_t readChar, void *context)
-{	readCharAny_t *rca = csc_allocOne(readCharAny_t);
-	rca->readChar = readChar;
-	rca->context = context;
-}
-void readCharAny_free(readCharAny_t *rca)
-{	free(rca);
-}
-int readCharAny_getc(readCharAny_t *rca)
-{	return rca->readChar(rca->context);
-}
-
-
-// Reading from a string.
-int readCharStr(void *context)
-{	return readCharStr_getc((readCharStr_t*)context);
-}
-
-// Reading from a file.
-int readCharFile(void *context)
-{	return getc((FILE*)context);
-}
-
-
-void main(int argc, char **argv)
-{	int ch;
- 
-	// Test reading from a string.
-	{	char *testStr = "Hello from a string.\n";
-		readCharStr_t *rcs = readCharStr_new(testStr);
-		readCharAny_t *rca = readCharAny_new(readCharStr, (void*)rcs);
-		while ((ch=readCharAny_getc(rca)) != EOF)
-			putchar(ch);
-		readCharAny_free(rca);
-		readCharStr_free(rcs);
-	}
- 
-	// Test reading from a stream.
-	{	readCharAny_t *rca = readCharAny_new(readCharFile, (void*)stdin);
-		while ((ch=readCharAny_getc(rca)) != EOF)
-			putchar(ch);
-		readCharAny_free(rca);
-	}
- 
-	exit(0);
-}
 
 
 static void elem_free(elem_t *el)
@@ -504,8 +424,41 @@ static void writeBool(writeStr_t writer, void *context, csc_bool_t val)
 }
 
 static void writeStr(writeStr_t writer, void *context, const char *val)
-{	writer(context, "\"");
-	writer(context, val);
+{	char buf[2] = { '\0', '\0' };
+	const char *p = val;
+	char ch;
+	writer(context, "\"");
+	while ((ch=*p++) != '\0')
+	{	switch(ch)
+		{	case '\"':
+				writer(context, "\\\"");
+				break;
+			case '\\':
+				writer(context, "\\\\");
+				break;
+			case '/':
+				writer(context, "\\/");
+				break;
+			case '\n':
+				writer(context, "\\\n");
+				break;
+			case '\r':
+				writer(context, "\\\r");
+				break;
+			case '\f':
+				writer(context, "\\\f");
+				break;
+			case '\b':
+				writer(context, "\\\b");
+				break;
+			case '\t':
+				writer(context, "\\\b");
+				break;
+			default:
+				buf[0] = ch;
+				writer(context, buf);
+		}
+	}
 	writer(context, "\"");
 }
 
@@ -534,8 +487,9 @@ static void writeObj(writeStr_t writer, void *context, const csc_json_t *js)
 	elem_t *els = js->els;
 	writer(context, "{");
 	for (int i=0; i<nEls; i++)
-	{	writeStr(writer, context, els[i].name);
-		writer(context, ":");
+	{	writer(context, "\"");
+		writer(context, els[i].name);
+		writer(context, "\":");
 		writeEl(writer, context, &els[i]);
 		if (i < nEls-1)
 			writer(context, ",");
