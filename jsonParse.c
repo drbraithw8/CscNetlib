@@ -84,6 +84,8 @@ int readCharFile(void *context)
 typedef struct jsonParse_s
 {	char *errStr;
 	csc_jsonErr_t errNo;
+	int charPos;
+	int lineNo;
 	readCharAny_t rca;
 	int ch;
 } jsonParse_t;
@@ -94,6 +96,8 @@ jsonParse_t *jsonParse_new(readCharAny_t rca)
 	jsp->errNo = csc_jsonErr_Ok;
 	jsp->rca = rca;
 	jsp->ch = ' ';
+	jsp->charPos = 0;
+	jsp->lineNo = 1;
 	return jsp;
 }
 
@@ -107,9 +111,15 @@ const char *jsonParse_getReason(jsonParse_t *jsp)
 {	return jsp->errStr;
 }
 
-void jsonParse_nextChar(jsonParse_t *jsp)
-{	if (jsp->ch != -1)
-		jsp->ch = readCharAny_getc(jsp->rca);
+int jsonParse_nextChar(jsonParse_t *jsp)
+{	int ch;
+	if (jsp->ch != EOF)
+	{	ch = jsp->ch = readCharAny_getc(jsp->rca);
+		if (ch == '\n')
+			jsp->lineNo++;
+		jsp->charPos++;
+	}
+	return ch;
 }
 
 void jsonParse_skipSpace(jsonParse_t *jsp)
@@ -131,10 +141,9 @@ csc_bool_t jsonParse_readNum(jsonParse_t *jsp, elem_t *el)
 			case '5': case '6': case '7': case '8': case '9': 
 			case '-': case '+': case '.': case 'e': case 'E':
 				csc_str_append_ch(numStr, ch);
-				ch = readCharAny_getc(jsp->rca);
+				ch = jsonParse_nextChar(jsp);
 				break;
 			default:
-				jsp->ch = ch;
 				isContinue = csc_FALSE;
 		}
 	}
@@ -177,10 +186,9 @@ csc_bool_t jsonParse_readPlainWord(jsonParse_t *jsp, elem_t *el)
 		{	case 't': case 'r': case 'u': case 'e': case 'f':
 			case 'a': case 'l': case 's': case 'n':
 				csc_str_append_ch(wordStr, ch);
-				ch = readCharAny_getc(jsp->rca);
+				ch = jsonParse_nextChar(jsp);
 				break;
 			default:
-				jsp->ch = ch;
 				isContinue = csc_FALSE;
 		}
 	}
@@ -214,18 +222,55 @@ csc_bool_t jsonParse_readPlainWord(jsonParse_t *jsp, elem_t *el)
 }
 
 
+int jsonParse_readHexStr(jsonParse_t *jsp, char *hexStr, int hexStrMaxLen)
+{	int ch;
+	int n;
+ 
+// Assumes that first hex digit has not yet been read in.
+	ch = jsonParse_nextChar(jsp);
+ 
+// Read in the string.
+	n = 0;
+	while (n<hexStrMaxLen && isxdigit(ch))
+	{	hexStr[n++] = ch;
+		ch = jsonParse_nextChar(jsp);
+	}
+	hexStr[n] = '\0';
+ 
+// Skip past any more hex digits.
+	while (isxdigit(ch))
+	{	n++;
+		ch = jsonParse_nextChar(jsp);
+	}
+ 
+// Bye.
+	return n;
+}
+
+
 csc_bool_t jsonParse_readString(jsonParse_t *jsp, elem_t *el)
 {	csc_bool_t isContinue = csc_TRUE;
 	csc_str_t *cStr = csc_str_new();
-	csc_bool_t retVal;
+	csc_bool_t isOK = csc_TRUE;
+	csc_bool_t isContinue = csc_TRUE;
 	int ch;
  
 // Read past the initial quote.
-	ch = readCharAny_getc(jsp->rca);
-	while (ch!=-1 && ch!='\"')
-	{	
-		if (ch == '\\')
-		{	ch = readCharAny_getc(jsp->rca);
+	assert(jsp->ch == '\"');
+	ch = jsonParse_nextChar(jsp);
+ 
+// Read in the string.
+	while (isContinue)
+	{	if (ch == '\"')
+		{	isContinue = FALSE;
+			ch = jsonParse_nextChar(jsp);
+		}
+		else if (ch == EOF)
+		{	isContinue = FALSE;
+			isOK = FALSE;
+		}
+		else if (ch == '\\')
+		{	ch = jsonParse_nextChar(jsp);
 			switch(ch)
 			{	case '\"':
 					csc_str_append_ch(cStr, ch);
@@ -252,17 +297,45 @@ csc_bool_t jsonParse_readString(jsonParse_t *jsp, elem_t *el)
 					csc_str_append_ch(cStr, '\t');
 					break;
 				case 'u':
-	
-
-"truefalsn
+				{	const int HexStrMaxLen = 4;
+					char hexStr[HexStrMaxLen+1];
+					int nHexDigits = jsonParse_readHexStr(jsp, hexStr, HexStrMaxLen);
+					if (nHexDigits == 4)
+					{  // Convert to UTF-8.
+					}
+					else
+					{	// Hmmm.
+					}
+					csc_str_append(cStr, '$@$');  // Until this part is implemented.
+					break;
+				}
+				case EOF:
+					break;
+				default:
+					csc_str_append_ch(cStr, ch);
+					break;
+			}
+		}
+		else
+		{	csc_str_append_ch(cStr, ch);
+		}
+	}
+ 
+// Assign the result.
+	if (isOK)
+		el->val->sVal = csc_alloc_str(csc_str_charr(cStr));
+	else
+		el->val->sVal = NULL;
+ 
+// Free resources.
+	csc_str_free(cStr);
+ 
+// Return the result.
+	return isOK;
 }
 
 
-	
-				
-				
-	
-//
+		
 
 
 
