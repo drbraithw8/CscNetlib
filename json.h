@@ -50,7 +50,7 @@ void csc_jsonArr_free(csc_jsonArr_t *ja);
 //------- Input and output -------------
 
 void csc_json_writeCstr(const csc_json_t *js, csc_str_t *cstr);
-void csc_json_writeStream(const csc_json_t *js, FILE *fout);
+void csc_json_writeFILE(const csc_json_t *js, FILE *fout);
 
 
 

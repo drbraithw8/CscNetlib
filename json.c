@@ -546,11 +546,11 @@ static void writeArr(writeStr_t writer, void *context, const csc_jsonArr_t *jas)
 }
 
 
-static void writeStream(void *context, const char *str)
+static void writeFILE(void *context, const char *str)
 {	fprintf((FILE*)context, "%s", str);
 }
-void csc_json_writeStream(const csc_json_t *js, FILE *fout)
-{	writeObj(writeStream, (void*)fout, js);
+void csc_json_writeFILE(const csc_json_t *js, FILE *fout)
+{	writeObj(writeFILE, (void*)fout, js);
 }
 
 static void writeCstr(void *context, const char *str)
@@ -1157,7 +1157,7 @@ void main(int argc, char **argv)
 		printf("line:\"%d\"\n", csc_json_getErrLinePos(js));
 	}
 	else
-	{	csc_json_writeStream(js, stdout);
+	{	csc_json_writeFILE(js, stdout);
 	}
 	csc_json_free(js);
 	fprintf(stdout, "\n");
@@ -1235,7 +1235,7 @@ void main(int argc, char **argv)
 	const char *bo = csc_json_getStr(js, "Bo", &errNum);
 	printf("\"%s\" %d\n\n", bo, errNum);
  
-	csc_json_writeStream(js, stdout);
+	csc_json_writeFILE(js, stdout);
 	csc_str_t *cjs = csc_str_new(NULL);
 	csc_json_writeCstr(js, cjs);
 	printf("\n%s\n\n", csc_str_charr(cjs));
