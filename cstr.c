@@ -46,7 +46,7 @@ csc_str_t *csc_str_new(const char *str)
         this->nchars = strlen(str);
  
 // Allocate chars for the string. 
-    this->mchars = this->nchars;
+    this->mchars = this->nchars + 8;
     this->mchars |= 7;  // Round up - Use that which would be wasted. 
     this->chars = (char*)alloc((this->mchars + 1) * sizeof(char));  // '\0'. 
  
@@ -98,7 +98,8 @@ void csc_str_append_ch(csc_str_t *this, char ch)
  
 // Allocate chars for the string. 
     if (this->mchars < new_len)
-    {   this->mchars = this->mchars * 2 + 1;
+    {   this->mchars = this->mchars * 2 + 10;
+		this->mchars |= 7;  // Round up - Use that which would be wasted. 
         this->chars = (char*)realloc(this->chars, (this->mchars+1)*sizeof(char));
         if (this->chars == NULL)
         {   error_handle("Memory allocation failure");
@@ -126,11 +127,11 @@ void csc_str_append(csc_str_t *this, const char *str)
  
 // Allocate chars for the string. 
     if (this->mchars < new_len)
-    {   this->mchars = this->mchars * 2 + 1;
+    {   this->mchars = this->mchars * 2 + 10;
         if (this->mchars < new_len)
         {   this->mchars = new_len;
-            this->mchars |= 7;  // Round up - Use that which would be wasted. 
         }
+		this->mchars |= 7;  // Round up - Use that which would be wasted. 
         this->chars = (char*)realloc(this->chars, (this->mchars+1)*sizeof(char));
         if (this->chars == NULL)
         {   error_handle("Memory allocation failure");

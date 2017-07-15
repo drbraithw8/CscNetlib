@@ -11,7 +11,7 @@ typedef enum csc_jsonErr_e
 ,	csc_jsonErr_Missing   // Requested element not there.
 ,	csc_jsonErr_WrongType  // e.g. Requested int is a float.
 ,	csc_jsonErr_OutOfRange  // Too big or too small.
-,	csc_jsonErr_Expected  // Expected something else while parsing.
+,	csc_jsonErr_BadParse  // Expected something else while parsing.
 } csc_jsonErr_t;
 
 
@@ -34,7 +34,8 @@ typedef enum csc_jsonType_e
 csc_json_t *csc_json_new();
 
 // Create an empty JSON object by reading one from an input stream.
-csc_json_t *csc_json_newParse(FILE *fin);
+csc_json_t *csc_json_newParseFILE(FILE *fin);
+csc_json_t *csc_json_newParseStr(const char *str);
 
 // Release a JSON object.
 void csc_json_free(csc_json_t *js);
