@@ -5,7 +5,6 @@
 int main(int argc, char **argv)
 {   csc_srv_t *ntp = NULL;
     int fd = -1;
-    FILE *fin = NULL;
     char line[MaxLineLen+1];
  
 // Create netSrv object.
@@ -15,10 +14,11 @@ int main(int argc, char **argv)
 // For each successful connection.
     while ((fd = csc_srv_accept(ntp)) >= 0)
     {   fprintf(stdout, "Connection from %s\n", csc_srv_acceptAddr(ntp));
-        fin = fdopen(fd, "r");
-        csc_fgetline(fin,line,MaxLineLen);
+        FILE *tcpStream = fdopen(fd, "r+");
+        csc_fgetline(tcpStream,line,MaxLineLen);
         fprintf(stdout, "Got line: \"%s\"\n", line);
-        fclose(fin);
+		fprintf(tcpStream, "You said \"%s\"\n", line);
+        fclose(tcpStream);
     }
  
     csc_srv_free(ntp);

@@ -27,7 +27,7 @@
 	fi
 
 cp std.h isvalid.h iniFile.h logger.h netCli.h netSrv.h servBase.h \
-   fileProperties.h cstr.h alloc.h list.h signal.h $INCDIR
+   fileProperties.h cstr.h alloc.h list.h signal.h json.h $INCDIR
 cp libCscNet.a $LIBDIR
 
 

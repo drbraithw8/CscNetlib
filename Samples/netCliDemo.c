@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 
 // Data to send.
     const char *sendData[] = 
-    { "GET /index.html HTTP/1.1"
+    { "HEAD /index.html HTTP/1.1"
     , "Host: localhost" 
     , "Connection: close" 
     , "" 

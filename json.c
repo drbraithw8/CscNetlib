@@ -1,3 +1,6 @@
+// Author: Dr Stephen Braithwaite.
+// This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
+
 #include <stdio.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -255,6 +258,23 @@ csc_jsonType_t csc_json_getType(const csc_json_t *js, char *name)
 		return csc_jsonType_Missing;
 	else
 		return el->type;
+}
+csc_jsonType_t csc_json_ndxType(const csc_json_t *js, int ndx)
+{	elem_t *el = findByIndex(js, ndx);
+	if (el == NULL)
+		return csc_jsonType_Missing;
+	else
+		return el->type;
+}
+csc_jsonType_t csc_jsonArr_getType(const csc_jsonArr_t *jas, int ndx)
+{	return csc_json_ndxType((const csc_json_t *)jas, ndx);
+}
+const char *csc_json_ndxName(const csc_json_t *js, int ndx)
+{	elem_t *el = findByIndex(js, ndx);
+	if (el == NULL)
+		return NULL;
+	else
+		return el->name;
 }
 
 
@@ -1121,7 +1141,7 @@ static csc_json_t *jsonParse_readObj(jsonParse_t *jsp)
 // Return result.
 	return obj;
 }
-			
+
 
 csc_json_t *csc_json_newParseStr(const char *str)
 {
@@ -1144,25 +1164,44 @@ csc_json_t *csc_json_newParseStr(const char *str)
 }
 
 
-void main(int argc, char **argv)
-{	char *str = "{ name: \"fred\", age: 23, isMale:false, mary:null\n"
-				", stats:{ height: 45, weight:35.45}\n"
-				", tharr:[ 1, \"ksd\\\"jf\", {}, false ]\n"
-				"}";
-	csc_json_t *js = csc_json_newParseStr(str);
-	const char *errStr = csc_json_getErrStr(js);
-	if (errStr)
-	{	printf("Error:\"%s\"\n", errStr);
-		printf("\t position:\"%d\"  ", csc_json_getErrPos(js));
-		printf("line:\"%d\"\n", csc_json_getErrLinePos(js));
-	}
-	else
-	{	csc_json_writeFILE(js, stdout);
-	}
-	csc_json_free(js);
-	fprintf(stdout, "\n");
-	exit(0);
+csc_json_t *csc_json_newParseFILE(FILE *fin)
+{
+// Allocate resources.
+	readCharAny_t *rca = readCharAny_new(readCharFile, (void*)fin);
+	jsonParse_t *jsp = jsonParse_new(rca);
+ 
+// Parse the object.
+	jsonParse_skipSpace(jsp);
+	csc_json_t *js = jsonParse_readObj(jsp);
+ 
+// Free resources.
+	jsonParse_free(jsp);
+	readCharAny_free(rca);
+ 
+// Return.
+	return js;
 }
+
+
+// void main(int argc, char **argv)
+// {	char *str = "{ name: \"fred\", age: 23, isMale:false, mary:null\n"
+// 				", stats:{ height: 45, weight:35.45}\n"
+// 				", tharr:[ 1, \"ksd\\\"jf\", {}, false ]\n"
+// 				"}";
+// 	csc_json_t *js = csc_json_newParseStr(str);
+// 	const char *errStr = csc_json_getErrStr(js);
+// 	if (errStr)
+// 	{	printf("Error:\"%s\"\n", errStr);
+// 		printf("\t position:\"%d\"  ", csc_json_getErrPos(js));
+// 		printf("line:\"%d\"\n", csc_json_getErrLinePos(js));
+// 	}
+// 	else
+// 	{	csc_json_writeFILE(js, stdout);
+// 	}
+// 	csc_json_free(js);
+// 	fprintf(stdout, "\n");
+// 	exit(0);
+// }
 
 
 // void main(int argc, char **argv)

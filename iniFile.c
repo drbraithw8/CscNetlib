@@ -49,7 +49,7 @@ void csc_ini_free(csc_ini_t *ini)
 }
 
 
-const char *csc_ini_getStr(csc_ini_t *ini, const char *section, const char *ident)
+const char *csc_ini_getStr(const csc_ini_t *ini, const char *section, const char *ident)
 {   char *key;
     char *value;
  
@@ -66,7 +66,7 @@ const char *csc_ini_getStr(csc_ini_t *ini, const char *section, const char *iden
 }
 
 
-char *csc_ini_getAllocStr(csc_ini_t *ini, const char *section, const char *ident)
+char *csc_ini_getAllocStr(const csc_ini_t *ini, const char *section, const char *ident)
 {   char *key;
     char *value;
  
