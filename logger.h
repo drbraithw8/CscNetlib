@@ -16,10 +16,10 @@ typedef enum
     csc_log_FATAL    // An error condition, and the server cannot continue.
 } csc_log_level_t;
 
-// Constructor.  Returns a new logger object.  'path' is the file path of
+// Constructor.  Returns a new logger object on success.  'path' is the file path of
 // the log file.  'logLevel' is the logging threshold.  Logging entries in
 // the log file are only logged if their logLevels are greater or equal to
-// 'logLevel'.
+// 'logLevel'.  Returns NULL if logging cannot be initiated.
 csc_log_t *csc_log_new(const char *path, csc_log_level_t logLevel);
 
 
