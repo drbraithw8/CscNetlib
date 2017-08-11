@@ -33,6 +33,8 @@ typedef enum csc_jsonType_e
 
 //------- Constructor and Desctructor -------------
 
+// ... Constructors ...
+
 // Create an empty JSON object.
 csc_json_t *csc_json_new();
 
@@ -42,8 +44,24 @@ csc_json_t *csc_json_newParseFILE(FILE *fin);
 // Create a JSON object by reading one from an input string.
 csc_json_t *csc_json_newParseStr(const char *str);
 
+// ... Error feedback ...
+
+// Gets a description of error.
+// Return NULL on no error.
+const char *csc_json_getErrStr(csc_json_t *js);
+
+// Gets line number of error.
+int csc_json_getErrLinePos(csc_json_t *js);
+
+// Gets the character position of error.
+int csc_json_getErrPos(csc_json_t *js);
+
+// ... Destructor ...
+
 // Release a JSON object.
 void csc_json_free(csc_json_t *js);
+
+// ... JSON array.
 
 // Create empty JSON array.
 csc_jsonArr_t *csc_jsonArr_new();

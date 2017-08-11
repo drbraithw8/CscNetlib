@@ -93,7 +93,7 @@ void csc_json_free(csc_json_t *js)
 	// Free the elements.
 		free(els);
 	}
-
+ 
 // Release error messages.
 	if (js->errStr)
 		free(js->errStr);
