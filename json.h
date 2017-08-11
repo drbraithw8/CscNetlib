@@ -36,8 +36,10 @@ typedef enum csc_jsonType_e
 // Create an empty JSON object.
 csc_json_t *csc_json_new();
 
-// Create an empty JSON object by reading one from an input stream.
+// Create a JSON object by reading one from an input stream.
 csc_json_t *csc_json_newParseFILE(FILE *fin);
+
+// Create a JSON object by reading one from an input string.
 csc_json_t *csc_json_newParseStr(const char *str);
 
 // Release a JSON object.
@@ -52,9 +54,11 @@ void csc_jsonArr_free(csc_jsonArr_t *ja);
 
 //------- Input and output -------------
 
+// Write a JSON object to a string.
 void csc_json_writeCstr(const csc_json_t *js, csc_str_t *cstr);
-void csc_json_writeFILE(const csc_json_t *js, FILE *fout);
 
+// Write a JSON object to a stream.
+void csc_json_writeFILE(const csc_json_t *js, FILE *fout);
 
 
 //------- Add to a JSON object -------------
@@ -92,6 +96,7 @@ csc_jsonType_t csc_json_getType(const csc_json_t *js, char *name);
 
 // Get a string value from a JSON object.
 // The caller may inspect, but not alter or free the returned string.
+// Returned value is freed and becomes invalid if JSON object is freed.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
 const char *csc_json_getStr(const csc_json_t *js, char *name, csc_jsonErr_t *errNum);
 
@@ -109,11 +114,13 @@ double csc_json_getFloat(const csc_json_t *js, char *name, csc_jsonErr_t *errNum
 
 // Get a JSON child object from a JSON object.
 // The caller may inspect, but not alter or free the returned object.
+// Returned JSON object is freed and becomes invalid if the parent JSON object is freed.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
 const csc_json_t *csc_json_getObj(const csc_json_t *js, char *name, csc_jsonErr_t *errNum);
 
 // Get a JSON array from a JSON object.
 // The caller may inspect, but not alter or free the returned array.
+// Returned value is freed and becomes invalid if JSON object is freed.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
 const csc_jsonArr_t *csc_json_getArr(const csc_json_t *js, char *name, csc_jsonErr_t *errNum);
 
@@ -149,11 +156,13 @@ double csc_json_ndxFloat(const csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
 
 // Get a JSON child object from a JSON object.
 // The caller may inspect, but not alter or free the returned object.
+// Returned value is freed and becomes invalid if parent JSON object is freed.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
 const csc_json_t *csc_json_ndxObj(const csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
 
 // Get a JSON array from a JSON object.
 // The caller may inspect, but not alter or free the returned array.
+// Returned value is freed and becomes invalid if JSON object is freed.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
 const csc_jsonArr_t *csc_json_ndxArr(const csc_json_t *js, int ndx, csc_jsonErr_t *errNum);
 
