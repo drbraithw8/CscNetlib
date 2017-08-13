@@ -10,7 +10,7 @@ typedef struct csc_json_s csc_json_t;
 
 typedef enum csc_jsonErr_e
 {	csc_jsonErr_Ok = 0
-,	csc_jsonErr_Null   // Requested element not there.
+,	csc_jsonErr_Null   // Requested element had null value.
 ,	csc_jsonErr_Missing   // Requested element not there.
 ,	csc_jsonErr_WrongType  // e.g. Requested int is a float.
 ,	csc_jsonErr_OutOfRange  // Too big or too small.
@@ -48,13 +48,13 @@ csc_json_t *csc_json_newParseStr(const char *str);
 
 // Gets a description of error.
 // Return NULL on no error.
-const char *csc_json_getErrStr(csc_json_t *js);
+const char *csc_json_getErrStr(const csc_json_t *js);
 
 // Gets line number of error.
-int csc_json_getErrLinePos(csc_json_t *js);
+int csc_json_getErrLinePos(const csc_json_t *js);
 
 // Gets the character position of error.
-int csc_json_getErrPos(csc_json_t *js);
+int csc_json_getErrPos(const csc_json_t *js);
 
 // ... Destructor ...
 

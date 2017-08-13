@@ -114,13 +114,13 @@ static void csc_json_setErr(csc_json_t *js, const char *errMsg, int errPos, int 
 	js->errPos = errPos;
 	js->errLinePos = errLinePos;
 }
-int csc_json_getErrPos(csc_json_t *js)
+int csc_json_getErrPos(const csc_json_t *js)
 {	return js->errPos;
 }
-int csc_json_getErrLinePos(csc_json_t *js)
+int csc_json_getErrLinePos(const csc_json_t *js)
 {	return js->errLinePos;
 }
-const char *csc_json_getErrStr(csc_json_t *js)
+const char *csc_json_getErrStr(const csc_json_t *js)
 {	return js->errStr;
 }
 
@@ -571,6 +571,7 @@ static void writeFILE(void *context, const char *str)
 }
 void csc_json_writeFILE(const csc_json_t *js, FILE *fout)
 {	writeObj(writeFILE, (void*)fout, js);
+	putc('\n', fout);
 }
 
 static void writeCstr(void *context, const char *str)
