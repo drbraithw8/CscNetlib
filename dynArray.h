@@ -34,7 +34,7 @@ parent ## _t * parent ## _new()                                                \
     El->els = NULL;                                                            \
     El->nEls = 0;                                                              \
     El->mEls = 0;                                                              \
-	return El;                                                                 \
+    return El;                                                                 \
 }                                                                              \
                                                                                \
 void  parent ## _add(parent ## _t *El, child ## _t *el)                        \
@@ -81,7 +81,7 @@ parent ## _t * parent ## _new()                                                \
     El->els = NULL;                                                            \
     El->nEls = 0;                                                              \
     El->mEls = 0;                                                              \
-	return El;                                                                 \
+    return El;                                                                 \
 }                                                                              \
                                                                                \
 void  parent ## _add(parent ## _t *El, child ## _t *el)                        \

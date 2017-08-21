@@ -17,7 +17,7 @@ int main(int argc, char **argv)
         FILE *tcpStream = fdopen(fd, "r+");
         csc_fgetline(tcpStream,line,MaxLineLen);
         fprintf(stdout, "Got line: \"%s\"\n", line);
-		fprintf(tcpStream, "You said \"%s\"\n", line);
+        fprintf(tcpStream, "You said \"%s\"\n", line);
         fclose(tcpStream);
     }
  

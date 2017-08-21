@@ -9,25 +9,25 @@ typedef struct csc_jsonArr_s csc_jsonArr_t;
 typedef struct csc_json_s csc_json_t;
 
 typedef enum csc_jsonErr_e
-{	csc_jsonErr_Ok = 0
-,	csc_jsonErr_Null   // Requested element had null value.
-,	csc_jsonErr_Missing   // Requested element not there.
-,	csc_jsonErr_WrongType  // e.g. Requested int is a float.
-,	csc_jsonErr_OutOfRange  // Too big or too small.
-,	csc_jsonErr_BadParse  // Expected something else while parsing.
+{   csc_jsonErr_Ok = 0
+,   csc_jsonErr_Null   // Requested element had null value.
+,   csc_jsonErr_Missing   // Requested element not there.
+,   csc_jsonErr_WrongType  // e.g. Requested int is a float.
+,   csc_jsonErr_OutOfRange  // Too big or too small.
+,   csc_jsonErr_BadParse  // Expected something else while parsing.
 } csc_jsonErr_t;
 
 
 typedef enum csc_jsonType_e
-{	csc_jsonType_Bad = 0
-,	csc_jsonType_Missing 
-,	csc_jsonType_Null
-,	csc_jsonType_Obj 
-,	csc_jsonType_Arr
-,	csc_jsonType_String
-,	csc_jsonType_Bool
-,	csc_jsonType_Int
-,	csc_jsonType_Float
+{   csc_jsonType_Bad = 0
+,   csc_jsonType_Missing 
+,   csc_jsonType_Null
+,   csc_jsonType_Obj 
+,   csc_jsonType_Arr
+,   csc_jsonType_String
+,   csc_jsonType_Bool
+,   csc_jsonType_Int
+,   csc_jsonType_Float
 } csc_jsonType_t;
 
 
