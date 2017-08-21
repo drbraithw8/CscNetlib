@@ -82,65 +82,65 @@ void csc_json_writeFILE(const csc_json_t *js, FILE *fout);
 //------- Add to a JSON object -------------
 
 // Add an element with no value to a JSON object.
-void csc_json_addNull(csc_json_t *js, char *name);
+void csc_json_addNull(csc_json_t *js, const char *name);
 
 // Add a string value to a JSON object.  This makes its own copy of the
 // string 'val'.
-void csc_json_addStr(csc_json_t *js, char *name, const char *val);
+void csc_json_addStr(csc_json_t *js, const char *name, const char *val);
 
 // Add a boolean value to a JSON object.
-void csc_json_addBool(csc_json_t *js, char *name, csc_bool_t val);
+void csc_json_addBool(csc_json_t *js, const char *name, csc_bool_t val);
 
 // Add an integer value to a JSON object.
-void csc_json_addInt(csc_json_t *js, char *name, int val);
+void csc_json_addInt(csc_json_t *js, const char *name, int val);
 
 // Add an floating value to a JSON object.
-void csc_json_addFloat(csc_json_t *js, char *name, double val);
+void csc_json_addFloat(csc_json_t *js, const char *name, double val);
 
 // Add a child JSON object to a parent JSON object.  After this call, the
 // parent OWNS the child, and freeing the parent will free the child.
-void csc_json_addObj(csc_json_t *parent, char *name, csc_json_t *child);
+void csc_json_addObj(csc_json_t *parent, const char *name, csc_json_t *child);
 
 // Add a JSON array to a JSON object.  After this call, the
 // object OWNS the child, and freeing the object will free the array.
-void csc_json_addArr(csc_json_t *js, char *name, csc_jsonArr_t *arr);
+void csc_json_addArr(csc_json_t *js, const char *name, csc_jsonArr_t *arr);
 
 
 //------- Get from a JSON object -------------
 
 // Get the type of an element of a JSON object.
 // Returns csc_jsonType_Missing if no such element.
-csc_jsonType_t csc_json_getType(const csc_json_t *js, char *name);
+csc_jsonType_t csc_json_getType(const csc_json_t *js, const char *name);
 
 // Get a string value from a JSON object.
 // The caller may inspect, but not alter or free the returned string.
 // Returned value is freed and becomes invalid if JSON object is freed.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
-const char *csc_json_getStr(const csc_json_t *js, char *name, csc_jsonErr_t *errNum);
+const char *csc_json_getStr(const csc_json_t *js, const char *name, csc_jsonErr_t *errNum);
 
 // Get a boolean value from a JSON object.
 // Returns FALSE if returned errNum is not csc_jsonErr_Ok.
-csc_bool_t csc_json_getBool(const csc_json_t *js, char *name, csc_jsonErr_t *errNum);
+csc_bool_t csc_json_getBool(const csc_json_t *js, const char *name, csc_jsonErr_t *errNum);
 
 // Get an integer value from a JSON object.
 // Returns 0 if returned errNum is not csc_jsonErr_Ok.
-int csc_json_getInt(const csc_json_t *js, char *name, csc_jsonErr_t *errNum);
+int csc_json_getInt(const csc_json_t *js, const char *name, csc_jsonErr_t *errNum);
 
 // Get a floating value from a JSON object.
 // Returns 0 if returned errNum is not csc_jsonErr_Ok.
-double csc_json_getFloat(const csc_json_t *js, char *name, csc_jsonErr_t *errNum);
+double csc_json_getFloat(const csc_json_t *js, const char *name, csc_jsonErr_t *errNum);
 
 // Get a JSON child object from a JSON object.
 // The caller may inspect, but not alter or free the returned object.
 // Returned JSON object is freed and becomes invalid if the parent JSON object is freed.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
-const csc_json_t *csc_json_getObj(const csc_json_t *js, char *name, csc_jsonErr_t *errNum);
+const csc_json_t *csc_json_getObj(const csc_json_t *js, const char *name, csc_jsonErr_t *errNum);
 
 // Get a JSON array from a JSON object.
 // The caller may inspect, but not alter or free the returned array.
 // Returned value is freed and becomes invalid if JSON object is freed.
 // Returns NULL if returned errNum is not csc_jsonErr_Ok.
-const csc_jsonArr_t *csc_json_getArr(const csc_json_t *js, char *name, csc_jsonErr_t *errNum);
+const csc_jsonArr_t *csc_json_getArr(const csc_json_t *js, const char *name, csc_jsonErr_t *errNum);
 
 //------- Get by index from a JSON object -------------
 
