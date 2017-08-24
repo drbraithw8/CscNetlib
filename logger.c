@@ -171,3 +171,16 @@ int csc_log_printf( csc_log_t *logger
     return csc_TRUE;
 }
 
+
+void csc_log_assertFail( csc_log_t *log
+                       , const char *fname
+                       , int lineNo
+                       , const char *expr
+                       )
+{   csc_log_printf( log, csc_log_FATAL
+                  , "Assertion failure (%s) in file \"%s\" at line %d" 
+                  , expr, fname, lineNo
+                  );
+    exit(1);
+}
+

@@ -75,7 +75,20 @@ int csc_log_printf( csc_log_t *logger
 // 
 // Setting the logging level back to NOTICE (e.g. in your configuration
 // file) would turn these trace logging statements off.
+
+
 #define csc_log_trace(log)  csc_log_printf(log, csc_log_TRACE, \
                         "Got to line %d in file %s", __LINE__, __FILE__)
+
+
+// Logger version of assert.
+#define csc_log_assert(log, a)  ( !(a) ? ( \
+   csc_log_assertFail(log, __FILE__, __LINE__, __func__, #a) , 0) : 0)  
+void csc_log_assertFail( csc_log_t *log
+                       , const char *fname
+                       , int lineNo
+                       , const char *expr
+                       );
+
 
 #endif
