@@ -39,9 +39,11 @@ typedef enum csc_jsonType_e
 csc_json_t *csc_json_new();
 
 // Create a JSON object by reading one from an input stream.
+// Returns NULL on EOF.
 csc_json_t *csc_json_newParseFILE(FILE *fin);
 
 // Create a JSON object by reading one from an input string.
+// Returns NULL on EOF.
 csc_json_t *csc_json_newParseStr(const char *str);
 
 // ... Error feedback ...

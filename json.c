@@ -480,8 +480,12 @@ static void writeBool(writeStr_t writer, void *context, csc_bool_t val)
 
 static void writeStr(writeStr_t writer, void *context, const char *val)
 {   char buf[2] = { '\0', '\0' };
-    const char *p = val;
+    const char *p;
     char ch;
+	if (val == NULL)
+		p = "(null)";
+	else
+		p = val;
     writer(context, "\"");
     while ((ch=*p++) != '\0')
     {   switch(ch)
@@ -538,16 +542,20 @@ static void writeEl(writeStr_t writer, void *context, const elem_t *el)
 }
 
 static void writeObj(writeStr_t writer, void *context, const csc_json_t *js)
-{   int nEls = js->nEls;
+{
+	int nEls = js->nEls;
     elem_t *els = js->els;
     writer(context, "{");
     for (int i=0; i<nEls; i++)
-    {   writer(context, "\"");
+    {   
+		writer(context, "\"");
         writer(context, els[i].name);
         writer(context, "\":");
         writeEl(writer, context, &els[i]);
         if (i < nEls-1)
+		{
             writer(context, ",");
+		}
     }
     writer(context, "}");
 }
@@ -570,7 +578,8 @@ static void writeFILE(void *context, const char *str)
 {   fprintf((FILE*)context, "%s", str);
 }
 void csc_json_writeFILE(const csc_json_t *js, FILE *fout)
-{   writeObj(writeFILE, (void*)fout, js);
+{  
+	writeObj(writeFILE, (void*)fout, js);
     putc('\n', fout);
 }
 
@@ -672,7 +681,6 @@ static int jsonParse_nextChar(jsonParse_t *jsp)
 {   int ch;
     if (jsp->ch != EOF)
     {   ch = jsp->ch = readCharAny_getc(jsp->rca);
-        // putc(ch, stderr); // csc_CKCK; // debugging.
         if (ch == '\n')
             jsp->lineNo++;
         jsp->charPos++;
@@ -962,7 +970,8 @@ static csc_bool_t jsonParse_readElem(jsonParse_t *jsp, elem_t *el)
     else if (ch == '{')
     {
         csc_json_t *obj = jsonParse_readObj(jsp);
-        if (csc_json_getErrStr(obj) == NULL)
+		assert(obj != NULL);
+        if (csc_json_getErrStr(obj)==NULL)
         {
             el->type = csc_jsonType_Obj; 
             el->val.oVal = obj;
@@ -978,6 +987,7 @@ static csc_bool_t jsonParse_readElem(jsonParse_t *jsp, elem_t *el)
     else if (ch == '[')
     {
         csc_jsonArr_t *arr = jsonParse_readArr(jsp);
+		assert(arr != NULL);
         if (csc_json_getErrStr((csc_json_t*)arr) == NULL)
         {
             el->type = csc_jsonType_Arr; 
@@ -1044,7 +1054,6 @@ static csc_jsonArr_t *jsonParse_readArr(jsonParse_t *jsp)
             }
             else
             {   csc_json_setErr((csc_json_t*)arr, "Expected comma or ending brace", jsp->charPos, jsp->lineNo);
-                csc_CKCK; printf("ch=\'%c\'\n", ch);
                 break;
             }
  
@@ -1061,13 +1070,30 @@ static csc_json_t *jsonParse_readObj(jsonParse_t *jsp)
 {   int isOK = csc_TRUE;    
     csc_bool_t isContinue = csc_TRUE;
  
-// Allocate resources.
-    csc_json_t *obj = csc_json_new();
-    csc_str_t *ident = csc_str_new(NULL);
+// Resources.
+    csc_json_t *obj = NULL;
+    csc_str_t *ident = NULL;
  
-// Assumes that we are looking at the opening brace of an object.
+// Get first character.
     int ch = jsp->ch;
-    assert(ch == '{');
+ 
+// Check for EOF.
+	if (ch == EOF)
+	{	return NULL;
+	}
+ 
+// Its not EOF, so we need to allocate.
+    obj = csc_json_new();
+    ident = csc_str_new(NULL);
+ 
+// Is it really an object.
+	if (ch != '{')
+	{	char errStr[99];
+		sprintf(errStr, "%s %d", "Expected Opening Brace.  Got char #", ch);
+		csc_json_setErr(obj, errStr, jsp->charPos, jsp->lineNo);
+		goto cleanup;
+	}
+ 
  
 // Look at next character.
     jsonParse_nextChar(jsp);
@@ -1121,7 +1147,6 @@ static csc_json_t *jsonParse_readObj(jsonParse_t *jsp)
             }
             else
             {   csc_json_setErr(obj, "Expected comma or ending brace", jsp->charPos, jsp->lineNo);
-                csc_CKCK; printf("ch=\'%c\'\n", ch);
                 break;
             }
  
@@ -1131,12 +1156,12 @@ static csc_json_t *jsonParse_readObj(jsonParse_t *jsp)
             csc_json_setErr( obj, "Expected ending brace or new identifier"
                            , jsp->charPos, jsp->lineNo
                            );
-                csc_CKCK; printf("ch=\'%c\'\n", ch);
             isContinue = csc_FALSE;
         }
     }
  
 // Free resources.
+cleanup:
     csc_str_free(ident);
  
 // Return result.
