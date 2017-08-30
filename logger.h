@@ -83,7 +83,7 @@ int csc_log_printf( csc_log_t *logger
 
 // Logger version of assert.
 #define csc_log_assert(log, a)  ( !(a) ? ( \
-   csc_log_assertFail(log, __FILE__, __LINE__, __func__, #a) , 0) : 0)  
+   csc_log_assertFail(log, __FILE__, __LINE__, #a) , 0) : 0)  
 void csc_log_assertFail( csc_log_t *log
                        , const char *fname
                        , int lineNo
