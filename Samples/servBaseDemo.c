@@ -83,7 +83,7 @@ int doConn( int fd            // client file descriptor
  
 // Open the FILE*
     fp = fdopen(fd, "rb+");
-    fprintf(stdout, "Connection from %s\n", clientIp);
+    csc_log_assert(log, fp!=NULL);
  
 // Read one line.
     csc_fgetline(fp,line,MaxLineLen);
