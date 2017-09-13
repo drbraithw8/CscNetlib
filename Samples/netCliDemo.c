@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <unistd.h>
 #include <CscNetLib/netCli.h>
 #include <CscNetLib/std.h>
 
@@ -9,20 +10,19 @@
 
 int main(int argc, char **argv)
 {   char line[LINE_MAX+1];
-    int fdes;
     int isFin;
-    FILE *fp;
     int lineNo;
-    csc_cli_t *ntp;
 
 // Make the connection.
-    ntp = csc_cli_new();
-    csc_cli_setServAddr(ntp, "TCP", "example.com", 80);
-    fdes = csc_cli_connect(ntp);
+    csc_cli_t *ntp = csc_cli_new();
+    int retVal = csc_cli_setServAddr(ntp, "TCP", "example.com", 80); assert(retVal);
+    int fdes0 = csc_cli_connect(ntp); assert(fdes0!=-1);
     csc_cli_free(ntp);
 
-// Make FILE* of file descriptor.
-    fp = fdopen(fdes, "r+");
+// Convert file descriptor to input and output streams.
+	int fdes1 = dup(fdes0);         assert(fdes1!=-1);
+    FILE *fin = fdopen(fdes0,"r");  assert(fin!=NULL);
+    FILE *fout = fdopen(fdes1,"w"); assert(fout!=NULL);
 
 // Data to send.
     const char *sendData[] = 
@@ -35,16 +35,16 @@ int main(int argc, char **argv)
 // Send a request.
     lineNo = 0;
     for (int i=0; i<csc_dim(sendData); i++)
-    {   fprintf(fp, "%s\n", sendData[i]);
+    {   fprintf(fout, "%s\n", sendData[i]);
         fprintf(stdout, "Sent %3d \"%s\"\n", ++lineNo, sendData[i]);
     }
-    fflush(fp);
+    fflush(fout);
 
 // Get the response.
     isFin = csc_FALSE;
     lineNo = 0;
     while(!isFin)
-    {   int lineLen = csc_fgetline(fp, line, LINE_MAX);
+    {   int lineLen = csc_fgetline(fin, line, LINE_MAX);
         if (lineLen < 0)
         {   printf("EOF\n");
             isFin = csc_TRUE;
@@ -56,7 +56,10 @@ int main(int argc, char **argv)
             // }
         }
     }
-    fclose(fp);
+
+// Close input and output streams.
+    fclose(fin);
+    fclose(fout);
 
 // Bye.
     exit(0);

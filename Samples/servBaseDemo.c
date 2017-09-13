@@ -4,6 +4,8 @@
 #include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <assert.h>
 #include <CscNetLib/std.h>
 #include <CscNetLib/logger.h>
 #include <CscNetLib/iniFile.h>
@@ -71,29 +73,32 @@ int doInit(csc_ini_t *conf, csc_log_t *log, void *local)
 }
 
  
-int doConn( int fd            // client file descriptor
+int doConn( int fd0            // client file descriptor
           , const char *clientIp   // IP of client, NULL if unknown.
           , csc_ini_t *conf // Configuration object.
           , csc_log_t *log  // Logging object.
           , void *local
           )
 {   boxDim_t *boxDim = local;
-    FILE *fp;
     char line[MaxLineLen+1];
  
-// Open the FILE*
-    fp = fdopen(fd, "rb+");
-    csc_log_assert(log, fp!=NULL);
+// Convert the file descriptor into FILE streams.
+	int fd1 = dup(fd0);           csc_log_assert(log, fd1!=-1);
+    FILE *fin = fdopen(fd0,"r");  csc_log_assert(log, fin!=NULL);
+    FILE *fout = fdopen(fd1,"w"); csc_log_assert(log, fout!=NULL);
  
 // Read one line.
-    csc_fgetline(fp,line,MaxLineLen);
+    csc_fgetline(fin,line,MaxLineLen);
     fprintf(stdout, "Got line: \"%s\"\n", line);
  
 // Respond.
-    fprintf(fp, "%f %f %f\n", boxDim->height, boxDim->width, boxDim->depth);
+    fprintf(fout, "%f %f %f\n", boxDim->height, boxDim->width, boxDim->depth);
  
+// Close the TCP streams.
+    fclose(fin);
+    fclose(fout);
+
 // Bye
-    fclose(fp);
     return 0;  // success.
 }
 
