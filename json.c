@@ -499,19 +499,19 @@ static void writeStr(writeStr_t writer, void *context, const char *val)
                 writer(context, "\\/");
                 break;
             case '\n':
-                writer(context, "\\\n");
+                writer(context, "\\n");
                 break;
             case '\r':
-                writer(context, "\\\r");
+                writer(context, "\\r");
                 break;
             case '\f':
-                writer(context, "\\\f");
+                writer(context, "\\f");
                 break;
             case '\b':
-                writer(context, "\\\b");
+                writer(context, "\\b");
                 break;
             case '\t':
-                writer(context, "\\\b");
+                writer(context, "\\t");
                 break;
             default:
                 buf[0] = ch;
