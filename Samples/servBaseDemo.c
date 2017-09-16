@@ -93,6 +93,7 @@ int doConn( int fd0            // client file descriptor
  
 // Respond.
     fprintf(fout, "%f %f %f\n", boxDim->height, boxDim->width, boxDim->depth);
+	fflush(fout);
  
 // Close the TCP streams.
     fclose(fin);

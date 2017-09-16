@@ -27,6 +27,7 @@ int main(int argc, char **argv)
         csc_fgetline(tcpIn,line,MaxLineLen);
         fprintf(stdout, "Got line: \"%s\"\n", line);
         fprintf(tcpOut, "You said \"%s\"\n", line);
+		fflush(tcpOut);
 
 	// Close the streams.
         fclose(tcpOut);
