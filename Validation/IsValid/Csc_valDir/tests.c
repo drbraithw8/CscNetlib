@@ -55,7 +55,7 @@ void main(int argc, char **argv)
 // csc_isValid_hex().
 	tr = testReport_new(csc_isValid_hex, "csc_isValid_hex");
 	testReport_test(tr, "emptyString", "", csc_FALSE);
-	testReport_test(tr, "single", "3", csc_FALSE);
+	testReport_test(tr, "single", "3", csc_TRUE);
 	testReport_test(tr, "pairBad", "3s", csc_FALSE);
 	testReport_test(tr, "pairGood1", "3f", csc_TRUE);
 	testReport_test(tr, "pairGood2", "3F", csc_TRUE);

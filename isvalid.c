@@ -107,6 +107,10 @@ csc_bool_t csc_isValid_ipV6(const char *str)
 csc_bool_t csc_isValid_domain(const char *str)
 {   int sLen=strlen(str);
     int segLen, i;
+
+// Reject the empty string.
+	if (csc_streq(str,""))
+       return csc_FALSE;
  
 // Look at the ends of the domain name.
     if ( str[0] == '.'
@@ -133,6 +137,10 @@ csc_bool_t csc_isValid_domain(const char *str)
         else
             return csc_FALSE; //invalid char...
     }
+
+// There should be at least two segments.
+	if (segLen == sLen)
+		return csc_FALSE;
  
     return csc_TRUE;
 }
