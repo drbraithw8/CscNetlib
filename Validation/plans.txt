@@ -26,10 +26,10 @@ Description of test run.
 		directory (not recursively), then it will be invoked.
 
 	*	Any files in this directory or its subdirectories recursively
-		matching the pattern "csc_testOut_*.txt" will be concatenated
+		matching the pattern "csc_testOut.txt" will be concatenated
 		into the main file for the test output.
 
 	*	Any files in this directory or its subdirectories recursively
-		matching the pattern "csc_testFails_*.txt" will be concatenated
+		matching the pattern "csc_testFails.txt" will be concatenated
 		into the main file for the test failures if it contains non-empty
 		lines.
