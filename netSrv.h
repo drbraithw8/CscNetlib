@@ -9,6 +9,8 @@
 #ifndef csc_SRV_H
 #define csc_SRV_H 1
 
+#include "std.h"
+
 typedef struct csc_srv_t csc_srv_t ;
 
 
@@ -59,7 +61,7 @@ const char *csc_srv_acceptAddr(csc_srv_t *srv);
 
 
 // Free up resources.
-void csc_srv_close(csc_srv_t *srv);
+void csc_srv_free(csc_srv_t *srv);
 
 
 // Returns a string representation of details of a previous error.  The

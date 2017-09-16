@@ -4,6 +4,8 @@
 #ifndef csc_NETCLI_H
 #define csc_NETCLI_H 1
 
+#include "std.h"
+
 typedef struct csc_cli_t csc_cli_t ;
 
 // Constructor.  Create new netCli object.  Returns pointer to object on
@@ -38,7 +40,7 @@ int csc_cli_connect(csc_cli_t *cli);
 
 
 // Destructor.  Cleans up memory associated with a netCli object.
-void csc_cli_close(csc_cli_t *cli);
+void csc_cli_free(csc_cli_t *cli);
 
 
 

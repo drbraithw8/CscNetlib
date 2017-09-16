@@ -16,10 +16,10 @@ typedef enum
     csc_log_FATAL    // An error condition, and the server cannot continue.
 } csc_log_level_t;
 
-// Constructor.  Returns a new logger object.  'path' is the file path of
+// Constructor.  Returns a new logger object on success.  'path' is the file path of
 // the log file.  'logLevel' is the logging threshold.  Logging entries in
 // the log file are only logged if their logLevels are greater or equal to
-// 'logLevel'.
+// 'logLevel'.  Returns NULL if logging cannot be initiated.
 csc_log_t *csc_log_new(const char *path, csc_log_level_t logLevel);
 
 
@@ -37,7 +37,7 @@ void csc_log_setIsShowPid(csc_log_t *logger, csc_bool_t isShow);
 
 
 // Destructor.
-void csc_log_close(csc_log_t *logger);
+void csc_log_free(csc_log_t *logger);
 
 
 // Create an entry in the log file with the message 'msg' if 'logLevel' is
@@ -75,7 +75,20 @@ int csc_log_printf( csc_log_t *logger
 // 
 // Setting the logging level back to NOTICE (e.g. in your configuration
 // file) would turn these trace logging statements off.
+
+
 #define csc_log_trace(log)  csc_log_printf(log, csc_log_TRACE, \
                         "Got to line %d in file %s", __LINE__, __FILE__)
+
+
+// Logger version of assert.
+#define csc_log_assert(log, a)  ( !(a) ? ( \
+   csc_log_assertFail(log, __FILE__, __LINE__, #a) , 0) : 0)  
+void csc_log_assertFail( csc_log_t *log
+                       , const char *fname
+                       , int lineNo
+                       , const char *expr
+                       );
+
 
 #endif

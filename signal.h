@@ -4,6 +4,8 @@
 #ifndef csc_SIGNAL_H
 #define csc_SIGNAL_H 1
 
+#include "std.h"
+
 // Adds a layer so that multiple signal handlers may be called whenever the
 // program receives a given signal.  Routines here are currently not
 // implemented in a threadsafe way, but are intended to be made threadsafe

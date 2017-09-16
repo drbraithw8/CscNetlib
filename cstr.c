@@ -11,7 +11,7 @@
 
 typedef struct csc_str_t
 {   char *chars; // The characters of the string.  Extra space for null char.
-				// The extra space is used for csc_str_to_c_static().
+                // The extra space is used for csc_str_to_c_static().
     int mchars;  // The size of the array 'chars'.
     int nchars;  // The length of the string.
 } csc_str_t;
@@ -46,9 +46,15 @@ csc_str_t *csc_str_new(const char *str)
         this->nchars = strlen(str);
  
 // Allocate chars for the string. 
-    this->mchars = this->nchars;
-    this->mchars |= 7;  // Round up - Use that which would be wasted. 
-    this->chars = (char*)alloc((this->mchars + 1) * sizeof(char));  // '\0'. 
+	if (this->nchars == 0)
+	{	this->mchars = 0;
+		this->chars = NULL;
+	}
+	else
+    {	this->mchars = this->nchars + 8;
+		this->mchars |= 7;  // Round up - Use that which would be wasted. 
+		this->chars = (char*)alloc((this->mchars + 1) * sizeof(char));  // '\0'. 
+	}
  
 // Copy the string. 
     if (this->nchars > 0)
@@ -60,7 +66,8 @@ csc_str_t *csc_str_new(const char *str)
 
 
 void csc_str_free(csc_str_t *this)
-{   free(this->chars);
+{   if (this->chars)
+		free(this->chars);
     free(this);
 }
 
@@ -80,7 +87,8 @@ void csc_str_assign(csc_str_t *this, const char *str)
         {   this->mchars = this->nchars;
             this->mchars |= 7;  // Round up - Use that which would be wasted. 
         }
-        free(this->chars);
+		if (this->chars)
+			free(this->chars);
         this->chars = (char*)alloc((this->mchars + 1) * sizeof(char));
     }
  
@@ -98,7 +106,8 @@ void csc_str_append_ch(csc_str_t *this, char ch)
  
 // Allocate chars for the string. 
     if (this->mchars < new_len)
-    {	this->mchars = this->mchars * 2 + 1;
+    {   this->mchars = this->mchars * 2 + 10;
+        this->mchars |= 7;  // Round up - Use that which would be wasted. 
         this->chars = (char*)realloc(this->chars, (this->mchars+1)*sizeof(char));
         if (this->chars == NULL)
         {   error_handle("Memory allocation failure");
@@ -126,11 +135,11 @@ void csc_str_append(csc_str_t *this, const char *str)
  
 // Allocate chars for the string. 
     if (this->mchars < new_len)
-    {   this->mchars = this->mchars * 2 + 1;
+    {   this->mchars = this->mchars * 2 + 10;
         if (this->mchars < new_len)
         {   this->mchars = new_len;
-            this->mchars |= 7;  // Round up - Use that which would be wasted. 
         }
+        this->mchars |= 7;  // Round up - Use that which would be wasted. 
         this->chars = (char*)realloc(this->chars, (this->mchars+1)*sizeof(char));
         if (this->chars == NULL)
         {   error_handle("Memory allocation failure");
@@ -147,8 +156,13 @@ void csc_str_append(csc_str_t *this, const char *str)
 
 
 const char *csc_str_charr(const csc_str_t *this)
-{   this->chars[this->nchars] = '\0';
-    return this->chars;
+{   if (this->chars == NULL)
+	{	return "";
+	}
+	else
+	{	this->chars[this->nchars] = '\0';
+		return this->chars;
+	}
 }
 
 
@@ -170,13 +184,13 @@ int csc_str_length(const csc_str_t *this)
 
 int csc_str_getline(csc_str_t *this, FILE *fin)
 {   int ch;
-	csc_str_reset(this);
+    csc_str_reset(this);
  
 // Read in line. 
     ch = getc(fin);
     while (ch!=EOF && ch!='\n')
     {   if (ch != '\r')
-			csc_str_append_ch(this, ch);
+            csc_str_append_ch(this, ch);
         ch = getc(fin);
     }
  
@@ -190,16 +204,16 @@ int csc_str_getline(csc_str_t *this, FILE *fin)
 
 #include <stdarg.h>
 void csc_str_append_many(csc_str_t *this, ... )
-{	va_list ap;
-	char *str;
+{   va_list ap;
+    char *str;
  
-	va_start(ap, this);
-	while (1)
-	{	str = va_arg(ap, char*);
-		if (str == NULL)
-			break;
-		csc_str_append(this, str);
-	}
-	va_end(ap);
+    va_start(ap, this);
+    while (1)
+    {   str = va_arg(ap, char*);
+        if (str == NULL)
+            break;
+        csc_str_append(this, str);
+    }
+    va_end(ap);
 }
 

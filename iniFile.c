@@ -43,13 +43,13 @@ csc_ini_t *csc_ini_new(void)
 }
 
 
-void csc_ini_close(csc_ini_t *ini)
+void csc_ini_free(csc_ini_t *ini)
 {   csc_hash_free(ini->hash);
     free(ini);
 }
 
 
-const char *csc_ini_getStr(csc_ini_t *ini, const char *section, const char *ident)
+const char *csc_ini_getStr(const csc_ini_t *ini, const char *section, const char *ident)
 {   char *key;
     char *value;
  
@@ -66,7 +66,7 @@ const char *csc_ini_getStr(csc_ini_t *ini, const char *section, const char *iden
 }
 
 
-char *csc_ini_getAllocStr(csc_ini_t *ini, const char *section, const char *ident)
+char *csc_ini_getAllocStr(const csc_ini_t *ini, const char *section, const char *ident)
 {   char *key;
     char *value;
  
@@ -242,7 +242,7 @@ int main()
         testLookup(ini,section,"phone");
     }   
         
-    csc_ini_close(ini);
+    csc_ini_free(ini);
     exit(0);
 }
 

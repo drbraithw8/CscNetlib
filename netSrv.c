@@ -175,7 +175,7 @@ const char *csc_srv_acceptAddr(csc_srv_t *this)
 }
 
 
-void csc_srv_close(csc_srv_t *this)
+void csc_srv_free(csc_srv_t *this)
 {   close(this->listenSock);
  
 // Free any error message.

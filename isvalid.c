@@ -12,20 +12,20 @@
 
 csc_bool_t csc_isValid_hex(const char *word)
 {   char ch = *word;
-    if (ch=='\0' || strlen(word)%2 == 1)
+    if (ch == '\0')
         return(csc_FALSE);
     while((ch = *(word++)) != '\0')
-    {	if (!((ch>='0' && ch<='9') || (ch>='a' && ch<='f') || (ch>='A' && ch<='F')))
+    {   if (!((ch>='0' && ch<='9') || (ch>='a' && ch<='f') || (ch>='A' && ch<='F')))
             return(csc_FALSE);
-	}
+    }
     return(csc_TRUE);
 }
 
 
 csc_bool_t csc_isValid_int(const char *word)
 {   char ch = *word;
-	if (ch=='-')
-		ch = *(++word);
+    if (ch=='-')
+        ch = *(++word);
     if (ch == '\0')
         return(csc_FALSE);
     while((ch = *(word++)) != '\0')
@@ -36,14 +36,14 @@ csc_bool_t csc_isValid_int(const char *word)
 
 
 csc_bool_t csc_isValidRange_int(const char *word, int min, int max, int *value)
-{	int val;
-	if (!csc_isValid_int(word))
-		return csc_FALSE;
-	val = atoi(word);
-	if (val<min || val>max)
-		return csc_FALSE;
-	*value = val;
-	return csc_TRUE;
+{   int val;
+    if (!csc_isValid_int(word))
+        return csc_FALSE;
+    val = atoi(word);
+    if (val<min || val>max)
+        return csc_FALSE;
+    *value = val;
+    return csc_TRUE;
 }
 
 
@@ -82,14 +82,14 @@ csc_bool_t csc_isValid_float(const char *str)
 
 
 csc_bool_t csc_isValidRange_float(const char *word, double min, double max, double *value)
-{	double val;
-	if (!csc_isValid_float(word))
-		return csc_FALSE;
-	val = atof(word);
-	if (val<min || val>max)
-		return csc_FALSE;
-	*value = val;
-	return csc_TRUE;
+{   double val;
+    if (!csc_isValid_float(word))
+        return csc_FALSE;
+    val = atof(word);
+    if (val<min || val>max)
+        return csc_FALSE;
+    *value = val;
+    return csc_TRUE;
 }
 
 
@@ -106,12 +106,8 @@ csc_bool_t csc_isValid_ipV6(const char *str)
 
 csc_bool_t csc_isValid_domain(const char *str)
 {   int sLen=strlen(str);
-    int segLen, i, nSegs;
-
-// Reject the sempty string.
-	if (sLen == 0)
-		return csc_FALSE;
-
+    int segLen, i;
+ 
 // Look at the ends of the domain name.
     if ( str[0] == '.'
        || str[sLen-1] == '.'
@@ -122,13 +118,11 @@ csc_bool_t csc_isValid_domain(const char *str)
  
 // Look at each character in turn.
     segLen = 0;
-    nSegs = 1;
     for(i=0; i<sLen; i++)
     {   if (str[i] == '.')
         {   if (segLen == 0)
                 return csc_FALSE;
             segLen=0;
-			nSegs++;
         }
         else if (  isalnum(str[i])
                 || str[i]=='-' && segLen!=0 && i+1<sLen && str[i+1]!='.'
@@ -139,10 +133,6 @@ csc_bool_t csc_isValid_domain(const char *str)
         else
             return csc_FALSE; //invalid char...
     }
-
-// Reject single segment cases.
-	if (nSegs == 1)
-		return csc_FALSE;
  
     return csc_TRUE;
 }

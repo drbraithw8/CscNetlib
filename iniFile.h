@@ -4,6 +4,8 @@
 #ifndef csc_INI_H
 #define csc_INI_H 1
 
+#include "std.h"
+
 typedef struct csc_ini_t csc_ini_t;
 
 // Constructor.  Returns a new iniFile object with no configuration
@@ -11,7 +13,7 @@ typedef struct csc_ini_t csc_ini_t;
 csc_ini_t *csc_ini_new(void);
 
 // Destructor.
-void csc_ini_close(csc_ini_t *ini);
+void csc_ini_free(csc_ini_t *ini);
 
 
 // Read the ini file, whose path is given by 'iniFilePath' into the ini
@@ -39,7 +41,7 @@ int csc_ini_read(csc_ini_t *ini, const char *iniFilePath);
 // string.
 // 
 // Returns NULL if the key 'ident' does not exist in the section 'section'.
-const char *csc_ini_getStr(csc_ini_t *ini, const char *section, const char *ident);
+const char *csc_ini_getStr(const csc_ini_t *ini, const char *section, const char *ident);
 
 
 // If the key 'ident' exists in the ini file section 'section' then this
@@ -47,7 +49,7 @@ const char *csc_ini_getStr(csc_ini_t *ini, const char *section, const char *iden
 // now owns and must free the allocated string.  
 // 
 // Returns NULL if the key 'ident' does not exist in the section 'section'.
-char *csc_ini_getAllocStr(csc_ini_t *ini, const char *section, const char *ident);
+char *csc_ini_getAllocStr(const csc_ini_t *ini, const char *section, const char *ident);
 
 
 #endif

@@ -3,12 +3,12 @@ CscNetLib := libCscNet.a
 
 CscNetLibObj := iniFile.o logger.o netCli.o netSrv.o servBase.o \
 					cstr.o signal.o isvalid.o fileProperties.o \
-					std.o alloc.o hash.o list.o memcheck.o
+					std.o alloc.o hash.o list.o memcheck.o json.o
 
 LIBS= 
 
 .c.o :
-	gcc -c  $<
+	gcc -c -std=gnu99 $<
 
 all: $(CscNetLib)
 

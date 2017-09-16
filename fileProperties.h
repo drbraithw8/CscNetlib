@@ -6,6 +6,7 @@
 #define csc_FILEPROP_H 1
 
 #include <inttypes.h>
+#include "std.h"
 
 typedef struct csc_fileProp_t csc_fileProp_t;
 
@@ -14,7 +15,7 @@ csc_fileProp_t *csc_fileProp_new(const char *path);
 
 
 // Destructor.
-void csc_fileProp_close(csc_fileProp_t *fprop);
+void csc_fileProp_free(csc_fileProp_t *fprop);
 
 
 // Returns csc_TRUE on successfully obtaining information about the file.

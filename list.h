@@ -4,6 +4,8 @@
 #ifndef csc_LIST_H
 #define csc_LIST_H 1
 
+#include "std.h"
+
 typedef struct csc_list_t
 {   struct csc_list_t *next;
     void *data;

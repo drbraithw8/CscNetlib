@@ -137,7 +137,7 @@ int csc_cli_connect(csc_cli_t *this)
 }
 
 
-void csc_cli_close(csc_cli_t *this)
+void csc_cli_free(csc_cli_t *this)
 {   
 // Free any error message.
     if (this->errMsg != NULL)

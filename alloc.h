@@ -18,6 +18,7 @@
 void *csc_ck_malloc(size_t size);
 void *csc_ck_calloc(size_t size);
 void *csc_ck_ralloc(void *rem, size_t size);
+void csc_ck_setErrHandler(void (*errHandle)(void*), void *errHandleContext);
 
 
 // Alloc a single string on the heap.  The caller must use free() to
@@ -57,7 +58,7 @@ void *csc_ck_calloc_debug(size_t size, int line, char *fname);
 void *csc_ck_malloc_debug(size_t size, int line, char *fname);
 char *csc_alloc_str_debug(const char *str, int line, char *fname);
 char *csc_alloc_str3_debug(const char *str1, const char *str2, const char *str3,
-										int line, char *fname);
+                                        int line, char *fname);
 char *csc_alloc_str7_debug(const char *str1, const char *str2, const char *str3,
                   const char *str4, const char *str5, const char *str6,
                   const char *str7, int line, char *fname);

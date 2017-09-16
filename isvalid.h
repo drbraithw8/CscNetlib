@@ -6,9 +6,8 @@
 
 #include "std.h"
 
-// Returns csc_TRUE if the string 'word' is a hexadecimal string.  There
-// has to be an even number greater than zero of hexadecimal digits.
-// Otherwise, this function will return csc_FALSE.
+// Returns csc_TRUE if the string 'word' is a hexadecimal string.  Otherwise, this
+// function will return csc_FALSE.
 csc_bool_t csc_isValid_hex(const char *word);
 
 // Returns csc_TRUE if the string 'word' is an integer.  Otherwise, this
@@ -17,7 +16,7 @@ csc_bool_t csc_isValid_int(const char *word);
 
 
 // If 'word' is a valid integer, and its value lies between 'min' and
-// 'max' inclusive, then this function assigns the value to 'value' returns
+// 'max' inclusive, then this function assigns the value to 'value' and returns
 // csc_TRUE.  Otherwise, this function will return csc_FALSE.
 csc_bool_t csc_isValidRange_int(const char *word, int min, int max, int *value);
 
@@ -29,7 +28,7 @@ csc_bool_t csc_isValid_float(const char *str);
 
 // If 'word' is a valid floating point number, and its value lies between
 // 'min' and 'max' inclusive, then this function assigns the value to
-// 'value' returns csc_TRUE.  Otherwise, this function will return csc_FALSE.
+// 'value' and returns csc_TRUE.  Otherwise, this function will return csc_FALSE.
 csc_bool_t csc_isValidRange_float(const char *word, double min, double max, double *value);
 
 

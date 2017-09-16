@@ -3,6 +3,7 @@
 
 #ifndef csc_HASH_H
 #define csc_HASH_H 1
+#include "std.h"
 
 typedef struct csc_hash_t csc_hash_t;
 typedef struct csc_hash_node_t csc_hash_node_t;
