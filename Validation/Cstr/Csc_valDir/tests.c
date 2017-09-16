@@ -39,14 +39,17 @@ int main(int argc, char **argv)
 	strA = csc_str_new("a");
 	printPassFail("SingleNew", csc_streq(csc_str_charr(strA),"a"));
 
+	csc_str_assign(strA, longStr);
+	printPassFail("AssignLong1", csc_streq(csc_str_charr(strA),longStr));
+
 	csc_str_free(strA);
 	printPassFail("SingleFree", csc_mck_nchunks()==0);
 
 	strA = csc_str_new(longStr);
-	printPassFail("longNew", csc_streq(csc_str_charr(strA),longStr));
+	printPassFail("LongNew", csc_streq(csc_str_charr(strA),longStr));
 
 	csc_str_free(strA);
-	printPassFail("longFree", csc_mck_nchunks()==0);
+	printPassFail("LongFree", csc_mck_nchunks()==0);
 
 	strA = csc_str_new(NULL);
 	csc_str_append(strA, longStr);
@@ -65,6 +68,9 @@ int main(int argc, char **argv)
 										  "k"
 										  longStr "k" longStr "k" longStr
 										));
+
+	csc_str_assign(strA, longStr);
+	printPassFail("AssignLong2", csc_streq(csc_str_charr(strA),longStr));
 
 	csc_str_free(strA);
 	printPassFail("append1Free", csc_mck_nchunks()==0);

@@ -72,32 +72,6 @@ void csc_str_free(csc_str_t *this)
 }
 
 
-void csc_str_assign(csc_str_t *this, const char *str)
-{
-// Get length of the string. 
-    if (str == NULL)
-        this->nchars = 0;
-    else
-        this->nchars = strlen(str);
- 
-// Allocate chars for the string. 
-    if (this->mchars < this->nchars)
-    {   this->mchars = this->mchars * 2 + 1;
-        if (this->mchars < this->nchars)
-        {   this->mchars = this->nchars;
-            this->mchars |= 7;  // Round up - Use that which would be wasted. 
-        }
-		if (this->chars)
-			free(this->chars);
-        this->chars = (char*)alloc((this->mchars + 1) * sizeof(char));
-    }
- 
-// Copy the string. 
-    if (this->nchars > 0)
-        memcpy(this->chars, str, this->nchars);
-}
-
-
 void csc_str_append_ch(csc_str_t *this, char ch)
 {   int new_len;
  
@@ -152,6 +126,12 @@ void csc_str_append(csc_str_t *this, const char *str)
     {   memcpy(&this->chars[this->nchars], str, str_len);
         this->nchars = new_len;
     }
+}
+
+
+void csc_str_assign(csc_str_t *this, const char *str)
+{	this->nchars = 0;
+	csc_str_append(this, str);
 }
 
 
