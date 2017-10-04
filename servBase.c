@@ -306,7 +306,7 @@ int csc_servBase_server( char *connType
     }
  
 // Get the port number.
-    portNumStr = csc_ini_getAllocStr(ini, ConfSection, ConfIdentPort);
+    portNumStr = csc_ini_getStr(ini, ConfSection, ConfIdentPort);
     if (portNumStr==NULL || !csc_isValid_int(portNumStr))
     {   csc_log_printf( log
                      , csc_log_FATAL
@@ -321,11 +321,11 @@ int csc_servBase_server( char *connType
     portNum = atoi(portNumStr);;
  
 // Get the IP.
-    ipStr = csc_ini_getAllocStr(ini, ConfSection, ConfIdentIp);
+    ipStr = csc_ini_getStr(ini, ConfSection, ConfIdentIp);
     // Error handling for this is performed already in csc_srv_setAddr().
  
 // Get the backlog.
-    backlogStr = csc_ini_getAllocStr(ini, ConfSection, ConfIdentBacklog);
+    backlogStr = csc_ini_getStr(ini, ConfSection, ConfIdentBacklog);
     if (backlogStr == NULL)
         backlogStr = "10";
     if (!csc_isValid_int(backlogStr))
@@ -342,7 +342,7 @@ int csc_servBase_server( char *connType
     backlog = atoi(backlogStr);
  
 // Get the max number of connections.
-    maxThreadsStr = csc_ini_getAllocStr(ini, ConfSection, ConfIdentMaxThreads);
+    maxThreadsStr = csc_ini_getStr(ini, ConfSection, ConfIdentMaxThreads);
     if (maxThreadsStr == NULL)
         maxThreadsStr = "4";
     else if (!csc_isValid_int(maxThreadsStr))
