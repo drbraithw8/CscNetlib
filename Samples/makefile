@@ -1,7 +1,7 @@
 .c.o:
-	gcc -c -std=gnu99 -I /usr/local/include  $<
+	gcc -c -std=gnu99 -I $(HOME)/include  $<
 
-LIBS :=  -L /usr/local/lib -lCscNet -lpthread
+LIBS :=  -L $(HOME)/lib -lCscNet -lpthread
 
 all: netCliDemo netSrvDemo servBaseDemo filePropertiesDemo \
 	 parseWordsOnLines iniDemo logDemo jsonDemo
@@ -33,3 +33,4 @@ jsonDemo: jsonDemo.o
 clean:
 	rm netSrvDemo servBaseDemo parseWordsOnLines filePropertiesDemo \
         netCliDemo iniDemo logDemo jsonDemo *.o test.log
+

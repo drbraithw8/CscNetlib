@@ -700,10 +700,16 @@ static csc_bool_t jsonParse_readNum(jsonParse_t *jsp, elem_t *el)
     csc_str_t *numStr = csc_str_new(NULL);
     const char *nums;
     csc_bool_t retVal;
- 
+
 // Assumes that we are looking at the first digit of a number.
     int ch = jsp->ch;
-    assert(isdigit(ch));
+    assert(ch=='-' || isdigit(ch));
+ 
+// Are we looking at a minus sign?
+	if (ch == '-')
+	{	csc_str_append_ch(numStr, ch);
+		ch = jsonParse_nextChar(jsp);
+	}
  
 // Read in a number.
     while (isContinue)
@@ -959,7 +965,7 @@ static csc_bool_t jsonParse_readElem(jsonParse_t *jsp, elem_t *el)
     {
         return jsonParse_readPlainWord(jsp, el);
     }
-    else if (isdigit(ch))
+    else if (ch=='-' || isdigit(ch))
     {
         return jsonParse_readNum(jsp, el);
     }
