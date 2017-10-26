@@ -40,7 +40,7 @@ typedef struct csc_json_s
     int errLinePos;
 } csc_json_t;
 
-typedef void (*writeStr_t)(void *context, const char *str);
+typedef void (*writeStrAnyFunc_t)(void *context, const char *str);
 
 
 static void elem_free(elem_t *el)
@@ -456,13 +456,13 @@ const csc_jsonArr_t *csc_jsonArr_getArr(const csc_jsonArr_t *jas, int ndx, csc_j
 }
 
 
-static void writeInt(writeStr_t writer, void *context, int val)
+static void writeInt(writeStrAnyFunc_t writer, void *context, int val)
 {   char buf[MaxIntLen+1];
     sprintf(buf, "%d", val);
     writer(context, buf);
 }
 
-static void writeFloat(writeStr_t writer, void *context, double val)
+static void writeFloat(writeStrAnyFunc_t writer, void *context, double val)
 {   char buf[MaxFloatLen+1];
     sprintf(buf, "%16g", val);
     char *p = buf;
@@ -471,14 +471,14 @@ static void writeFloat(writeStr_t writer, void *context, double val)
     writer(context, p);
 }
 
-static void writeBool(writeStr_t writer, void *context, csc_bool_t val)
+static void writeBool(writeStrAnyFunc_t writer, void *context, csc_bool_t val)
 {   if (val)
         writer(context, "true");
     else
         writer(context, "false");
 }
 
-static void writeStr(writeStr_t writer, void *context, const char *val)
+static void writeStr(writeStrAnyFunc_t writer, void *context, const char *val)
 {   char buf[2] = { '\0', '\0' };
     const char *p;
     char ch;
@@ -521,10 +521,10 @@ static void writeStr(writeStr_t writer, void *context, const char *val)
     writer(context, "\"");
 }
 
-static void writeArr(writeStr_t writer, void *context, const csc_jsonArr_t *jas);
-static void writeObj(writeStr_t writer, void *context, const csc_json_t *js);
+static void writeArr(writeStrAnyFunc_t writer, void *context, const csc_jsonArr_t *jas);
+static void writeObj(writeStrAnyFunc_t writer, void *context, const csc_json_t *js);
 
-static void writeEl(writeStr_t writer, void *context, const elem_t *el)
+static void writeEl(writeStrAnyFunc_t writer, void *context, const elem_t *el)
 {   if (el->type == csc_jsonType_Bool)
         writeBool(writer, context, el->val.bVal);
     else if (el->type == csc_jsonType_Int)
@@ -541,7 +541,7 @@ static void writeEl(writeStr_t writer, void *context, const elem_t *el)
         writer(context, "null");
 }
 
-static void writeObj(writeStr_t writer, void *context, const csc_json_t *js)
+static void writeObj(writeStrAnyFunc_t writer, void *context, const csc_json_t *js)
 {
 	int nEls = js->nEls;
     elem_t *els = js->els;
@@ -560,7 +560,7 @@ static void writeObj(writeStr_t writer, void *context, const csc_json_t *js)
     writer(context, "}");
 }
 
-static void writeArr(writeStr_t writer, void *context, const csc_jsonArr_t *jas)
+static void writeArr(writeStrAnyFunc_t writer, void *context, const csc_jsonArr_t *jas)
 {   csc_json_t *js = (csc_json_t*)jas;
     int nEls = js->nEls;
     elem_t *els = js->els;

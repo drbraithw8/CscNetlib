@@ -1,11 +1,6 @@
 #include "http.h"
-
-#define errStr_Ok  NULL
-#define errStr_BadRequest  "Bad Request"
-#define errStr_BadFilePath  "Bad File Path"
-#define errStr_InvalidDomain  "Invalid Domain"
-#define errStr_NoRequestMade  "No Request Made"
-#define errStr_NoResponse     "No Response"
+#include "list.h"
+#include "alloc.h"
 
 
 typedef struct hdr_t
@@ -14,32 +9,65 @@ typedef struct hdr_t
 } nameVal_t;
 
 
-typedef struct csc_http_t
+typedef struct csc_httpMsg_t
 {	
 // Errors.
 	csc_httpErr_t errCode;
-	const char *errMsg;
+	char *errMsg;
  
-// The request.
-	char *request;
-	char *reqFilePath;
-	char *reqHost;
-	csc_bool_t reqIsClose;
-	csc_list_t *reqHeaders;
-	csc_list_t *reqArgs;
+// Pseudo headers.
+	char *protocol;
+	char *reqUri;
+	char *method;
+	char *statCode;
+	char *reason;
  
-// Has the request been made yet?
-	csc_bool_t isRequested;
+// Http Headers.
+	csc_list_t *headers;
  
-// The response.
-	int respCode;
-	char *respMsg;
-	csc_bool_t respIsClose;
-	csc_list_t *respHeaders;
- 
-} csc_http_t;
+} csc_httpMsg_t;
 
 
+csc_httpMsg_t *csc_httpMsg_new()
+{	
+// Allocate the structure.
+	csc_httpMsg_t *msg = csc_allocOne(csc_httpMsg_t);
+	
+// Errors.
+	msg->errCode = csc_httpErr_Ok;
+	msg->errMsg = NULL;
+ 
+// Pseudo headers.
+	msg->protocol = NULL;
+	msg->reqUri = NULL;
+	msg->method = NULL;
+	msg->statCode = NULL;
+	msg->reason = NULL;
+ 
+// Http Headers.
+	msg->headers = NULL;
+ 
+// Home with the bacon.
+	return msg;
+}
+
+
+// Returns the value associated with 'name'.
+// Returns NULL if the head is not present in the list.
+static const char *getVal(csc_list_t *nameVals, const char *name)
+{	const char *value = NULL;
+	for (csc_list_t *lpt=nameVals; lpt!=NULL; lpt=lpt->next)
+	{	nameVal_t *namVal = lpt->data;
+		if (csc_streq(namVal->name, name))
+		{	value = namVal->value;
+			break;
+		}
+	}
+	return value;
+}
+ 
+
+// Adds a name/value pair to the nameVals list.
 static void addNameVal(csc_list_t **nameVals, const char *name, const char *value)
 {	nameVal_t *hdr = csc_allocOne(nameVal_t);
 	hdr->name = csc_alloc_str(name);
@@ -48,9 +76,10 @@ static void addNameVal(csc_list_t **nameVals, const char *name, const char *valu
 }
 
 
+// Frees the list of name/value pairs.
 static void freeNameVals(csc_list_t *nameVals)
 {	for (csc_list_t *lpt=nameVals; lpt!=NULL; lpt=lpt->next)
-	{	headrr_t *hdr = lpt->data;
+	{	nameVal_t *hdr = lpt->data;
 		free(hdr->name);
 		free(hdr->value);
 		free(hdr);
@@ -59,132 +88,128 @@ static void freeNameVals(csc_list_t *nameVals)
 }
 
 
-// Create new HTTP request object.
-// Use csc_http_getErrCode() to check for errors, including errors creating the object.
-csc_http_t *csc_http_new( const char *request  // For now, only "GET" is valid.
-						, const char *filePath // An absolute path.
-						, const char *host     // HTTP1.1 requires the host name.
-						, csc_bool_t isClose   // Request server close the connection?
-						)
-{	csc_bool_t isOK = csc_TRUE;
+void csc_httpMsg_free(csc_httpMsg_t *msg)
+{	
+// Errors.
+	if (msg->errMsg)
+		free(msg->errMsg);
+	
+// Pseudo headers.
+	if (msg->protocol)
+		free(msg->protocol);
+	if (msg->reqUri)
+		free(msg->reqUri);
+	if (msg->method)
+		free(msg->method);
+	if (msg->statCode)
+		free(msg->statCode);
+	if (msg->reason)
+		free(msg->reason);
  
-// Allocate the structure.
-	csc_http_t *http = csc_allocOne(csc_http_t);
-	if (http == NULL)
-		return NULL;
+// Http Headers.
+	if (msg->headers)
+		freeNameVals(msg->headers);
  
-// Initialise everything.
-	http->errCode = csc_httpErr_Ok;
-	http->errMsg = NULL;
-	http->request = NULL;
-	http->reqFilePath = NULL;
-	http->reqHost = NULL;
-	http->reqIsClose = csc_TRUE;;
-	http->reqHeaders = NULL;
-	http->reqArgs = NULL;
-	http->isRequested = csc_FALSE;;
-	http->respCode = -1;
-	http->respMsg = NULL;
-	http->respIsClose = csc_FALSE;
-	http->respHeaders = NULL;
- 
-// Assign the request.
-	if (isOstrcmp(request,"GET"))
-	{	http->errCode = csc_httpErr_BadRequest;
-		http->errMsg = errStr_BadRequest; 
-		isOK = csc_FALSE;
+// Free the structure.
+	free(msg);
+}
+
+
+static void setErr(csc_httpMsg_t *msg, csc_httpErr_t errCode, const char *errMsg)
+{	if (msg->errMsg)
+		free(msg->errMsg);
+	msg->errCode = errCode;
+	msg->errMsg = csc_alloc_str(errMsg);
+}
+
+
+static csc_httpErr_t addPseudo( csc_httpMsg_t *msg
+							  , char **pseudo
+							  , const char *value
+							  , const char *errMsg
+							  , csc_httpErr_t errCode
+							  )
+{	if (*pseudo != NULL)
+	{	setErr(msg, errCode, errMsg);
+		return errCode;
 	}
-	if (isOK)
-		http->request = csc_alloc_str(request);
- 
-// Assign the file path.
-	if (isOK)
-	{	if (filePath == NULL)
-		{	// http->reqFilePath = NULL; // Its already NULL.
-		}
-		else if (csc_isValid_decentAbsPath(filePath))
-		{	http->reqFilePath = csc_alloc_str(filePath);
-		}
-		else
-		{	http->errCode = csc_httpErr_BadFilePath;
-			http->errMsg = errStr_BadFilePath; 
-			isOK = csc_FALSE;
-		}
+	else
+	{	*pseudo = csc_alloc_str(value);
+		return csc_httpErr_Ok;
 	}
- 
-// Assign the host name.
-	if (isOK && !csc_isValid_domain(host))
-	{	http->errCode = csc_httpErr_InvalidDomain;
-		http->errMsg = errStr_InvalidDomain; 
-		isOK = csc_FALSE;
+}
+
+
+csc_httpErr_t csc_httpMsg_addHdr(csc_httpMsg_t *msg, const char *name, const char *value)
+{
+	if (csc_streq(name, csc_http_protocol))
+	{	return addPseudo( msg
+						  , &msg->protocol
+						  , value
+						  , "protocol already set"
+						  , csc_httpErr_AlreadyProtocol
+						  );
 	}
-	if (isOK)
-		http->host = csc_alloc_str(host);
- 
-// Bye
-	return http;
+	else if (csc_streq(name, csc_http_reqUri))
+	{	return addPseudo( msg
+						  , &msg->reqUri
+						  , value
+						  , "reqUri already set"
+						  , csc_httpErr_AlreadyReqUri
+						  );
+	}
+	else if (csc_streq(name, csc_http_method))
+	{	return addPseudo( msg
+						  , &msg->method
+						  , value
+						  , "method already set"
+						  , csc_httpErr_AlreadyMethod
+						  );
+	}
+	else if (csc_streq(name, csc_http_statCode))
+	{	return addPseudo( msg
+						  , &msg->statCode
+						  , value
+						  , "statCode already set"
+						  , csc_httpErr_AlreadyStatCode
+						  );
+	}
+	else if (csc_streq(name, csc_http_reason))
+	{	return addPseudo( msg
+						  , &msg->reason
+						  , value
+						  , "reason already set"
+						  , csc_httpErr_AlreadyReason
+						  );
+	}
+	addNameVal(&msg->headers, name, value);
+	return csc_httpErr_Ok;
 }
 
 
-// Free a HTTP object.
-void csc_http_free(csc_http_t *http)
-{	if (http->errMsg)
-		free(http->errMsg);
-	if (http->request)
-		free(http->request);
-	if (http->reqFilePath)
-		free(http->reqFilePath);
-	if (http->reqHost)
-		free(http->reqHost);
-	if (http->respMsg)
-		free(http->respMsg);
-	if (http->reqHeaders)
-		freeNameVals(http->reqHeaders);
-	if (http->reqArgs)
-		freeNameVals(http->reqArgs);
-	if (http->respHeaders)
-		freeNameVals(http->respHeaders);
-	free(http);
-}
- 
-
-// Add headers to the request.
-void csc_http_addReqHeader(csc_http_t *http, const char *name, const char *value)
-{	addNameVal(&http->reqHeaders, name, value);
-}
-
-// Add headers to the request.
-void csc_http_addReqArg(csc_http_t *http, const char *name, const char *value)
-{	addNameVal(&http->reqHeaders, name, value);
-}
-
-// Get error status.
-csc_httpErr_t csc_http_getErrCode(csc_http_t *http)
-{	return http->errCode;
-}
-
-// Get error message.
-const char *csc_http_getErrStr(csc_http_t *http)
-{	return http->errMsg;
+const char *csc_httpMsg_getHdr(csc_httpMsg_t *msg, const char *name)
+{	if (csc_streq(name, csc_http_protocol))
+		return msg->protocol;
+	else if (csc_streq(name, csc_http_reqUri))
+		return msg->reqUri;
+	else if (csc_streq(name, csc_http_method))
+		return msg->method;
+	else if (csc_streq(name, csc_http_statCode))
+		return msg->statCode;
+	else if (csc_streq(name, csc_http_reason))
+		return msg->reason;
+	return getVal(msg->headers, name);
 }
 
 
-// Perform the IO for HTTP.
-csc_bool_t csc_http_doReq(csc_http_t *http, FILE *fin, FILE *fout);
+csc_httpErr_t csc_httpMsg_getErrCode(csc_httpMsg_t *msg)
+{	return msg->errCode;
+}
 
-// What was the response code?
-int csc_http_respCode(csc_http_t *http);
 
-// What was the response message?
-const char *csc_http_respMsg(csc_http_t *http);
+const char *csc_httpMsg_getErrMsg(csc_httpMsg_t *msg)
+{	return msg->errMsg;
+}
 
-// Server may or may not honour close or keep alive request.
-// Returns FALSE if the response had a "Connection" of "Keep-Alive",
-// otherwise returns TRUE.
-csc_bool_t csc_http_respIsClose(csc_http_t *http);
-
-// Returns the value of one of the headers with the name 'name' if at least
-// one exists, otherwise returns NULL.
-const char *csc_http_getRespHdr(csc_http_t *http, const char *name);
 
 

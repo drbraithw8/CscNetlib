@@ -1,6 +1,6 @@
 
-								Framework for validation suite
-								==============================
+					Framework for validation suite
+					==============================
 
 Directory names within the validation directory tree are used to
 associate the enclosed validation tests with the corresponding parts of
