@@ -51,7 +51,7 @@ csc_ioAnyWrite_t *csc_ioAnyWrite_new(csc_ioAny_writeFunc_t writeStr, void *conte
 void csc_ioAnyWrite_free(csc_ioAnyWrite_t *rca);
 
 // Write a string.
-int csc_ioAnyWrite_getc(csc_ioAnyWrite_t *rca);
+void csc_ioAnyWrite_puts(csc_ioAnyWrite_t *rca, char *str);
 
 
 
@@ -78,16 +78,16 @@ int csc_ioAny_readChStr_getc(csc_ioAny_readChStr_t *rcs);
 // Concrete IO 
 //======================================================
 
-// Write to a FILE*.
+// Write char* string to a FILE*.
 void csc_ioAny_writeFILE(void *context, const char *str);
 
-// Reading from a FILE*.
+// Read char from a FILE*.
 int csc_ioAny_readCharFILE(void *context);
 
-// Write to a Cstr.
+// Write char* string to a Cstr.
 void csc_ioAny_writeCstr(void *context, const char *str);
 
-// Reading from a char* string.
+// Reading char from a char* string.
 int csc_ioAny_readCharStr(void *context);
 
 

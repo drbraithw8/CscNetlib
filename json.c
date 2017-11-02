@@ -627,6 +627,7 @@ static readCharAny_t *readCharAny_new(readCharAnyFunc_t readChar, void *context)
 {   readCharAny_t *rca = csc_allocOne(readCharAny_t);
     rca->readChar = readChar;
     rca->context = context;
+	return rca;
 }
 static void readCharAny_free(readCharAny_t *rca)
 {   free(rca);

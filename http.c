@@ -21,11 +21,21 @@ typedef struct csc_httpMsg_t
 	char *method;
 	char *statCode;
 	char *reason;
+	char *host;
  
 // Http Headers.
 	csc_list_t *headers;
  
 } csc_httpMsg_t;
+
+
+// Psuedo headers.  These represent the fields in the start line of a HTTP message.
+const char *csc_http_protocol = "csc_http_protocol"; // protocol, e.g. "HTTP/1.1".
+const char *csc_http_reqUri = "csc_http_reqUri"; // absolute path naming resource, e.g. "/index.html".
+const char *csc_http_method = "csc_http_method"; // Method, e.g. "GET".
+const char *csc_http_statCode = "csc_http_statCode"; // status code, e.g. "200".
+const char *csc_http_reason = "csc_http_reason"; // phrase associated with status code, e.g. "OK".
+const char *csc_http_host = "csc_http_host"; // phrase associated with status code, e.g. "OK".
 
 
 csc_httpMsg_t *csc_httpMsg_new()
@@ -43,6 +53,7 @@ csc_httpMsg_t *csc_httpMsg_new()
 	msg->method = NULL;
 	msg->statCode = NULL;
 	msg->reason = NULL;
+	msg->host = NULL;
  
 // Http Headers.
 	msg->headers = NULL;
@@ -105,6 +116,8 @@ void csc_httpMsg_free(csc_httpMsg_t *msg)
 		free(msg->statCode);
 	if (msg->reason)
 		free(msg->reason);
+	if (msg->host)
+		free(msg->host);
  
 // Http Headers.
 	if (msg->headers)
@@ -182,6 +195,14 @@ csc_httpErr_t csc_httpMsg_addHdr(csc_httpMsg_t *msg, const char *name, const cha
 						  , csc_httpErr_AlreadyReason
 						  );
 	}
+	else if (csc_streq(name, csc_http_host))
+	{	return addPseudo( msg
+						  , &msg->host
+						  , value
+						  , "host already set"
+						  , csc_httpErr_AlreadyHost
+						  );
+	}
 	addNameVal(&msg->headers, name, value);
 	return csc_httpErr_Ok;
 }
@@ -198,6 +219,8 @@ const char *csc_httpMsg_getHdr(csc_httpMsg_t *msg, const char *name)
 		return msg->statCode;
 	else if (csc_streq(name, csc_http_reason))
 		return msg->reason;
+	else if (csc_streq(name, csc_http_host))
+		return msg->host;
 	return getVal(msg->headers, name);
 }
 

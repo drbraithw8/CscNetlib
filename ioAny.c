@@ -1,4 +1,5 @@
 #include "ioAny.h"
+#include "alloc.h"
 
 
 
@@ -6,7 +7,7 @@
 // Class that can read single chars from whatever.
 //================================================
 
-typedef struct csc_ioAnyRead_s csc_ioAnyRead_t;
+typedef struct csc_ioAnyRead_s 
 {   csc_ioAny_readFunc_t readChar;
     void *context;
 } csc_ioAnyRead_t;
@@ -46,8 +47,8 @@ void csc_ioAnyWrite_free(csc_ioAnyWrite_t *rca)
 {   free(rca);
 }
 
-int csc_ioAnyWrite_puts(csc_ioAnyWrite_t *rca)
-{   return rca->writeStr(rca->context);
+void csc_ioAnyWrite_puts(csc_ioAnyWrite_t *rca, char *str)
+{   rca->writeStr(rca->context, str);
 }
 
 
@@ -62,9 +63,10 @@ typedef struct csc_ioAny_readChStr_s
 } csc_ioAny_readChStr_t;
 
 csc_ioAny_readChStr_t *csc_ioAny_readChStr_new(const char *str)
-{   readCharStr_t *rcs = csc_allocOne(readCharStr_t);
+{   csc_ioAny_readChStr_t *rcs = csc_allocOne(csc_ioAny_readChStr_t);
     rcs->str = str;
     rcs->p = str;
+	return rcs;
 }
 
 void csc_ioAny_readChStr_free(csc_ioAny_readChStr_t *rcs)

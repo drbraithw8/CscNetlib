@@ -16,15 +16,18 @@ typedef enum csc_httpErr_e
 ,   csc_httpErr_AlreadyStatCode
 ,   csc_httpErr_MissingReason
 ,   csc_httpErr_AlreadyReason
+,   csc_httpErr_MissingHost
+,   csc_httpErr_AlreadyHost
 } csc_httpErr_t;
 
 
 // Psuedo headers.  These represent the fields in the start line of a HTTP message.
-const char *csc_http_protocol = "csc_http_protocol"; // protocol, e.g. "HTTP/1.1".
-const char *csc_http_reqUri = "csc_http_reqUri"; // absolute path naming resource, e.g. "/index.html".
-const char *csc_http_method = "csc_http_method"; // Method, e.g. "GET".
-const char *csc_http_statCode = "csc_http_statCode"; // status code, e.g. "200".
-const char *csc_http_reason = "csc_http_reason"; // phrase associated with status code, e.g. "OK".
+const char *csc_http_protocol; // protocol, e.g. "HTTP/1.1".
+const char *csc_http_reqUri; // absolute path naming resource, e.g. "/index.html".
+const char *csc_http_method; // Method, e.g. "GET".
+const char *csc_http_statCode; // status code, e.g. "200".
+const char *csc_http_reason; // phrase associated with status code, e.g. "OK".
+const char *csc_http_host; // phrase associated with status code, e.g. "OK".
 
 typedef struct csc_httpMsg_t csc_httpMsg_t;
 
@@ -35,14 +38,6 @@ csc_httpMsg_t *csc_httpMsg_new();
 
 // Release resources associated with a HTTP message.
 void csc_httpMsg_free(csc_httpMsg_t *msg);
-
-
-// Receive a HTTP message from an input stream as a client.
-csc_httpErr_t csc_httpMsg_rcvCli(csc_httpMsg_t *msg, FILE *fin);
-
-
-// Receive a HTTP message by receiving HTTP from an input stream as a server.
-csc_httpErr_t csc_httpMsg_rcvSrv(csc_httpMsg_t *msg, FILE *fin);
 
 
 // Add a header to a HTTP message.  HTTP permits a header to be added more
@@ -57,6 +52,14 @@ csc_httpErr_t csc_httpMsg_addHdr(csc_httpMsg_t *msg, const char *hdrName, const 
 // Returns "" if the message is empty.  Returns NULL if there is no such
 // header.
 const char *csc_httpMsg_getHdr(csc_httpMsg_t *msg, const char *hdrName);
+
+
+// Receive a HTTP message from an input stream as a client.
+csc_httpErr_t csc_httpMsg_rcvCli(csc_httpMsg_t *msg, FILE *fin);
+
+
+// Receive a HTTP message by receiving HTTP from an input stream as a server.
+csc_httpErr_t csc_httpMsg_rcvSrv(csc_httpMsg_t *msg, FILE *fin);
 
 
 // Sends a HTTP message, as a client, to the output stream 'fout'.  The
