@@ -26,6 +26,25 @@ int csc_ioAnyRead_getc(csc_ioAnyRead_t *rca)
 {   return rca->readChar(rca->context);
 }
 
+int csc_ioAnyRead_getline(csc_ioAnyRead_t *ior, csc_str_t *line)
+{   int ch;
+    csc_str_reset(line);
+ 
+// Read in line. 
+	ch = csc_ioAnyRead_getc(ior);
+    while (ch!=EOF && ch!='\n')
+    {   if (ch != '\r')
+            csc_str_append_ch(line, ch);
+		ch = csc_ioAnyRead_getc(ior);
+    }
+ 
+// Return result. 
+    if (ch == EOF)
+        return -1;
+    else
+        return csc_str_length(line);
+}
+
 
 
 //================================================
@@ -108,5 +127,4 @@ void csc_ioAny_writeCstr(void *context, const char *str)
 int csc_ioAny_readCharStr(void *context)
 {   return csc_ioAny_readChStr_getc((csc_ioAny_readChStr_t*)context);
 }
-
 

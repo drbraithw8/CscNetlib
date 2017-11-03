@@ -107,5 +107,8 @@ void testAddGet(FILE *fout)
 
 int main(int argc, char **argv)
 {	testAddGet(stdout);
-	exit(0);
+	if (csc_mck_nchunks() == 0)
+		fprintf(stdout, "pass (%s)\n", "http_memory");
+	else
+		fprintf(stdout, "FAIL (%s)\n", "http_memory");
 }

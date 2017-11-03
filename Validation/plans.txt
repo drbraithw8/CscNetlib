@@ -9,7 +9,7 @@ cscNetLib.
 Description of test run.
 -----------------------
 
-*	Any files or directories in the top level validation directory tree
+*	Any files or directories in the validation directory tree
 	recursively matching any of the patterns "csc_temp_*", "Csc_temp_*",
 	"csc_testOut_*.txt", or "csc_testFails_*.txt",  will be recursively
 	removed.
