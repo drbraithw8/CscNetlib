@@ -15,9 +15,11 @@ csc_bool_t csc_isValid_hex(const char *word);
 csc_bool_t csc_isValid_int(const char *word);
 
 
-// If 'word' is a valid integer, and its value lies between 'min' and
-// 'max' inclusive, then this function assigns the value to 'value' and returns
-// csc_TRUE.  Otherwise, this function will return csc_FALSE.
+// If 'word' is a valid int, and its value lies between 'min' and 'max'
+// inclusive, then this function returns csc_TRUE.  Otherwise, this
+// function will return csc_FALSE.  Further, if the return value is
+// csc_TRUE and 'value' is not NULL, then this function assigns the value
+// to *'value'.  
 csc_bool_t csc_isValidRange_int(const char *word, int min, int max, int *value);
 
 
@@ -27,8 +29,10 @@ csc_bool_t csc_isValid_float(const char *str);
 
 
 // If 'word' is a valid floating point number, and its value lies between
-// 'min' and 'max' inclusive, then this function assigns the value to
-// 'value' and returns csc_TRUE.  Otherwise, this function will return csc_FALSE.
+// 'min' and 'max' inclusive, then this function returns csc_TRUE.
+// Otherwise, this function will return csc_FALSE.  Further, if the return
+// value is csc_TRUE and 'value' is not NULL, then this function assigns the
+// value to *'value'.  
 csc_bool_t csc_isValidRange_float(const char *word, double min, double max, double *value);
 
 

@@ -42,7 +42,8 @@ csc_bool_t csc_isValidRange_int(const char *word, int min, int max, int *value)
     val = atoi(word);
     if (val<min || val>max)
         return csc_FALSE;
-    *value = val;
+	if (value != NULL)
+		*value = val;
     return csc_TRUE;
 }
 
@@ -88,7 +89,8 @@ csc_bool_t csc_isValidRange_float(const char *word, double min, double max, doub
     val = atof(word);
     if (val<min || val>max)
         return csc_FALSE;
-    *value = val;
+	if (value != NULL)
+		*value = val;
     return csc_TRUE;
 }
 

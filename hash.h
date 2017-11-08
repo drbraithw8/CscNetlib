@@ -30,7 +30,7 @@ csc_hash_t *csc_hash_new(int offset, int (*cmp)(void*,void*),
  * The function 'free_rec'() is able to dispose of a record.
  */ 
 
-int csc_hash_addex(csc_hash_t *hash, void *rec);
+csc_bool_t csc_hash_addex(csc_hash_t *hash, void *rec);
 /*  If a key matching 'rec' already exists in 'hash' then this 
  * function will return csc_FALSE.  Otherwise it will add 'rec' to 'hash' 
  * and return csc_TRUE.
@@ -54,7 +54,7 @@ void *csc_hash_out(csc_hash_t *hash, void *key);
  * but it does not free it.
  */   
 
-int csc_hash_del(csc_hash_t *hash, void *key);
+csc_bool_t csc_hash_del(csc_hash_t *hash, void *key);
 /*  If no record with a key of 'key' exists in 'hash', this function 
  * will return csc_FALSE.  Otherwise it will remove the last added record 
  * with a key of 'key', free it and return csc_TRUE.
@@ -110,5 +110,22 @@ void csc_hash_FreeBlk(void *blk);
 /* Free's a block that needs no further freeing.  Useful because free()
  * can be a macro.
  */
+
+// --------------------------------------------------
+// --------- mapStrStr class
+// --------------------------------------------------
+
+typedef struct csc_mapStrStr_t csc_mapStrStr_t;
+
+csc_mapStrStr_t *csc_mapStrStr_new();
+
+void csc_mapStrStr_free(csc_mapStrStr_t *hss);
+
+csc_bool_t csc_mapStrStr_addex(csc_mapStrStr_t *hss, const char *name, const char *val);
+
+const char *csc_mapStrStr_get(csc_mapStrStr_t *hss, const char *name);
+
+void *csc_mapStrStr_out(csc_mapStrStr_t *hss, const char *name);
+
 
 #endif

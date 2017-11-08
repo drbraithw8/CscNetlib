@@ -10,6 +10,7 @@
 #include "alloc.h"
 #include "isvalid.h"
 #include "dynArray.h"
+#include "ioAny.h"
 #include "json.h"
 
 #define MaxIntLen 22
@@ -592,60 +593,59 @@ void csc_json_writeCstr(const csc_json_t *js, csc_str_t *cstr)
 
 
 
-typedef int (*readCharAnyFunc_t)(void *context);
-
-
-// Class to that can read single chars from a string.
-typedef struct readCharStr_s
-{   const char *str;
-    const char *p;
-} readCharStr_t;
-static readCharStr_t *readCharStr_new(const char *str)
-{   readCharStr_t *rcs = csc_allocOne(readCharStr_t);
-    rcs->str = str;
-    rcs->p = str;
-}
-static void readCharStr_free(readCharStr_t *rcs)
-{   free(rcs);
-}
-static int readCharStr_getc(readCharStr_t *rcs)
-{   int ch = *rcs->p++;
-    if (ch == '\0')
-    {   rcs->p--;
-        return EOF;
-    }
-    else
-        return ch;
-}
-
-// Class to that can read single chars from whatever.
-typedef struct readCharAny_s
-{   readCharAnyFunc_t readChar;
-    void *context;
-} readCharAny_t;
-static readCharAny_t *readCharAny_new(readCharAnyFunc_t readChar, void *context)
-{   readCharAny_t *rca = csc_allocOne(readCharAny_t);
-    rca->readChar = readChar;
-    rca->context = context;
-	return rca;
-}
-static void readCharAny_free(readCharAny_t *rca)
-{   free(rca);
-}
-static int readCharAny_getc(readCharAny_t *rca)
-{   return rca->readChar(rca->context);
-}
-
-
-// Reading from a string.
-static int readCharStr(void *context)
-{   return readCharStr_getc((readCharStr_t*)context);
-}
-
-// Reading from a file.
-static int readCharFile(void *context)
-{   return getc((FILE*)context);
-}
+// typedef int (*readCharAnyFunc_t)(void *context);
+// 
+// // Class to that can read single chars from a string.
+// typedef struct readCharStr_s
+// {   const char *str;
+//     const char *p;
+// } readCharStr_t;
+// static readCharStr_t *readCharStr_new(const char *str)
+// {   readCharStr_t *rcs = csc_allocOne(readCharStr_t);
+//     rcs->str = str;
+//     rcs->p = str;
+// }
+// static void readCharStr_free(readCharStr_t *rcs)
+// {   free(rcs);
+// }
+// static int readCharStr_getc(readCharStr_t *rcs)
+// {   int ch = *rcs->p++;
+//     if (ch == '\0')
+//     {   rcs->p--;
+//         return EOF;
+//     }
+//     else
+//         return ch;
+// }
+// 
+// // Class to that can read single chars from whatever.
+// typedef struct readCharAny_s
+// {   readCharAnyFunc_t readChar;
+//     void *context;
+// } readCharAny_t;
+// static readCharAny_t *readCharAny_new(readCharAnyFunc_t readChar, void *context)
+// {   readCharAny_t *rca = csc_allocOne(readCharAny_t);
+//     rca->readChar = readChar;
+//     rca->context = context;
+// 	return rca;
+// }
+// static void readCharAny_free(readCharAny_t *rca)
+// {   free(rca);
+// }
+// static int readCharAny_getc(readCharAny_t *rca)
+// {   return rca->readChar(rca->context);
+// }
+// 
+// 
+// // Reading from a string.
+// static int readCharStr(void *context)
+// {   return readCharStr_getc((readCharStr_t*)context);
+// }
+// 
+// // Reading from a file.
+// static int readCharFile(void *context)
+// {   return getc((FILE*)context);
+// }
 
 
 typedef struct jsonParse_s
@@ -653,11 +653,11 @@ typedef struct jsonParse_s
     csc_jsonErr_t errNo;
     int charPos;
     int lineNo;
-    readCharAny_t *rca;
+    csc_ioAnyRead_t *rca;
     int ch;
 } jsonParse_t;
 
-static jsonParse_t *jsonParse_new(readCharAny_t *rca)
+static jsonParse_t *jsonParse_new(csc_ioAnyRead_t *rca)
 {   jsonParse_t *jsp = csc_allocOne(jsonParse_t);
     jsp->errStr = NULL;
     jsp->errNo = csc_jsonErr_Ok;
@@ -681,7 +681,7 @@ static const char *jsonParse_getReason(jsonParse_t *jsp)
 static int jsonParse_nextChar(jsonParse_t *jsp)
 {   int ch;
     if (jsp->ch != EOF)
-    {   ch = jsp->ch = readCharAny_getc(jsp->rca);
+    {   ch = jsp->ch = csc_ioAnyRead_getc(jsp->rca);
         if (ch == '\n')
             jsp->lineNo++;
         jsp->charPos++;
@@ -1179,8 +1179,8 @@ cleanup:
 csc_json_t *csc_json_newParseStr(const char *str)
 {
 // Allocate resources.
-    readCharStr_t *rcs = readCharStr_new(str);
-    readCharAny_t *rca = readCharAny_new(readCharStr, (void*)rcs);
+	csc_ioAny_readChStr_t *rcs = csc_ioAny_readChStr_new(str);
+	csc_ioAnyRead_t *rca = csc_ioAnyRead_new(csc_ioAny_readCharStr, rcs);
     jsonParse_t *jsp = jsonParse_new(rca);
  
 // Parse the object.
@@ -1189,8 +1189,8 @@ csc_json_t *csc_json_newParseStr(const char *str)
  
 // Free resources.
     jsonParse_free(jsp);
-    readCharAny_free(rca);
-    readCharStr_free(rcs);
+    csc_ioAnyRead_free(rca);
+    csc_ioAny_readChStr_free(rcs);
  
 // Return.
     return js;
@@ -1200,7 +1200,7 @@ csc_json_t *csc_json_newParseStr(const char *str)
 csc_json_t *csc_json_newParseFILE(FILE *fin)
 {
 // Allocate resources.
-    readCharAny_t *rca = readCharAny_new(readCharFile, (void*)fin);
+	csc_ioAnyRead_t *rca = csc_ioAnyRead_new(csc_ioAny_readCharFILE, (void*)fin);
     jsonParse_t *jsp = jsonParse_new(rca);
  
 // Parse the object.
@@ -1209,7 +1209,7 @@ csc_json_t *csc_json_newParseFILE(FILE *fin)
  
 // Free resources.
     jsonParse_free(jsp);
-    readCharAny_free(rca);
+    csc_ioAnyRead_free(rca);
  
 // Return.
     return js;

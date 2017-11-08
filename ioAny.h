@@ -39,6 +39,8 @@ int csc_ioAnyRead_getc(csc_ioAnyRead_t *rca);
 // Get one line.
 int csc_ioAnyRead_getline(csc_ioAnyRead_t *ior, csc_str_t *line);
 
+// Get one word.
+int csc_ioAnyRead_getwd(csc_ioAnyRead_t *ior, csc_str_t *word);
 
 //===================================================
 // Class that can write strings to whatever.

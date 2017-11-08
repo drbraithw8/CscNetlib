@@ -25,31 +25,31 @@ int main(int argc, char **argv)
 	csc_str_t *strA;
 
 	strA = csc_str_new(NULL);
-	printPassFail("NULLNew", csc_streq(csc_str_charr(strA),""));
+	printPassFail("cstr_NULLNew", csc_streq(csc_str_charr(strA),""));
 
 	csc_str_free(strA);
-	printPassFail("NULLFree", csc_mck_nchunks()==0);
+	printPassFail("cstr_NULLFree", csc_mck_nchunks()==0);
 
 	strA = csc_str_new("");
-	printPassFail("EmptyNew", csc_streq(csc_str_charr(strA),""));
+	printPassFail("cstr_EmptyNew", csc_streq(csc_str_charr(strA),""));
 
 	csc_str_free(strA);
-	printPassFail("EmptyFree", csc_mck_nchunks()==0);
+	printPassFail("cstr_EmptyFree", csc_mck_nchunks()==0);
 
 	strA = csc_str_new("a");
-	printPassFail("SingleNew", csc_streq(csc_str_charr(strA),"a"));
+	printPassFail("cstr_SingleNew", csc_streq(csc_str_charr(strA),"a"));
 
 	csc_str_assign(strA, longStr);
-	printPassFail("AssignLong1", csc_streq(csc_str_charr(strA),longStr));
+	printPassFail("cstr_AssignLong1", csc_streq(csc_str_charr(strA),longStr));
 
 	csc_str_free(strA);
-	printPassFail("SingleFree", csc_mck_nchunks()==0);
+	printPassFail("cstr_SingleFree", csc_mck_nchunks()==0);
 
 	strA = csc_str_new(longStr);
-	printPassFail("LongNew", csc_streq(csc_str_charr(strA),longStr));
+	printPassFail("cstr_LongNew", csc_streq(csc_str_charr(strA),longStr));
 
 	csc_str_free(strA);
-	printPassFail("LongFree", csc_mck_nchunks()==0);
+	printPassFail("cstr_LongFree", csc_mck_nchunks()==0);
 
 	strA = csc_str_new(NULL);
 	csc_str_append(strA, longStr);

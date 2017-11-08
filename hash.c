@@ -3,6 +3,7 @@
 
 
 #include <stdlib.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -133,7 +134,7 @@ void csc_hash_add(csc_hash_t *h, void *rec)
 }
 
 
-int csc_hash_addex(csc_hash_t *h, void *rec)
+csc_bool_t csc_hash_addex(csc_hash_t *h, void *rec)
 /*  If a key matching 'rec' already exists in 'h' then this 
  * function will return csc_FALSE.  Otherwise it will add 'rec' to 'hash' 
  * and return csc_TRUE.
@@ -225,7 +226,7 @@ void *csc_hash_out(csc_hash_t *h, void *key)
 }
 
 
-int csc_hash_del(csc_hash_t *h, void *key)
+csc_bool_t csc_hash_del(csc_hash_t *h, void *key)
 /*  If no record with a key of 'key' exists in 'h', this function 
  * will return csc_FALSE.  Otherwise it will remove any record 
  * with a key of 'key', free it and return csc_TRUE.
@@ -383,6 +384,90 @@ void csc_hash_FreeNothing(void *blk)
 void csc_hash_FreeBlk(void *blk)
 {   free(blk);
 }
+
+
+// --------------------------------------------------
+// --------- nameValue class
+// --------------------------------------------------
+typedef struct
+{	const char *name;
+	const char *val;
+} nameVal_t;
+
+static nameVal_t *nameVal_new(const char *name, const char *val)
+{	nameVal_t *nv = csc_allocOne(nameVal_t);
+	nv->name = csc_alloc_str(name);
+	nv->val = csc_alloc_str(val);
+	return nv;
+}
+
+static void nameVal_free(nameVal_t *nv)
+{	free((void*)nv->name);
+	free((void*)nv->val);
+	free(nv);
+}
+
+static void nameVal_vfree(void *nv)
+{	nameVal_free((nameVal_t*)nv);
+}
+
+
+// --------------------------------------------------
+// --------- mapStrStr class
+// --------------------------------------------------
+
+typedef struct csc_mapStrStr_t
+{	csc_hash_t *h;
+} csc_mapStrStr_t;
+
+
+csc_mapStrStr_t *csc_mapStrStr_new()
+{	csc_mapStrStr_t *hss = csc_allocOne(csc_mapStrStr_t);
+	hss->h = csc_hash_new(offsetof(nameVal_t,name), csc_hash_StrPtCmpr, csc_hash_StrPt, nameVal_vfree);
+	return hss;
+}
+
+void csc_mapStrStr_free(csc_mapStrStr_t *hss)
+{	csc_hash_free(hss->h);
+	free(hss);
+}
+
+// void csc_mapStrStr_add(csc_mapStrStr_t *hss, const char *name, const char *val)
+// {	nameVal_t *nv = nameVal_new(name, val);
+// 	csc_hash_add(hss->h, &nv);
+// }
+
+csc_bool_t csc_mapStrStr_addex(csc_mapStrStr_t *hss, const char *name, const char *val)
+{	nameVal_t *nv = nameVal_new(name, val);
+	csc_bool_t ret = csc_hash_addex(hss->h, nv);
+	if (!ret)
+		nameVal_vfree(nv);
+	return ret;
+}
+
+const char *csc_mapStrStr_get(csc_mapStrStr_t *hss, const char *name)
+{	nameVal_t key;
+	key.name = name;
+	nameVal_t *nv = csc_hash_get(hss->h, &key);
+	if (nv == NULL)
+		return NULL;
+	else
+		return nv->val;
+}
+
+const char *csc_mapStrStr_out(csc_mapStrStr_t *hss, const char *name)
+{	nameVal_t *nv = csc_hash_out(hss->h, &name);
+	if (nv == NULL)
+		return NULL;
+	else
+	{	nameVal_vfree(nv);
+		return nv->val;
+	}
+}
+
+
+
+
 
 
 

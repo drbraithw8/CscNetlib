@@ -2,22 +2,32 @@
 #define csc_HTTP_H 1
 
 #include <stdio.h>
+#include "ioAny.h"
+#include "cstr.h"
 #include "std.h"
 
 typedef enum csc_httpErr_e
 {   csc_httpErr_Ok = 0
+,   csc_httpErr_UnexpectedEOF
 ,   csc_httpErr_MissingProtocol
 ,   csc_httpErr_AlreadyProtocol
+,   csc_httpErr_BadProtocol
 ,   csc_httpErr_MissingReqUri
 ,   csc_httpErr_AlreadyReqUri
+,   csc_httpErr_BadReqUri
 ,   csc_httpErr_MissingMethod
 ,   csc_httpErr_AlreadyMethod
+,   csc_httpErr_BadMethod
 ,   csc_httpErr_MissingStatCode
 ,   csc_httpErr_AlreadyStatCode
+,   csc_httpErr_BadStatCode
 ,   csc_httpErr_MissingReason
 ,   csc_httpErr_AlreadyReason
 ,   csc_httpErr_MissingHost
 ,   csc_httpErr_AlreadyHost
+,   csc_httpErr_BadStartLine
+,   csc_httpErr_LineTooLong
+,   csc_httpErr_syntaxErr
 } csc_httpErr_t;
 
 
@@ -54,12 +64,24 @@ csc_httpErr_t csc_httpMsg_addHdr(csc_httpMsg_t *msg, const char *hdrName, const 
 const char *csc_httpMsg_getHdr(csc_httpMsg_t *msg, const char *hdrName);
 
 
-// Receive a HTTP message from an input stream as a client.
-csc_httpErr_t csc_httpMsg_rcvCli(csc_httpMsg_t *msg, FILE *fin);
+// Receive a HTTP message from whatever as a client.
+csc_httpErr_t csc_httpMsg_rcvCli(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca);
+
+// Receive a HTTP message from an input FILE stream as a client.
+csc_httpErr_t csc_httpMsg_rcvCliFILE(csc_httpMsg_t *msg, FILE *fin);
+
+// Receive a HTTP message from an input string as a client.
+csc_httpErr_t csc_httpMsg_rcvCliStr(csc_httpMsg_t *msg, const char *str);
 
 
-// Receive a HTTP message by receiving HTTP from an input stream as a server.
-csc_httpErr_t csc_httpMsg_rcvSrv(csc_httpMsg_t *msg, FILE *fin);
+// Receive a HTTP message by receiving HTTP from whatever as a server.
+csc_httpErr_t csc_httpMsg_rcvSrv(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca);
+
+// Receive a HTTP message from an input FILE stream as a server.
+csc_httpErr_t csc_httpMsg_rcvSrvFILE(csc_httpMsg_t *msg, FILE *fin);
+
+// Receive a HTTP message from an input FILE stream as a server.
+csc_httpErr_t csc_httpMsg_rcvSrvStr(csc_httpMsg_t *msg, const char *str);
 
 
 // Sends a HTTP message, as a client, to the output stream 'fout'.  The

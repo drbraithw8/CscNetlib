@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include "ioAny.h"
 #include "alloc.h"
 
@@ -46,6 +47,29 @@ int csc_ioAnyRead_getline(csc_ioAnyRead_t *ior, csc_str_t *line)
 }
 
 
+int csc_ioAnyRead_getwd(csc_ioAnyRead_t *ior, csc_str_t *word)
+{
+	int ch = csc_ioAnyRead_getc(ior);
+    csc_str_reset(word);
+ 
+/* Skip whitespace */
+	while(isspace(ch))
+		ch = csc_ioAnyRead_getc(ior);
+ 
+/* Deal with a possible EOF */
+	if(ch==EOF)
+		return -1;
+ 
+/* read in the word */
+	while(!isspace(ch) && ch!=EOF)
+	{	csc_str_append_ch(word, ch);
+		ch = csc_ioAnyRead_getc(ior);
+	}
+ 
+/* Return the length. */
+	return csc_str_length(word);
+}
+
 
 //================================================
 // Class that can write strings to whatever.
@@ -93,13 +117,16 @@ void csc_ioAny_readChStr_free(csc_ioAny_readChStr_t *rcs)
 }
 
 int csc_ioAny_readChStr_getc(csc_ioAny_readChStr_t *rcs)
-{   int ch = *rcs->p++;
+{  
+	int ch = *rcs->p++;
     if (ch == '\0')
     {   rcs->p--;
         return EOF;
     }
     else
+	{
         return ch;
+	}
 }
 
 

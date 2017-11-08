@@ -16,72 +16,52 @@
 
 
 typedef struct csc_ini_t
-{   csc_hash_t *hash;
+{   csc_mapStrStr_t *map;
 } csc_ini_t;    
 
-
-struct iniRec_t
-{   char *ident;
-    char *value;
-};
-typedef struct iniRec_t iniRec_t;
-
-
-static void freeIniRec(void *recVp)
-{   iniRec_t *rec = (iniRec_t*)recVp;
-    free(rec->ident);
-    free(rec->value);
-    free(recVp);
-}
 
 
 csc_ini_t *csc_ini_new(void)
 {   csc_ini_t *ini = csc_allocOne(csc_ini_t);
-    ini->hash = csc_hash_new((int)offsetof(iniRec_t,ident),
-                            csc_hash_StrPtCmpr, csc_hash_StrPt, freeIniRec);
+    ini->map = csc_mapStrStr_new();
     return ini;
 }
 
 
 void csc_ini_free(csc_ini_t *ini)
-{   csc_hash_free(ini->hash);
+{   csc_mapStrStr_free(ini->map);
     free(ini);
 }
 
 
 const char *csc_ini_getStr(const csc_ini_t *ini, const char *section, const char *ident)
 {   char *key;
-    char *value;
+    const char *value;
  
-// Look for the key in the hash table.
+// Look for the key in the map table.
     key = csc_alloc_str3(section, "%", ident);
-    iniRec_t *rec = csc_hash_get(ini->hash, &key);
+    value = csc_mapStrStr_get(ini->map, key);
     free(key);
  
 // Return result.
-    if (rec == NULL)
-        return NULL;
-    else
-        return rec->value;
+	return value;
 }
 
 
 char *csc_ini_getAllocStr(const csc_ini_t *ini, const char *section, const char *ident)
 {   char *key;
-    char *value;
+    const char *value;
  
-// Look for the key in the hash table.
+// Look for the key in the map table.
     key = csc_alloc_str3(section, "%", ident);
-    iniRec_t *rec = csc_hash_get(ini->hash, &key);
+    value = csc_mapStrStr_get(ini->map, key);
     free(key);
  
 // Return result.
-    if (rec == NULL)
+    if (value == NULL)
         return NULL;
     else
-    {   value = csc_alloc_str(rec->value);
-        return value;
-    }
+		return csc_alloc_str(value);
 }
 
 
@@ -90,7 +70,6 @@ int csc_ini_read(csc_ini_t *ini, const char *iniFilePath)
     char line[MaxLineLen+1];
     char section[MaxLineLen+1];
     char *lineP, *keyEndP, *lineEndP, *valueP;
-    iniRec_t *rec;
     int lineNo = 0;
  
 // Initialise the section name to invalid.
@@ -179,11 +158,10 @@ int csc_ini_read(csc_ini_t *ini, const char *iniFilePath)
             *lineEndP = '\0';
         
         // We have successfully read in a valid key and value.
-        // Create the record and add it into the hash table.
-            rec = csc_allocOne(iniRec_t);
-            rec->ident = csc_alloc_str3(section, "%", lineP);
-            rec->value = csc_alloc_str(valueP);
-            csc_hash_addex(ini->hash, (void *)rec);
+        // Create the record and add it into the map table.
+            char *key = csc_alloc_str3(section, "%", lineP);
+            csc_mapStrStr_addex(ini->map, key, valueP);
+			free(key);
  
         }  // if
     } // while
