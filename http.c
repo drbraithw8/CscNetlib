@@ -17,7 +17,7 @@ typedef struct csc_httpMsg_t
 	char *errMsg;
  
 // Headers.
-	csc_mapStrStr_t *headers;
+	csc_mapSS_t *headers;
 	char *reqUri;
  
 } csc_httpMsg_t;
@@ -43,7 +43,7 @@ csc_httpMsg_t *csc_httpMsg_new()
  
 // Headers.
 	msg->reqUri = NULL;
-	msg->headers = csc_mapStrStr_new();
+	msg->headers = csc_mapSS_new();
  
 // Home with the bacon.
 	return msg;
@@ -62,7 +62,7 @@ void csc_httpMsg_free(csc_httpMsg_t *msg)
  
 // Http Headers.
 	if (msg->headers)
-		csc_mapStrStr_free(msg->headers);
+		csc_mapSS_free(msg->headers);
  
 // Free the structure.
 	free(msg);
@@ -105,7 +105,7 @@ csc_httpErr_t csc_httpMsg_addHdr(csc_httpMsg_t *msg, const char *name, const cha
 						  , csc_httpErr_AlreadyReqUri
 						  );
 	}
-	csc_mapStrStr_addex(msg->headers, name, value);
+	csc_mapSS_addex(msg->headers, name, value);
 	return csc_httpErr_Ok;
 }
 
@@ -113,7 +113,7 @@ csc_httpErr_t csc_httpMsg_addHdr(csc_httpMsg_t *msg, const char *name, const cha
 const char *csc_httpMsg_getHdr(csc_httpMsg_t *msg, const char *name)
 {	if (csc_streq(name, csc_http_reqUri))
 		return msg->reqUri;
-	return csc_mapStrStr_get(msg->headers, name);
+	return csc_mapSS_get(msg->headers, name);
 }
 
 

@@ -7,15 +7,7 @@
 
 typedef struct csc_hash_t csc_hash_t;
 typedef struct csc_hash_node_t csc_hash_node_t;
-
-typedef struct
-{
-/* Innards are private! */
-    csc_hash_node_t *pt;
-    void *key;
-    unsigned long ilst;
-    unsigned long hash_val;
-} csc_hash_iter_t;
+typedef struct csc_hash_iter_t csc_hash_iter_t;
 
 
 csc_hash_t *csc_hash_new(int offset, int (*cmp)(void*,void*),
@@ -66,18 +58,9 @@ void csc_hash_free(csc_hash_t *hash);
  */ 
 
 
-
-#define for_hash_key(h,i,key,dat,dat_type) \
-    for (csc_hash_key_init(h,&i,key); ((dat)=(dat_type)csc_hash_key_next(h,&i))!=NULL; )
-
-#define for_hash_all(h,i,dat,dat_type) \
-    for (csc_hash_all_init(h,&i); ((dat)=(dat_type)csc_hash_all_next(h,&i))!=NULL; )
-
-void csc_hash_key_init(csc_hash_t *h, csc_hash_iter_t *i, void *key);
-void *csc_hash_key_next(csc_hash_t *h, csc_hash_iter_t *i);
-void csc_hash_all_init(csc_hash_t *h, csc_hash_iter_t *i);
-void *csc_hash_all_next(csc_hash_t *h, csc_hash_iter_t *i);
-
+// --------------------------------------------------
+// --------- Miscellaneous useful -------------------
+// --------------------------------------------------
 
 unsigned long csc_hash_str(void *str);
 /*  Creates a hash index from a null terminated string.  (case sensitive).
@@ -111,21 +94,74 @@ void csc_hash_FreeBlk(void *blk);
  * can be a macro.
  */
 
+
 // --------------------------------------------------
-// --------- mapStrStr class
+// --------- Iterator -------------------------------
 // --------------------------------------------------
 
-typedef struct csc_mapStrStr_t csc_mapStrStr_t;
+// Current way of iterating through a list.
+typedef struct csc_hash_iter_t csc_hash_iter_t;
 
-csc_mapStrStr_t *csc_mapStrStr_new();
+// Constructor
+csc_hash_iter_t *csc_hash_iter_new(csc_hash_t *hash, void *key);
 
-void csc_mapStrStr_free(csc_mapStrStr_t *hss);
+// Destructor
+void csc_hash_iter_free(csc_hash_iter_t *iter);
 
-csc_bool_t csc_mapStrStr_addex(csc_mapStrStr_t *hss, const char *name, const char *val);
+// Get each item.
+void *csc_hash_iter_next(csc_hash_iter_t *iter);
 
-const char *csc_mapStrStr_get(csc_mapStrStr_t *hss, const char *name);
 
-void *csc_mapStrStr_out(csc_mapStrStr_t *hss, const char *name);
+// --------------------------------------------------
+// --------- nameValue class
+// --------------------------------------------------
+
+typedef struct csc_nameVal_t
+{	const char *name;
+	const char *val;
+} csc_nameVal_t;
+
+csc_nameVal_t *csc_nameVal_new(const char *name, const char *val);
+
+void csc_nameVal_free(csc_nameVal_t *nv);
+
+
+// --------------------------------------------------
+// --------- mapSS class: Map nameVal pairs.
+// --------------------------------------------------
+
+typedef struct csc_mapSS_t csc_mapSS_t;
+
+// Constructor
+csc_mapSS_t *csc_mapSS_new();
+
+// Destructor
+void csc_mapSS_free(csc_mapSS_t *hss);
+
+// Add a name value pair.
+csc_bool_t csc_mapSS_addex(csc_mapSS_t *hss, const char *name, const char *val);
+
+// Get the value corresponding to a name.
+const char *csc_mapSS_get(csc_mapSS_t *hss, const char *name);
+
+// Remove a name value pair.
+csc_bool_t csc_mapSS_out(csc_mapSS_t *hss, const char *name);
+
+
+// --------------------------------------------------
+// --------- Iterator for mapSS class.
+// --------------------------------------------------
+
+typedef struct csc_mapSS_iter_t csc_mapSS_iter_t;
+
+// Constructor
+csc_mapSS_iter_t *csc_mapSS_iter_new(csc_mapSS_t *hss);
+
+// Destructor
+void csc_mapSS_iter_free(csc_mapSS_iter_t *iter);
+
+// Get the next one (or the first one).
+const csc_nameVal_t *csc_mapSS_iter_next(csc_mapSS_iter_t *iter);
 
 
 #endif

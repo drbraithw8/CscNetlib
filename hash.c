@@ -10,10 +10,13 @@
 
 #include "std.h"
 #include "alloc.h"
+#include "hash.h"
 
 #define MUL 293
 #define ADD 1
 
+// Old way of iterating through a list.
+// It still works, but you can have only one.
 #define for_hash_key(h,i,key,dat,dat_type) \
     for (csc_hash_key_init(h,&i,key); ((dat)=(dat_type)csc_hash_key_next(h,&i))!=NULL; )
 
@@ -29,8 +32,7 @@ typedef struct csc_hash_node_t
 
 
 typedef struct csc_hash_t
-{   
-    csc_hash_node_t **table;
+{   csc_hash_node_t **table;
     unsigned long tblsize;
     unsigned long count;
     unsigned long maxcount;
@@ -39,16 +41,6 @@ typedef struct csc_hash_t
     unsigned long (*hval)(void*);
     void (*free_rec)(void*);
 } csc_hash_t;    
-
-
-typedef struct
-{
-/* Innards are private! */
-    csc_hash_node_t *pt;
-    void *key;
-    unsigned long ilst;
-    unsigned long hash_val;
-} csc_hash_iter_t;
 
 
 csc_hash_t *csc_hash_new(int offset, int (*cmp)(void*,void*),
@@ -283,64 +275,9 @@ csc_ulong csc_hash_str(void *arg)
 }
 
 
-void csc_hash_key_init(csc_hash_t *h, csc_hash_iter_t *i, void *key)
-{  
-    i->hash_val = h->hval(key);
-    i->pt = h->table[ i->hash_val % h->tblsize ];
-    i->key = key;
-}
-
-void *csc_hash_key_next(csc_hash_t *h, csc_hash_iter_t *i)
-{   csc_hash_node_t *pt;
-    int (*cmp)(void*,void*) = h->cmp;
-    int offset = h->offset;
-    void *key = i->key;
-    unsigned long hash_val = i->hash_val;
- 
-    for (pt=i->pt; pt!=NULL; pt=pt->next)
-    {   if (pt->hash_val==hash_val && cmp(((char*)pt->data)+offset, key)==0)
-            break;
-    }
-    if (pt == NULL)
-    {   i->pt = NULL;
-        return NULL;
-    }
-    else
-    {   i->pt = pt->next;
-        return pt->data;
-    }
-}
-
-void csc_hash_all_init(csc_hash_t *h, csc_hash_iter_t *i)
-{   i->ilst = 0;
-    i->pt = NULL;
-}
-
-void *csc_hash_all_next(csc_hash_t *h, csc_hash_iter_t *i)
-{   int ilst;
-    int nlst;
-    csc_hash_node_t **table;
-    csc_hash_node_t *pt = i->pt;
- 
-    if (pt == NULL)
-    {   ilst = i->ilst;
-        nlst = h->tblsize;
-        table = h->table;
-        while (ilst<nlst && table[ilst]==NULL)
-            ilst++;
-        i->ilst = ilst;
-        if (ilst == nlst)
-            return NULL;
-        else
-            pt = table[ilst];
-    }
- 
-    i->pt = pt->next;
-    if (i->pt == NULL)
-        i->ilst++;
-    return pt->data;
-}
-
+// --------------------------------------------------
+// --------- Miscellaneous useful -------------------
+// --------------------------------------------------
 
 csc_ulong csc_hash_StrPt(void *pt)
 {   return csc_hash_str(*(char**)pt);
@@ -387,84 +324,200 @@ void csc_hash_FreeBlk(void *blk)
 
 
 // --------------------------------------------------
+// --------- Iterator -------------------------------
+// --------------------------------------------------
+
+typedef struct csc_hash_iter_t
+{	csc_hash_t *hash;
+    csc_hash_node_t *pt;
+    void *key;
+    unsigned long ilst;
+    unsigned long hash_val;
+} csc_hash_iter_t;
+
+
+static void *csc_hash_key_next(csc_hash_iter_t *iter)
+{	csc_hash_t *hash = iter->hash;
+    int (*cmp)(void*,void*) = hash->cmp;
+    int offset = hash->offset;
+    void *key = iter->key;
+    unsigned long hash_val = iter->hash_val;
+	csc_hash_node_t *pt;
+ 
+    for (pt=iter->pt; pt!=NULL; pt=pt->next)
+    {   if (pt->hash_val==hash_val && cmp(((char*)pt->data)+offset, key)==0)
+            break;
+    }
+    if (pt == NULL)
+    {   iter->pt = NULL;
+        return NULL;
+    }
+    else
+    {   iter->pt = pt->next;
+        return pt->data;
+    }
+}
+
+
+static void *csc_hash_all_next(csc_hash_iter_t *iter)
+{	int ilst;
+    int nlst;
+    csc_hash_node_t **table;
+    csc_hash_node_t *pt = iter->pt;
+ 
+    if (pt == NULL)
+	{	csc_hash_t *hash = iter->hash;
+        ilst = iter->ilst;
+        nlst = hash->tblsize;
+        table = hash->table;
+        while (ilst<nlst && table[ilst]==NULL)
+            ilst++;
+        iter->ilst = ilst;
+        if (ilst == nlst)
+            return NULL;
+        else
+            pt = table[ilst];
+    }
+ 
+    iter->pt = pt->next;
+    if (iter->pt == NULL)
+        iter->ilst++;
+    return pt->data;
+}
+
+
+csc_hash_iter_t *csc_hash_iter_new(csc_hash_t *hash, void *key)
+{	csc_hash_iter_t *iter = csc_allocOne(csc_hash_iter_t);
+	iter->hash = hash;
+	iter->key = key;
+	if (key == NULL)
+	{	iter->ilst = 0;
+		iter->pt = NULL;
+	}
+	else
+	{	iter->hash_val = hash->hval(key);
+    	iter->pt = hash->table[iter->hash_val % hash->tblsize];
+	}
+	return iter;
+}
+
+
+void csc_hash_iter_free(csc_hash_iter_t *iter)
+{	free(iter);
+}
+
+
+void *csc_hash_iter_next(csc_hash_iter_t *iter)
+{	if (iter->key == NULL)
+		return csc_hash_all_next(iter);
+	else
+		return csc_hash_key_next(iter);
+}
+
+
+// --------------------------------------------------
 // --------- nameValue class
 // --------------------------------------------------
-typedef struct
-{	const char *name;
-	const char *val;
-} nameVal_t;
 
-static nameVal_t *nameVal_new(const char *name, const char *val)
-{	nameVal_t *nv = csc_allocOne(nameVal_t);
+csc_nameVal_t *csc_nameVal_new(const char *name, const char *val)
+{	csc_nameVal_t *nv = csc_allocOne(csc_nameVal_t);
 	nv->name = csc_alloc_str(name);
 	nv->val = csc_alloc_str(val);
 	return nv;
 }
 
-static void nameVal_free(nameVal_t *nv)
+void csc_nameVal_free(csc_nameVal_t *nv)
 {	free((void*)nv->name);
 	free((void*)nv->val);
 	free(nv);
 }
 
-static void nameVal_vfree(void *nv)
-{	nameVal_free((nameVal_t*)nv);
+static void csc_nameVal_vfree(void *nv)
+{	csc_nameVal_free((csc_nameVal_t*)nv);
 }
 
 
 // --------------------------------------------------
-// --------- mapStrStr class
+// --------- mapSS class: Map nameVal pairs.
 // --------------------------------------------------
 
-typedef struct csc_mapStrStr_t
-{	csc_hash_t *h;
-} csc_mapStrStr_t;
+typedef struct csc_mapSS_t
+{	csc_hash_t *hash;
+} csc_mapSS_t;
 
 
-csc_mapStrStr_t *csc_mapStrStr_new()
-{	csc_mapStrStr_t *hss = csc_allocOne(csc_mapStrStr_t);
-	hss->h = csc_hash_new(offsetof(nameVal_t,name), csc_hash_StrPtCmpr, csc_hash_StrPt, nameVal_vfree);
+csc_mapSS_t *csc_mapSS_new()
+{	csc_mapSS_t *hss = csc_allocOne(csc_mapSS_t);
+	hss->hash = csc_hash_new(offsetof(csc_nameVal_t,name),
+	csc_hash_StrPtCmpr, csc_hash_StrPt, csc_nameVal_vfree);
 	return hss;
 }
 
-void csc_mapStrStr_free(csc_mapStrStr_t *hss)
-{	csc_hash_free(hss->h);
+void csc_mapSS_free(csc_mapSS_t *hss)
+{	csc_hash_free(hss->hash);
 	free(hss);
 }
 
-// void csc_mapStrStr_add(csc_mapStrStr_t *hss, const char *name, const char *val)
-// {	nameVal_t *nv = nameVal_new(name, val);
-// 	csc_hash_add(hss->h, &nv);
+// void csc_mapSS_add(csc_mapSS_t *hss, const char *name, const char *val)
+// {	csc_nameVal_t *nv = csc_nameVal_new(name, val);
+// 	csc_hash_add(hss->hash, &nv);
 // }
 
-csc_bool_t csc_mapStrStr_addex(csc_mapStrStr_t *hss, const char *name, const char *val)
-{	nameVal_t *nv = nameVal_new(name, val);
-	csc_bool_t ret = csc_hash_addex(hss->h, nv);
+csc_bool_t csc_mapSS_addex(csc_mapSS_t *hss, const char *name, const char *val)
+{	csc_nameVal_t *nv = csc_nameVal_new(name, val);
+	csc_bool_t ret = csc_hash_addex(hss->hash, nv);
 	if (!ret)
-		nameVal_vfree(nv);
+		csc_nameVal_vfree(nv);
 	return ret;
 }
 
-const char *csc_mapStrStr_get(csc_mapStrStr_t *hss, const char *name)
-{	nameVal_t key;
+const char *csc_mapSS_get(csc_mapSS_t *hss, const char *name)
+{	csc_nameVal_t key;
 	key.name = name;
-	nameVal_t *nv = csc_hash_get(hss->h, &key);
+	csc_nameVal_t *nv = csc_hash_get(hss->hash, &key);
 	if (nv == NULL)
 		return NULL;
 	else
 		return nv->val;
 }
 
-const char *csc_mapStrStr_out(csc_mapStrStr_t *hss, const char *name)
-{	nameVal_t *nv = csc_hash_out(hss->h, &name);
+csc_bool_t csc_mapSS_out(csc_mapSS_t *hss, const char *name)
+{	csc_nameVal_t *nv = csc_hash_out(hss->hash, &name);
 	if (nv == NULL)
-		return NULL;
+		return csc_FALSE;
 	else
-	{	nameVal_vfree(nv);
-		return nv->val;
+	{	csc_nameVal_free(nv);
+		return csc_TRUE;
 	}
 }
 
+
+// --------------------------------------------------
+// --------- Iterator for mapSS class.
+// --------------------------------------------------
+
+typedef struct csc_mapSS_iter_t
+{	csc_hash_iter_t *iter;
+} csc_mapSS_iter_t;
+
+
+// Constructor
+csc_mapSS_iter_t *csc_mapSS_iter_new(csc_mapSS_t *hss)
+{	csc_mapSS_iter_t *iter = csc_allocOne(csc_mapSS_iter_t);
+	iter->iter = csc_hash_iter_new(hss->hash, NULL);
+	return iter;
+}
+
+// Destructor
+void csc_mapSS_iter_free(csc_mapSS_iter_t *iter)
+{	csc_hash_iter_free(iter->iter);
+	free(iter);
+}
+
+// Get next.
+const csc_nameVal_t *csc_mapSS_iter_next(csc_mapSS_iter_t *iter)
+{	return (csc_nameVal_t*)csc_hash_iter_next(iter->iter);
+}
 
 
 

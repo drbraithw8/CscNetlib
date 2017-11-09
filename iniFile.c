@@ -16,20 +16,20 @@
 
 
 typedef struct csc_ini_t
-{   csc_mapStrStr_t *map;
+{   csc_mapSS_t *map;
 } csc_ini_t;    
 
 
 
 csc_ini_t *csc_ini_new(void)
 {   csc_ini_t *ini = csc_allocOne(csc_ini_t);
-    ini->map = csc_mapStrStr_new();
+    ini->map = csc_mapSS_new();
     return ini;
 }
 
 
 void csc_ini_free(csc_ini_t *ini)
-{   csc_mapStrStr_free(ini->map);
+{   csc_mapSS_free(ini->map);
     free(ini);
 }
 
@@ -40,7 +40,7 @@ const char *csc_ini_getStr(const csc_ini_t *ini, const char *section, const char
  
 // Look for the key in the map table.
     key = csc_alloc_str3(section, "%", ident);
-    value = csc_mapStrStr_get(ini->map, key);
+    value = csc_mapSS_get(ini->map, key);
     free(key);
  
 // Return result.
@@ -54,7 +54,7 @@ char *csc_ini_getAllocStr(const csc_ini_t *ini, const char *section, const char 
  
 // Look for the key in the map table.
     key = csc_alloc_str3(section, "%", ident);
-    value = csc_mapStrStr_get(ini->map, key);
+    value = csc_mapSS_get(ini->map, key);
     free(key);
  
 // Return result.
@@ -160,7 +160,7 @@ int csc_ini_read(csc_ini_t *ini, const char *iniFilePath)
         // We have successfully read in a valid key and value.
         // Create the record and add it into the map table.
             char *key = csc_alloc_str3(section, "%", lineP);
-            csc_mapStrStr_addex(ini->map, key, valueP);
+            csc_mapSS_addex(ini->map, key, valueP);
 			free(key);
  
         }  // if
