@@ -46,6 +46,7 @@ for valDir in $valDirs
 do
 	cd $topLevelValDir
 	cd $valDir
+	echo ----------- $valDir ----------- 
 	
 #  make tests" will be invoked, if a makefile exists.
 #  "csc_testRun.sh" will be invoked, if a such a file exists.

@@ -448,8 +448,11 @@ typedef struct csc_mapSS_t
 
 csc_mapSS_t *csc_mapSS_new()
 {	csc_mapSS_t *hss = csc_allocOne(csc_mapSS_t);
-	hss->hash = csc_hash_new(offsetof(csc_nameVal_t,name),
-	csc_hash_StrPtCmpr, csc_hash_StrPt, csc_nameVal_vfree);
+	hss->hash = csc_hash_new( offsetof(csc_nameVal_t,name)
+							, csc_hash_StrPtCmpr
+							, csc_hash_StrPt
+							, csc_nameVal_vfree
+							);
 	return hss;
 }
 
@@ -467,14 +470,12 @@ csc_bool_t csc_mapSS_addex(csc_mapSS_t *hss, const char *name, const char *val)
 {	csc_nameVal_t *nv = csc_nameVal_new(name, val);
 	csc_bool_t ret = csc_hash_addex(hss->hash, nv);
 	if (!ret)
-		csc_nameVal_vfree(nv);
+		csc_nameVal_free(nv);
 	return ret;
 }
 
 const char *csc_mapSS_get(csc_mapSS_t *hss, const char *name)
-{	csc_nameVal_t key;
-	key.name = name;
-	csc_nameVal_t *nv = csc_hash_get(hss->hash, &key);
+{	csc_nameVal_t *nv = csc_hash_get(hss->hash, &name);
 	if (nv == NULL)
 		return NULL;
 	else

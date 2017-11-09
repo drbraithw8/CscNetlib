@@ -117,8 +117,8 @@ void *csc_hash_iter_next(csc_hash_iter_t *iter);
 // --------------------------------------------------
 
 typedef struct csc_nameVal_t
-{	const char *name;
-	const char *val;
+{	const char *val;
+	const char *name;
 } csc_nameVal_t;
 
 csc_nameVal_t *csc_nameVal_new(const char *name, const char *val);
