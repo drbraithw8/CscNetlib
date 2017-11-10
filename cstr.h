@@ -27,6 +27,11 @@ typedef struct csc_str_t csc_str_t;
 
     // Set this to 'str'.
     void csc_str_assign(csc_str_t *this, const char *str);
+    void csc_str_assign_str(csc_str_t *this, csc_str_t *str);
+
+
+// Truncate.  Does nothing if string is shorter than 'len'.
+    void csc_str_truncate(csc_str_t *this, int len);
 
 
 /* Append. */

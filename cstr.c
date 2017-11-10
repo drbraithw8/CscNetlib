@@ -135,6 +135,21 @@ void csc_str_assign(csc_str_t *this, const char *str)
 }
 
 
+void csc_str_assign_str(csc_str_t *this, csc_str_t *str)
+{
+// TODO: This is the very lazy placeholder version.  A native version would
+// be more efficient and properly handle the null character.
+	this->nchars = 0;
+	csc_str_append(this, csc_str_charr(str));
+}
+
+
+void csc_str_truncate(csc_str_t *this, int len)
+{	if (len>=0 && len<this->nchars)
+		this->nchars = len;
+}
+
+
 const char *csc_str_charr(const csc_str_t *this)
 {   if (this->chars == NULL)
 	{	return "";

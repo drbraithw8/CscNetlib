@@ -253,10 +253,11 @@ httpIn_result_t httpIn_getLine( httpIn_t *hin
 							  , csc_str_t *headName
 							  , csc_str_t *content
 							  )
-{	char buf[httpIn_bufLen+1];
-	int bufLen;
-	httpIn_result_t result = httpIn_OK;
+{	httpIn_result_t result = httpIn_OK;
 	int ch;
+
+// Resources.
+    csc_str_t *buf = csc_str_new("------ make initial size suitable to avoid unnecessary realloc -----");
  
 // Skip whitespace.
 	ch = httpIn_getc(hin);
@@ -264,24 +265,24 @@ httpIn_result_t httpIn_getLine( httpIn_t *hin
 		ch = httpIn_getc(hin);
  
 // Read in the head word.
-	bufLen = 0;
+	csc_str_truncate(buf, 0); 
 	while (  ch!=-1
 		  && ch!='\n'
 		  && ch!=' '
 		  && ch!=':'
-		  && bufLen<httpIn_bufLen 
 		  )
-	{	buf[bufLen++] = ch;
+	{	csc_str_append_ch(buf, ch);
 		ch = httpIn_getc(hin);
 	}
  
 // If it is empty, we are done.
-	if (bufLen == 0)
-		return httpIn_done;  // Finished.
+	if (csc_str_length(buf) == 0)
+	{	result = httpIn_done;
+		goto freeResources;
+	}
  
 // Assign the header name.
-	buf[bufLen] = '\0';
-    csc_str_assign(headName, buf);
+    csc_str_assign_str(headName, buf);
  
 // Skip whitespace.
 	while (ch == ' ')
@@ -292,29 +293,24 @@ httpIn_result_t httpIn_getLine( httpIn_t *hin
 		ch = httpIn_getc(hin);
  
 // Get the remainder of the line.
-	bufLen = 0;
-	while (ch!=-1 && ch!='\n' && bufLen<httpIn_bufLen)
-	{	buf[bufLen++] = ch;
+	csc_str_truncate(buf, 0); 
+	while (ch!=-1 && ch!='\n')
+	{	csc_str_append_ch(buf, ch);
 		ch = httpIn_getc(hin);
 	}
  
-// Was the line longer than our buffer?
-	if (ch!=-1 && ch!='\n')
-		result = httpIn_lineTooLong; // The line was too long.
-	else
-		result = httpIn_OK;  // Good. more to come.
- 
 // Trim space from end of line.
-	while (bufLen>0 && buf[bufLen-1]==' ')
+    const char *line = csc_str_charr(buf);
+	int bufLen = csc_str_length(buf);
+	while (bufLen>0 && line[bufLen-1]==' ')
 		bufLen--;
+	csc_str_truncate(buf, bufLen);
  
 // Assign the line.
-	buf[bufLen] = '\0';
-    csc_str_assign(content, buf);
- 
-// Discard the remainder of the line.
-	while (ch!=-1 && ch!='\n')
-		ch = httpIn_getc(hin);
+    csc_str_assign_str(content, buf);
+
+freeResources:
+	csc_str_free(buf);
  
 // Bye.
 	return result;
