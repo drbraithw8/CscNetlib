@@ -6,38 +6,35 @@
 #include "cstr.h"
 #include "std.h"
 
+typedef enum csc_httpStartLineFields_e
+{	csc_httpSF_method = 0
+,	csc_httpSF_reqUri
+,	csc_httpSF_protocol
+,	csc_httpSF_statCode
+,	csc_httpSF_reason
+,	csc_httpSF_numSF
+} csc_httpSF_t;
+
+
 typedef enum csc_httpErr_e
 {   csc_httpErr_Ok = 0
-,   csc_httpErr_UnexpectedEOF
+,   csc_httpErr_BadSF
+,   csc_httpErr_AlreadySF
 ,   csc_httpErr_MissingProtocol
-,   csc_httpErr_AlreadyProtocol
 ,   csc_httpErr_BadProtocol
 ,   csc_httpErr_MissingReqUri
-,   csc_httpErr_AlreadyReqUri
 ,   csc_httpErr_BadReqUri
 ,   csc_httpErr_MissingMethod
-,   csc_httpErr_AlreadyMethod
 ,   csc_httpErr_BadMethod
 ,   csc_httpErr_MissingStatCode
-,   csc_httpErr_AlreadyStatCode
 ,   csc_httpErr_BadStatCode
 ,   csc_httpErr_MissingReason
-,   csc_httpErr_AlreadyReason
-,   csc_httpErr_MissingHost
-,   csc_httpErr_AlreadyHost
+,   csc_httpErr_UnexpectedEOF
 ,   csc_httpErr_BadStartLine
 ,   csc_httpErr_LineTooLong
 ,   csc_httpErr_syntaxErr
 } csc_httpErr_t;
 
-
-// Psuedo headers.  These represent the fields in the start line of a HTTP message.
-const char *csc_http_protocol; // protocol, e.g. "HTTP/1.1".
-const char *csc_http_reqUri; // absolute path naming resource, e.g. "/index.html".
-const char *csc_http_method; // Method, e.g. "GET".
-const char *csc_http_statCode; // status code, e.g. "200".
-const char *csc_http_reason; // phrase associated with status code, e.g. "OK".
-const char *csc_http_host; // phrase associated with status code, e.g. "OK".
 
 typedef struct csc_httpMsg_t csc_httpMsg_t;
 
@@ -48,6 +45,12 @@ csc_httpMsg_t *csc_httpMsg_new();
 
 // Release resources associated with a HTTP message.
 void csc_httpMsg_free(csc_httpMsg_t *msg);
+
+
+csc_httpErr_t csc_httpMsg_addSF(csc_httpMsg_t *msg, csc_httpSF_t field, const char *hdrValue);
+
+// Get a start line field.
+const char *csc_httpMsg_getSF(csc_httpMsg_t *msg, csc_httpSF_t fldNdx);
 
 
 // Add a header to a HTTP message.  HTTP permits a header to be added more

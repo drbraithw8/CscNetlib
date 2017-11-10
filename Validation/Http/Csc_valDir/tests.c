@@ -33,14 +33,23 @@ void testReport_sVal(FILE *fout, const char *testName, const char *required, con
 }
 
 
+void testAddSF(FILE *fout, char *testName, csc_httpMsg_t *hMsg, csc_httpSF_t fldNdx, const char *hdrVal)
+{	csc_httpErr_t errCode = csc_httpMsg_addSF(hMsg, fldNdx, hdrVal);
+	testReport_iVal(fout, testName, csc_httpErr_Ok, errCode);
+}
+
 void testAddHdr(FILE *fout, char *testName, csc_httpMsg_t *hMsg, const char *hdrName, const char *hdrVal)
 {	csc_httpErr_t errCode = csc_httpMsg_addHdr(hMsg, hdrName, hdrVal);
 	testReport_iVal(fout, testName, csc_httpErr_Ok, errCode);
 }
 
-
 void testGetHdr(FILE *fout, char *testName, csc_httpMsg_t *hMsg, const char *hdrName, const char *hdrVal)
 {	const char *val = csc_httpMsg_getHdr(hMsg, hdrName);
+	testReport_sVal(fout, testName, hdrVal, val);
+}
+
+void testGetSF(FILE *fout, char *testName, csc_httpMsg_t *hMsg, csc_httpSF_t fldNdx, const char *hdrVal)
+{	const char *val = csc_httpMsg_getSF(hMsg, fldNdx);
 	testReport_sVal(fout, testName, hdrVal, val);
 }
 
@@ -55,32 +64,26 @@ void testAddGet(FILE *fout)
 	hMsg = csc_httpMsg_new();
 
 // Test the empty ones.
-	testGetHdr(fout, "http_getNull_proto", hMsg, csc_http_protocol, NULL);
-	testGetHdr(fout, "http_getNull_reqUri", hMsg, csc_http_reqUri, NULL);
-	testGetHdr(fout, "http_getNull_method", hMsg, csc_http_method, NULL);
-	testGetHdr(fout, "http_getNull_statCode", hMsg, csc_http_statCode, NULL);
-	testGetHdr(fout, "http_getNull_reason", hMsg, csc_http_reason, NULL);
-	testGetHdr(fout, "http_getNull_host", hMsg, csc_http_host, NULL);
+	testGetSF(fout, "http_getNull_proto", hMsg, csc_httpSF_protocol, NULL);
+	testGetSF(fout, "http_getNull_reqUri", hMsg, csc_httpSF_reqUri, NULL);
+	testGetSF(fout, "http_getNull_method", hMsg, csc_httpSF_method, NULL);
+	testGetSF(fout, "http_getNull_statCode", hMsg, csc_httpSF_statCode, NULL);
+	testGetSF(fout, "http_getNull_reason", hMsg, csc_httpSF_reason, NULL);
 	testGetHdr(fout, "http_getHdr_notEntered", hMsg, "invalid", NULL);
 
-// Add real and pseudo headers.
+// Add start line fields and headers.
 	const char *tstHdrVal_proto = "HTTP/1.1";
-	testAddHdr(fout, "http_addHdr_proto", hMsg, csc_http_protocol, tstHdrVal_proto);
+	testAddSF(fout, "http_addSF_proto", hMsg, csc_httpSF_protocol, tstHdrVal_proto);
 
 	const char *tstHdrVal_reqUri = "/index.html";
-	testAddHdr(fout, "http_addHdr_reqUri", hMsg, csc_http_reqUri, tstHdrVal_reqUri);
+	testAddSF(fout, "http_addSF_reqUri", hMsg, csc_httpSF_reqUri, tstHdrVal_reqUri);
 
 	const char *tstHdrVal_method = "GET";
-	testAddHdr(fout, "http_addHdr_method", hMsg, csc_http_method, tstHdrVal_method);
+	testAddSF(fout, "http_addSF_method", hMsg, csc_httpSF_method, tstHdrVal_method);
 
 	const char *tstHdrVal_host = "bology.com.au";
-	testAddHdr(fout, "http_addHdr_host", hMsg, csc_http_host, tstHdrVal_host);
-
-	const char *tstHdrVal_statCode = "200";
-	testAddHdr(fout, "http_addHdr_statCode", hMsg, csc_http_statCode, tstHdrVal_statCode);
-
-	const char *tstHdrVal_reason = "OK";
-	testAddHdr(fout, "http_addHdr_reason", hMsg, csc_http_reason, tstHdrVal_reason);
+	const char *tstHdrName_host = "Host";
+	testAddHdr(fout, "http_addHdr_host", hMsg, tstHdrVal_host, tstHdrVal_host);
 
 	const char *tstHdrVal_conn = "close";
 	const char *tstHdrName_conn = "Connection";
@@ -91,17 +94,16 @@ void testAddGet(FILE *fout)
 	testAddHdr(fout, "http_addHdr_any", hMsg, tstHdrName_any, tstHdrVal_any);
 
 // Get real and pseudo headers.
-	testGetHdr(fout, "http_getHdr_proto", hMsg, csc_http_protocol, tstHdrVal_proto);
-	testGetHdr(fout, "http_getHdr_reqUri", hMsg, csc_http_reqUri, tstHdrVal_reqUri);
-	testGetHdr(fout, "http_getHdr_method", hMsg, csc_http_method, tstHdrVal_method);
-	testGetHdr(fout, "http_getHdr_host", hMsg, csc_http_host, tstHdrVal_host);
-	testGetHdr(fout, "http_getHdr_statCode", hMsg, csc_http_statCode, tstHdrVal_statCode);
-	testGetHdr(fout, "http_getHdr_reason", hMsg, csc_http_reason, tstHdrVal_reason);
+	testGetSF(fout, "http_getSF_proto", hMsg, csc_httpSF_protocol, tstHdrVal_proto);
+	testGetSF(fout, "http_getSF_reqUri", hMsg, csc_httpSF_reqUri, tstHdrVal_reqUri);
+	testGetSF(fout, "http_getSF_method", hMsg, csc_httpSF_method, tstHdrVal_method);
+	testGetHdr(fout, "http_getHdr_host", hMsg, tstHdrVal_host, tstHdrVal_host);
 	testGetHdr(fout, "http_getHdr_conn", hMsg, tstHdrName_conn, tstHdrVal_conn);
 	testGetHdr(fout, "http_getHdr_any", hMsg, tstHdrName_any, tstHdrVal_any);
 
 // Request one that was not entered.
 	testGetHdr(fout, "http_getHdr_notEntered", hMsg, "invalid", NULL);
+	testGetSF(fout, "http_getSF_notEntered", hMsg, csc_httpSF_reason, NULL);
 
 // Free resources.
 	csc_httpMsg_free(hMsg );
@@ -125,11 +127,11 @@ void testCrst( const char *testName
  
 // Check 
 	testReport_sVal(stdout, testName, proto,
-					csc_httpMsg_getHdr(msg, csc_http_protocol));
+					csc_httpMsg_getSF(msg, csc_httpSF_protocol));
 	testReport_sVal(stdout, testName, statCode,
-					csc_httpMsg_getHdr(msg, csc_http_statCode));
+					csc_httpMsg_getSF(msg, csc_httpSF_statCode));
 	testReport_sVal(stdout, testName, reason,
-					csc_httpMsg_getHdr(msg, csc_http_reason));
+					csc_httpMsg_getSF(msg, csc_httpSF_reason));
  
 // Free resources.
 	if (msg)
@@ -167,11 +169,11 @@ void testSrst( const char *testName
  
 // Check 
 	testReport_sVal(stdout, testName, method,
-					csc_httpMsg_getHdr(msg, csc_http_method));
+					csc_httpMsg_getSF(msg, csc_httpSF_method));
 	testReport_sVal(stdout, testName, reqUri,
-					csc_httpMsg_getHdr(msg, csc_http_reqUri));
+					csc_httpMsg_getSF(msg, csc_httpSF_reqUri));
 	testReport_sVal(stdout, testName, proto,
-					csc_httpMsg_getHdr(msg, csc_http_protocol));
+					csc_httpMsg_getSF(msg, csc_httpSF_protocol));
  
 // Free resources.
 	if (msg)
@@ -200,11 +202,11 @@ void testCliRcv2()
 
 // Check all the headers.
 	testReport_sVal(stdout, "http_cRcv2_proto", "HTTP/1.1",
-					csc_httpMsg_getHdr(msg, csc_http_protocol));
+					csc_httpMsg_getSF(msg, csc_httpSF_protocol));
 	testReport_sVal(stdout, "http_cRcv2_statCode", "200",
-					csc_httpMsg_getHdr(msg, csc_http_statCode));
+					csc_httpMsg_getSF(msg, csc_httpSF_statCode));
 	testReport_sVal(stdout, "http_cRcv2_reason", "OK",
-					csc_httpMsg_getHdr(msg, csc_http_reason));
+					csc_httpMsg_getSF(msg, csc_httpSF_reason));
 	testReport_sVal(stdout, "http_cRcv2_server", "webfs/1.21",
 					csc_httpMsg_getHdr(msg, "Server"));
 	testReport_sVal(stdout, "http_cRcv2_connection", "Close",
@@ -246,11 +248,11 @@ void testSrvRcv2()
 
 // Check all the headers.
 	testReport_sVal(stdout, "http_sRcv2_proto", "HTTP/1.1",
-					csc_httpMsg_getHdr(msg, csc_http_protocol));
+					csc_httpMsg_getSF(msg, csc_httpSF_protocol));
 	testReport_sVal(stdout, "http_sRcv2_method", "GET",
-					csc_httpMsg_getHdr(msg, csc_http_method));
+					csc_httpMsg_getSF(msg, csc_httpSF_method));
 	testReport_sVal(stdout, "http_sRcv2_reqUri", "/",
-					csc_httpMsg_getHdr(msg, csc_http_reqUri));
+					csc_httpMsg_getSF(msg, csc_httpSF_reqUri));
 	testReport_sVal(stdout, "http_sRcv2_accept", "*/*",
 					csc_httpMsg_getHdr(msg, "Accept"));
 	testReport_sVal(stdout, "http_sRcv2_accLang", "en-us",

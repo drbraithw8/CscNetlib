@@ -2,12 +2,11 @@
 #include "hash.h"
 #include "alloc.h"
 #include "isvalid.h"
+#include "dynArray.h"
 
 
-typedef struct hdr_t
-{	char *name;
-	char *value;
-} nameVal_t;
+csc_dynArray_headers(nameValArr, csc_nameVal)
+csc_dynArray_code(nameValArr, csc_nameVal)
 
 
 typedef struct csc_httpMsg_t
@@ -15,21 +14,15 @@ typedef struct csc_httpMsg_t
 // Errors.
 	csc_httpErr_t errCode;
 	char *errMsg;
+
+// Start line.
+	char *startFields[csc_httpSF_numSF];
  
 // Headers.
-	csc_mapSS_t *headers;
-	char *reqUri;
+	nameValArr_t *headers;
+// 	char *reqUri;
  
 } csc_httpMsg_t;
-
-
-// Psuedo headers.  These represent the fields in the start line of a HTTP message.
-const char *csc_http_protocol = "csc_http_protocol"; // protocol, e.g. "HTTP/1.1".
-const char *csc_http_reqUri = "csc_http_reqUri"; // absolute path naming resource, e.g. "/index.html".
-const char *csc_http_method = "csc_http_method"; // Method, e.g. "GET".
-const char *csc_http_statCode = "csc_http_statCode"; // status code, e.g. "200".
-const char *csc_http_reason = "csc_http_reason"; // phrase associated with status code, e.g. "OK".
-const char *csc_http_host = "csc_http_host"; // phrase associated with status code, e.g. "OK".
 
 
 csc_httpMsg_t *csc_httpMsg_new()
@@ -40,10 +33,13 @@ csc_httpMsg_t *csc_httpMsg_new()
 // Errors.
 	msg->errCode = csc_httpErr_Ok;
 	msg->errMsg = NULL;
+
+// Start Fields.
+	for (int i=0; i<csc_httpSF_numSF; i++)
+		msg->startFields[i] = NULL;
  
 // Headers.
-	msg->reqUri = NULL;
-	msg->headers = csc_mapSS_new();
+	msg->headers = nameValArr_new();
  
 // Home with the bacon.
 	return msg;
@@ -56,13 +52,15 @@ void csc_httpMsg_free(csc_httpMsg_t *msg)
 	if (msg->errMsg)
 		free(msg->errMsg);
 	
-// Pseudo headers.
-	if (msg->reqUri)
-		free(msg->reqUri);
+// Start Fields.
+	for (int i=0; i<csc_httpSF_numSF; i++)
+	{	if (msg->startFields[i])
+			free(msg->startFields[i]);
+	}
  
 // Http Headers.
 	if (msg->headers)
-		csc_mapSS_free(msg->headers);
+		nameValArr_free(msg->headers);
  
 // Free the structure.
 	free(msg);
@@ -77,43 +75,54 @@ static void setErr(csc_httpMsg_t *msg, csc_httpErr_t errCode, const char *errMsg
 }
 
 
-static csc_httpErr_t addPseudo( csc_httpMsg_t *msg
-							  , char **pseudo
-							  , const char *value
-							  , const char *errMsg
-							  , csc_httpErr_t errCode
-							  )
-{	if (*pseudo != NULL)
-	{	setErr(msg, errCode, errMsg);
+csc_httpErr_t csc_httpMsg_addSF(csc_httpMsg_t *msg, csc_httpSF_t fldNdx, const char *value)
+{	csc_httpErr_t errCode;
+ 
+// Check that the field index is within range.
+	if (fldNdx<0 || fldNdx>=csc_httpSF_numSF)
+	{	errCode = csc_httpErr_BadSF;
+		setErr(msg, errCode, "Start line field out of range");
 		return errCode;
 	}
-	else
-	{	*pseudo = csc_alloc_str(value);
-		return csc_httpErr_Ok;
+ 
+// Check that the field has not already been assigned.
+	if (msg->startFields[fldNdx])
+	{	errCode = csc_httpErr_AlreadySF;
+		setErr(msg, errCode, "Start line field assigned twice");
+		return errCode;
 	}
-}
-
-
-csc_httpErr_t csc_httpMsg_addHdr(csc_httpMsg_t *msg, const char *name, const char *value)
-{
-// printf("addHdr(name=\"%s\" val=\"%s\")\n", name, value);
-	if (csc_streq(name, csc_http_reqUri))
-	{	return addPseudo( msg
-						  , &msg->reqUri
-						  , value
-						  , "reqUri already set"
-						  , csc_httpErr_AlreadyReqUri
-						  );
-	}
-	csc_mapSS_addex(msg->headers, name, value);
+ 
+// Assign it.
+	msg->startFields[fldNdx] = csc_alloc_str(value);
 	return csc_httpErr_Ok;
 }
 
 
+csc_httpErr_t csc_httpMsg_addHdr(csc_httpMsg_t *msg, const char *name, const char *value)
+{	csc_nameVal_t *nv = csc_nameVal_new(name, value);
+	nameValArr_add(msg->headers, nv);
+	return csc_httpErr_Ok;
+}
+
+
+const char *csc_httpMsg_getSF(csc_httpMsg_t *msg, csc_httpSF_t fldNdx)
+{	if (fldNdx<0 || fldNdx>=csc_httpSF_numSF)
+		return NULL;
+	return msg->startFields[fldNdx];
+}
+
+
 const char *csc_httpMsg_getHdr(csc_httpMsg_t *msg, const char *name)
-{	if (csc_streq(name, csc_http_reqUri))
-		return msg->reqUri;
-	return csc_mapSS_get(msg->headers, name);
+{	const char *val = NULL;
+	csc_nameVal_t **els = msg->headers->els;
+	int nEls = msg->headers->nEls;
+	for (int i=0; i<nEls; i++)
+	{	if (csc_streq(els[i]->name, name))
+		{	val = els[i]->val;
+			break;
+		}
+	}
+	return val;
 }
 
 
@@ -370,7 +379,7 @@ csc_httpErr_t csc_httpMsg_rcvSrv(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
  
 // Add the method.
 	wd = csc_str_charr(word);
-	errCode = csc_httpMsg_addHdr(msg, csc_http_method, wd);
+	errCode = csc_httpMsg_addSF(msg, csc_httpSF_method, wd);
 	if (errCode != csc_httpErr_Ok)
 	{	skipTillBlankLine(rca);
 		goto freeResources;
@@ -395,7 +404,7 @@ csc_httpErr_t csc_httpMsg_rcvSrv(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
 	}
  
 // Add the resource URI.
-	errCode = csc_httpMsg_addHdr(msg, csc_http_reqUri, csc_str_charr(word));
+	errCode = csc_httpMsg_addSF(msg, csc_httpSF_reqUri, csc_str_charr(word));
 	if (errCode != csc_httpErr_Ok)
 	{	skipTillBlankLine(rca);
 		goto freeResources;
@@ -422,7 +431,7 @@ csc_httpErr_t csc_httpMsg_rcvSrv(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
 	}
  
 // Add the protocol.
-	errCode = csc_httpMsg_addHdr(msg, csc_http_protocol, csc_str_charr(word));
+	errCode = csc_httpMsg_addSF(msg, csc_httpSF_protocol, csc_str_charr(word));
 	if (errCode != csc_httpErr_Ok)
 	{	skipTillBlankLine(rca);
 		goto freeResources;
@@ -465,7 +474,7 @@ csc_httpErr_t csc_httpMsg_rcvCli(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
 	}
  
 // Add the protocol.
-	errCode = csc_httpMsg_addHdr(msg, csc_http_protocol, csc_str_charr(word));
+	errCode = csc_httpMsg_addSF(msg, csc_httpSF_protocol, csc_str_charr(word));
 	if (errCode != csc_httpErr_Ok)
 	{	skipTillBlankLine(rca);
 		goto freeResources;
@@ -486,7 +495,7 @@ csc_httpErr_t csc_httpMsg_rcvCli(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
 	}
  
 // Add the response code.
-	errCode = csc_httpMsg_addHdr(msg, csc_http_statCode, csc_str_charr(word));
+	errCode = csc_httpMsg_addSF(msg, csc_httpSF_statCode, csc_str_charr(word));
 	if (errCode != csc_httpErr_Ok)
 	{	skipTillBlankLine(rca);
 		goto freeResources;
@@ -508,7 +517,7 @@ csc_httpErr_t csc_httpMsg_rcvCli(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
 	}
  
 // Add the reason phrase.
-	errCode = csc_httpMsg_addHdr(msg, csc_http_reason, csc_str_charr(word));
+	errCode = csc_httpMsg_addSF(msg, csc_httpSF_reason, csc_str_charr(word));
 	if (errCode != csc_httpErr_Ok)
 	{	skipTillBlankLine(rca);
 		goto freeResources;
