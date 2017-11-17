@@ -36,32 +36,18 @@ void csc_ini_free(csc_ini_t *ini)
 
 const char *csc_ini_getStr(const csc_ini_t *ini, const char *section, const char *ident)
 {   char *key;
-    const char *value;
+	const csc_nameVal_t *nv;
  
 // Look for the key in the map table.
     key = csc_alloc_str3(section, "%", ident);
-    value = csc_mapSS_get(ini->map, key);
+    nv = csc_mapSS_get(ini->map, key);
     free(key);
  
 // Return result.
-	return value;
-}
-
-
-char *csc_ini_getAllocStr(const csc_ini_t *ini, const char *section, const char *ident)
-{   char *key;
-    const char *value;
- 
-// Look for the key in the map table.
-    key = csc_alloc_str3(section, "%", ident);
-    value = csc_mapSS_get(ini->map, key);
-    free(key);
- 
-// Return result.
-    if (value == NULL)
-        return NULL;
-    else
-		return csc_alloc_str(value);
+	if (nv == NULL)
+		return NULL;
+	else
+		return nv->val;
 }
 
 

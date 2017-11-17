@@ -195,11 +195,11 @@ void testCliRcv2()
 // Resources.
 	FILE *fin = fopen("testCliRcv2.txt", "r"); assert(fin);
 	csc_httpMsg_t *msg = csc_httpMsg_new();
-
+ 
 // Read all in.
 	csc_httpErr_t errVal = csc_httpMsg_rcvCliFILE(msg, fin);
 	testReport_iVal(stdout, "http_cRcv2_retVal", csc_httpErr_Ok, errVal);
-
+ 
 // Check all the headers.
 	testReport_sVal(stdout, "http_cRcv2_proto", "HTTP/1.1",
 					csc_httpMsg_getSF(msg, csc_httpSF_protocol));
@@ -241,11 +241,11 @@ void testSrvRcv2()
 // Resources.
 	FILE *fin = fopen("testSrvRcv2.txt", "r"); assert(fin);
 	csc_httpMsg_t *msg = csc_httpMsg_new();
-
+ 
 // Read all in.
 	csc_httpErr_t errVal = csc_httpMsg_rcvSrvFILE(msg, fin);
 	testReport_iVal(stdout, "http_sRcv2_retVal", csc_httpErr_Ok, errVal);
-
+ 
 // Check all the headers.
 	testReport_sVal(stdout, "http_sRcv2_proto", "HTTP/1.1",
 					csc_httpMsg_getSF(msg, csc_httpSF_protocol));
@@ -274,15 +274,107 @@ void testSrvRcv2()
 }
 
 
+void testSrvRcv4()
+{	const csc_nameVal_t *nv;
+// Resources.
+	FILE *fin = fopen("testSrvRcv4.txt", "r"); assert(fin);
+	csc_httpMsg_t *msg = csc_httpMsg_new();
+ 
+// Read all in.
+	csc_httpErr_t errVal = csc_httpMsg_rcvSrvFILE(msg, fin);
+	testReport_iVal(stdout, "http_sRcv4_retVal", csc_httpErr_Ok, errVal);
+ 
+// Check all the headers.
+	testReport_sVal(stdout, "http_sRcv4_proto", "HTTP/1.1",
+					csc_httpMsg_getSF(msg, csc_httpSF_protocol));
+	testReport_sVal(stdout, "http_sRcv4_method", "GET",
+					csc_httpMsg_getSF(msg, csc_httpSF_method));
+	testReport_sVal(stdout, "http_sRcv4_reqUri", "/hello world.php",
+					csc_httpMsg_getSF(msg, csc_httpSF_reqUri));
+ 
+// Check URL encoded values.
+	nv = csc_httpMsg_getUrlVal(msg,"name"); assert(nv);
+	testReport_sVal(stdout, "http_sRcv4_reqValName", "Fred Bloggs", nv->val);
+ 
+	nv = csc_httpMsg_getUrlVal(msg,"rate"); assert(nv);
+	testReport_sVal(stdout, "http_sRcv4_reqValRate", "12%+1", nv->val);
+ 
+// Free resources.
+	csc_httpMsg_free(msg);
+	fclose(fin);
+}
+
+
+void testSrvRcv3()
+{	const csc_nameVal_t *nv;
+// Resources.
+	FILE *fin = fopen("testSrvRcv3.txt", "r"); assert(fin);
+	csc_httpMsg_t *msg = csc_httpMsg_new();
+ 
+// Read all in.
+	csc_httpErr_t errVal = csc_httpMsg_rcvSrvFILE(msg, fin);
+	testReport_iVal(stdout, "http_sRcv3_retVal", csc_httpErr_Ok, errVal);
+ 
+// Check all the headers.
+	testReport_sVal(stdout, "http_sRcv3_proto", "HTTP/1.1",
+					csc_httpMsg_getSF(msg, csc_httpSF_protocol));
+	testReport_sVal(stdout, "http_sRcv3_method", "GET",
+					csc_httpMsg_getSF(msg, csc_httpSF_method));
+	testReport_sVal(stdout, "http_sRcv3_reqUri", "/helloWorld.php",
+					csc_httpMsg_getSF(msg, csc_httpSF_reqUri));
+ 
+// Check URL encoded values.
+	nv = csc_httpMsg_getUrlVal(msg,"name"); assert(nv);
+	testReport_sVal(stdout, "http_sRcv3_reqValName", "fred", nv->val);
+ 
+	nv = csc_httpMsg_getUrlVal(msg,"middle"); assert(nv);
+	testReport_sVal(stdout, "http_sRcv3_reqEmptyVal", "", nv->val);
+ 
+	nv = csc_httpMsg_getUrlVal(msg,"male"); assert(nv);
+	testReport_sVal(stdout, "http_sRcv3_reqNoVal", NULL, nv->val);
+ 
+	nv = csc_httpMsg_getUrlVal(msg,"weight"); assert(nv);
+	testReport_sVal(stdout, "http_sRcv3_reqValWeight", "25", nv->val);
+ 
+	nv = csc_httpMsg_getUrlVal(msg,"notThere");
+	testReport_sVal(stdout, "http_sRcv3_reqValNotThere", NULL, (const char*)nv);
+	
+// Free resources.
+	csc_httpMsg_free(msg);
+	fclose(fin);
+}
+
+
+void testEncDec(const char *testName, const char *dec, csc_bool_t isSlashOk)
+{	csc_str_t *enc = csc_http_pcentEnc(dec, isSlashOk);
+	char *ddec = csc_http_pcentDec(csc_str_charr(enc));
+	// printf("enc=\"%s\" ddec=\"%s\"\n", csc_str_charr(enc), ddec);
+	testReport_sVal(stdout, testName, dec, ddec);
+	free(ddec);
+	csc_str_free(enc);
+}
+
+
+void testPcent()
+{	testEncDec("http_encDec1", "/cafe/main.php", csc_TRUE);
+	testEncDec("http_encDec2", "/ca*fe/ma in.p\nhp", csc_TRUE);
+	testEncDec("http_encDec3", "ca%fe/ma in.p\"\'hp", csc_FALSE);
+}
+
+
 int main(int argc, char **argv)
 {	testAddGet(stdout);
 	testCliRcv1();
 	testCliRcv2();
 	testSrvRcv1();
 	testSrvRcv2();
+	testSrvRcv3();
+	testSrvRcv4();
+	testPcent();
 	if (csc_mck_nchunks() == 0)
 		fprintf(stdout, "pass (%s)\n", "http_memory");
 	else
 		fprintf(stdout, "FAIL (%s)\n", "http_memory");
 	csc_mck_print(stdout);
 }
+

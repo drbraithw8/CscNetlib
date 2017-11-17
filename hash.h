@@ -138,11 +138,11 @@ csc_mapSS_t *csc_mapSS_new();
 // Destructor
 void csc_mapSS_free(csc_mapSS_t *hss);
 
-// Add a name value pair.
+// Add a name value pair.  Return csc_TRUE on success.
 csc_bool_t csc_mapSS_addex(csc_mapSS_t *hss, const char *name, const char *val);
 
-// Get the value corresponding to a name.
-const char *csc_mapSS_get(csc_mapSS_t *hss, const char *name);
+// Get the name value pair corresponding to a name.
+const csc_nameVal_t *csc_mapSS_get(csc_mapSS_t *hss, const char *name);
 
 // Remove a name value pair.
 csc_bool_t csc_mapSS_out(csc_mapSS_t *hss, const char *name);

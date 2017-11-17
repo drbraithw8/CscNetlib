@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "ioAny.h"
 #include "cstr.h"
+#include "hash.h"
 #include "std.h"
 
 typedef enum csc_httpStartLineFields_e
@@ -20,6 +21,7 @@ typedef enum csc_httpErr_e
 {   csc_httpErr_Ok = 0
 ,   csc_httpErr_BadSF
 ,   csc_httpErr_AlreadySF
+,   csc_httpErr_AlreadyUrlArg
 ,   csc_httpErr_MissingProtocol
 ,   csc_httpErr_BadProtocol
 ,   csc_httpErr_MissingReqUri
@@ -67,6 +69,21 @@ csc_httpErr_t csc_httpMsg_addHdr(csc_httpMsg_t *msg, const char *hdrName, const 
 const char *csc_httpMsg_getHdr(csc_httpMsg_t *msg, const char *hdrName);
 
 
+// Add a name/value pair for URL encoding into the requestUrl part of a
+// HTTP request line.  If 'val' is NULL, there will be no "=value" part.
+// If 'val' is "", then there will be an equals sign, but the value will be
+// empty.
+csc_httpErr_t csc_httpMsg_addUrlVal(csc_httpMsg_t *msg, const char *name, const char *val);
+
+
+// Gets a name/value pair from URL encoded requestUrl part of a HTTP
+// request line.  Returns NULL if there is no entry for that name.  The
+// value element will be NULL if there is no value associated with the
+// entry.  The value element will be "" if the value part is empty.
+const csc_nameVal_t *csc_httpMsg_getUrlVal(csc_httpMsg_t *msg, const char *name);
+
+
+// Receive a HTTP message from whatever as a client.
 // Receive a HTTP message from whatever as a client.
 csc_httpErr_t csc_httpMsg_rcvCli(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca);
 
@@ -108,5 +125,12 @@ csc_httpErr_t csc_httpMsg_SendSrv(csc_httpMsg_t *msg, FILE *fout);
 const char *csc_httpMsg_getErrMsg(csc_httpMsg_t *msg);
 csc_httpErr_t csc_httpMsg_getErrCode(csc_httpMsg_t *msg);
 
+// Removes percent encoding from a string.
+// Returns allocated string that must be free()d by the caller.
+char *csc_http_pcentDec(const char *enc);
+
+// Performs percent encoding on a string.
+// Returns allocated string that must be csc_str_free()d by the caller.
+csc_str_t *csc_http_pcentEnc(const char *dec, csc_bool_t isSlashOk);
 
 #endif

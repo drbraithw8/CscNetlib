@@ -422,13 +422,17 @@ void *csc_hash_iter_next(csc_hash_iter_t *iter)
 csc_nameVal_t *csc_nameVal_new(const char *name, const char *val)
 {	csc_nameVal_t *nv = csc_allocOne(csc_nameVal_t);
 	nv->name = csc_alloc_str(name);
-	nv->val = csc_alloc_str(val);
+	if (val == NULL)
+		nv->val = NULL;
+	else
+		nv->val = csc_alloc_str(val);
 	return nv;
 }
 
 void csc_nameVal_free(csc_nameVal_t *nv)
 {	free((void*)nv->name);
-	free((void*)nv->val);
+	if (nv->val)
+		free((void*)nv->val);
 	free(nv);
 }
 
@@ -474,12 +478,8 @@ csc_bool_t csc_mapSS_addex(csc_mapSS_t *hss, const char *name, const char *val)
 	return ret;
 }
 
-const char *csc_mapSS_get(csc_mapSS_t *hss, const char *name)
-{	csc_nameVal_t *nv = csc_hash_get(hss->hash, &name);
-	if (nv == NULL)
-		return NULL;
-	else
-		return nv->val;
+const csc_nameVal_t *csc_mapSS_get(csc_mapSS_t *hss, const char *name)
+{	return csc_hash_get(hss->hash, &name);
 }
 
 csc_bool_t csc_mapSS_out(csc_mapSS_t *hss, const char *name)

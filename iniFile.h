@@ -44,12 +44,4 @@ int csc_ini_read(csc_ini_t *ini, const char *iniFilePath);
 const char *csc_ini_getStr(const csc_ini_t *ini, const char *section, const char *ident);
 
 
-// If the key 'ident' exists in the ini file section 'section' then this
-// returns an allocated string containing the associated value.  The caller
-// now owns and must free the allocated string.  
-// 
-// Returns NULL if the key 'ident' does not exist in the section 'section'.
-char *csc_ini_getAllocStr(const csc_ini_t *ini, const char *section, const char *ident);
-
-
 #endif
