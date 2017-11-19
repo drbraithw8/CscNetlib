@@ -33,23 +33,23 @@ void testReport_sVal(FILE *fout, const char *testName, const char *required, con
 }
 
 
-void testAddSF(FILE *fout, char *testName, csc_httpMsg_t *hMsg, csc_httpSF_t fldNdx, const char *hdrVal)
-{	csc_httpErr_t errCode = csc_httpMsg_addSF(hMsg, fldNdx, hdrVal);
+void testAddSF(FILE *fout, char *testName, csc_http_t *hMsg, csc_httpSF_t fldNdx, const char *hdrVal)
+{	csc_httpErr_t errCode = csc_http_addSF(hMsg, fldNdx, hdrVal);
 	testReport_iVal(fout, testName, csc_httpErr_Ok, errCode);
 }
 
-void testAddHdr(FILE *fout, char *testName, csc_httpMsg_t *hMsg, const char *hdrName, const char *hdrVal)
-{	csc_httpErr_t errCode = csc_httpMsg_addHdr(hMsg, hdrName, hdrVal);
+void testAddHdr(FILE *fout, char *testName, csc_http_t *hMsg, const char *hdrName, const char *hdrVal)
+{	csc_httpErr_t errCode = csc_http_addHdr(hMsg, hdrName, hdrVal);
 	testReport_iVal(fout, testName, csc_httpErr_Ok, errCode);
 }
 
-void testGetHdr(FILE *fout, char *testName, csc_httpMsg_t *hMsg, const char *hdrName, const char *hdrVal)
-{	const char *val = csc_httpMsg_getHdr(hMsg, hdrName);
+void testGetHdr(FILE *fout, char *testName, csc_http_t *hMsg, const char *hdrName, const char *hdrVal)
+{	const char *val = csc_http_getHdr(hMsg, hdrName);
 	testReport_sVal(fout, testName, hdrVal, val);
 }
 
-void testGetSF(FILE *fout, char *testName, csc_httpMsg_t *hMsg, csc_httpSF_t fldNdx, const char *hdrVal)
-{	const char *val = csc_httpMsg_getSF(hMsg, fldNdx);
+void testGetSF(FILE *fout, char *testName, csc_http_t *hMsg, csc_httpSF_t fldNdx, const char *hdrVal)
+{	const char *val = csc_http_getSF(hMsg, fldNdx);
 	testReport_sVal(fout, testName, hdrVal, val);
 }
 
@@ -57,11 +57,11 @@ void testGetSF(FILE *fout, char *testName, csc_httpMsg_t *hMsg, csc_httpSF_t fld
 void testAddGet(FILE *fout)
 {
 	csc_httpErr_t errCode;
-	csc_httpMsg_t *hMsg = NULL;
+	csc_http_t *hMsg = NULL;
 	char *str = NULL;
 
 // Create the message.
-	hMsg = csc_httpMsg_new();
+	hMsg = csc_http_new();
 
 // Test the empty ones.
 	testGetSF(fout, "http_getNull_proto", hMsg, csc_httpSF_protocol, NULL);
@@ -106,7 +106,7 @@ void testAddGet(FILE *fout)
 	testGetSF(fout, "http_getSF_notEntered", hMsg, csc_httpSF_reason, NULL);
 
 // Free resources.
-	csc_httpMsg_free(hMsg );
+	csc_http_free(hMsg );
 }
 
 
@@ -118,24 +118,24 @@ void testCrst( const char *testName
 			 )
 {
 // Resources
-	csc_httpMsg_t *msg = NULL;
+	csc_http_t *msg = NULL;
  
 // Read from the text.
-	msg = csc_httpMsg_new();
-	csc_httpErr_t errCode = csc_httpMsg_rcvCliStr(msg, testStr);
+	msg = csc_http_new();
+	csc_httpErr_t errCode = csc_http_rcvCliStr(msg, testStr);
 	testReport_iVal(stdout, "http_cRcv1_retVal", csc_httpErr_Ok, errCode);
  
 // Check 
 	testReport_sVal(stdout, testName, proto,
-					csc_httpMsg_getSF(msg, csc_httpSF_protocol));
+					csc_http_getSF(msg, csc_httpSF_protocol));
 	testReport_sVal(stdout, testName, statCode,
-					csc_httpMsg_getSF(msg, csc_httpSF_statCode));
+					csc_http_getSF(msg, csc_httpSF_statCode));
 	testReport_sVal(stdout, testName, reason,
-					csc_httpMsg_getSF(msg, csc_httpSF_reason));
+					csc_http_getSF(msg, csc_httpSF_reason));
  
 // Free resources.
 	if (msg)
-		csc_httpMsg_free(msg);
+		csc_http_free(msg);
 }
 
 
@@ -158,26 +158,26 @@ void testSrst( const char *testName
 			 )
 {
 // Resources
-	csc_httpMsg_t *msg = NULL;
+	csc_http_t *msg = NULL;
  
 // Read from the text.
-	msg = csc_httpMsg_new();
-	csc_httpErr_t errCode = csc_httpMsg_rcvSrvStr(msg, testStr);
+	msg = csc_http_new();
+	csc_httpErr_t errCode = csc_http_rcvSrvStr(msg, testStr);
 	testReport_iVal(stdout, "http_sRcv1_retVal", csc_httpErr_Ok, errCode);
 	if (errCode != csc_httpErr_Ok)
-		fprintf(stdout, "\terrStr=%s\n", csc_httpMsg_getErrMsg(msg));
+		fprintf(stdout, "\terrStr=%s\n", csc_http_getErrStr(msg));
  
 // Check 
 	testReport_sVal(stdout, testName, method,
-					csc_httpMsg_getSF(msg, csc_httpSF_method));
+					csc_http_getSF(msg, csc_httpSF_method));
 	testReport_sVal(stdout, testName, reqUri,
-					csc_httpMsg_getSF(msg, csc_httpSF_reqUri));
+					csc_http_getSF(msg, csc_httpSF_reqUri));
 	testReport_sVal(stdout, testName, proto,
-					csc_httpMsg_getSF(msg, csc_httpSF_protocol));
+					csc_http_getSF(msg, csc_httpSF_protocol));
  
 // Free resources.
 	if (msg)
-		csc_httpMsg_free(msg);
+		csc_http_free(msg);
 }
 
 void testSrvRcv1()
@@ -194,44 +194,44 @@ void testCliRcv2()
 {	
 // Resources.
 	FILE *fin = fopen("testCliRcv2.txt", "r"); assert(fin);
-	csc_httpMsg_t *msg = csc_httpMsg_new();
+	csc_http_t *msg = csc_http_new();
  
 // Read all in.
-	csc_httpErr_t errVal = csc_httpMsg_rcvCliFILE(msg, fin);
+	csc_httpErr_t errVal = csc_http_rcvCliFILE(msg, fin);
 	testReport_iVal(stdout, "http_cRcv2_retVal", csc_httpErr_Ok, errVal);
  
 // Check all the headers.
 	testReport_sVal(stdout, "http_cRcv2_proto", "HTTP/1.1",
-					csc_httpMsg_getSF(msg, csc_httpSF_protocol));
+					csc_http_getSF(msg, csc_httpSF_protocol));
 	testReport_sVal(stdout, "http_cRcv2_statCode", "200",
-					csc_httpMsg_getSF(msg, csc_httpSF_statCode));
+					csc_http_getSF(msg, csc_httpSF_statCode));
 	testReport_sVal(stdout, "http_cRcv2_reason", "OK",
-					csc_httpMsg_getSF(msg, csc_httpSF_reason));
+					csc_http_getSF(msg, csc_httpSF_reason));
 	testReport_sVal(stdout, "http_cRcv2_server", "webfs/1.21",
-					csc_httpMsg_getHdr(msg, "Server"));
+					csc_http_getHdr(msg, "Server"));
 	testReport_sVal(stdout, "http_cRcv2_connection", "Close",
-					csc_httpMsg_getHdr(msg, "Connection"));
+					csc_http_getHdr(msg, "Connection"));
 	testReport_sVal(stdout, "http_cRcv2_accRanges", "bytes",
-					csc_httpMsg_getHdr(msg, "Accept-Ranges"));
+					csc_http_getHdr(msg, "Accept-Ranges"));
 	testReport_sVal(stdout, "http_cRcv2_contType", "text/html",
-					csc_httpMsg_getHdr(msg, "Content-Type"));
+					csc_http_getHdr(msg, "Content-Type"));
 	testReport_sVal(stdout, "http_cRcv2_contLen", "157",
-					csc_httpMsg_getHdr(msg, "Content-Length"));
+					csc_http_getHdr(msg, "Content-Length"));
 	testReport_sVal( stdout
 				   , "http_cRcv2_lastMod"
 				   , "Thu, 06 Jul 2017 05:33:59 GMT"
-				   , csc_httpMsg_getHdr(msg, "Last-Modified")
+				   , csc_http_getHdr(msg, "Last-Modified")
 				   );
 	testReport_sVal( stdout
 				   , "http_cRcv2_date"
 				   , "Thu, 06 Jul 2017 05:56:58 GMT"
-				   , csc_httpMsg_getHdr(msg, "Date")
+				   , csc_http_getHdr(msg, "Date")
 				   );
 	testReport_sVal(stdout, "http_cRcv2_notThere", NULL,
-					csc_httpMsg_getHdr(msg, "notThere"));
+					csc_http_getHdr(msg, "notThere"));
 	
 // Free resources.
-	csc_httpMsg_free(msg);
+	csc_http_free(msg);
 	fclose(fin);
 }
 
@@ -240,36 +240,36 @@ void testSrvRcv2()
 {	
 // Resources.
 	FILE *fin = fopen("testSrvRcv2.txt", "r"); assert(fin);
-	csc_httpMsg_t *msg = csc_httpMsg_new();
+	csc_http_t *msg = csc_http_new();
  
 // Read all in.
-	csc_httpErr_t errVal = csc_httpMsg_rcvSrvFILE(msg, fin);
+	csc_httpErr_t errVal = csc_http_rcvSrvFILE(msg, fin);
 	testReport_iVal(stdout, "http_sRcv2_retVal", csc_httpErr_Ok, errVal);
  
 // Check all the headers.
 	testReport_sVal(stdout, "http_sRcv2_proto", "HTTP/1.1",
-					csc_httpMsg_getSF(msg, csc_httpSF_protocol));
+					csc_http_getSF(msg, csc_httpSF_protocol));
 	testReport_sVal(stdout, "http_sRcv2_method", "GET",
-					csc_httpMsg_getSF(msg, csc_httpSF_method));
+					csc_http_getSF(msg, csc_httpSF_method));
 	testReport_sVal(stdout, "http_sRcv2_reqUri", "/",
-					csc_httpMsg_getSF(msg, csc_httpSF_reqUri));
+					csc_http_getSF(msg, csc_httpSF_reqUri));
 	testReport_sVal(stdout, "http_sRcv2_accept", "*/*",
-					csc_httpMsg_getHdr(msg, "Accept"));
+					csc_http_getHdr(msg, "Accept"));
 	testReport_sVal(stdout, "http_sRcv2_accLang", "en-us",
-					csc_httpMsg_getHdr(msg, "Accept-Language"));
+					csc_http_getHdr(msg, "Accept-Language"));
 	testReport_sVal(stdout, "http_sRcv2_accEnc", "gzip, deflate",
-					csc_httpMsg_getHdr(msg, "Accept-Encoding"));
+					csc_http_getHdr(msg, "Accept-Encoding"));
 	testReport_sVal(stdout, "http_sRcv2_userAgent", "Mozilla/4.0",
-					csc_httpMsg_getHdr(msg, "User-Agent"));
+					csc_http_getHdr(msg, "User-Agent"));
 	testReport_sVal(stdout, "http_sRcv2_host", "www.ft.com",
-					csc_httpMsg_getHdr(msg, "Host"));
+					csc_http_getHdr(msg, "Host"));
 	testReport_sVal(stdout, "http_sRcv2_connection", "Keep-Alive",
-					csc_httpMsg_getHdr(msg, "Connection"));
+					csc_http_getHdr(msg, "Connection"));
 	testReport_sVal(stdout, "http_sRcv2_notThere", NULL,
-					csc_httpMsg_getHdr(msg, "notThere"));
+					csc_http_getHdr(msg, "notThere"));
 	
 // Free resources.
-	csc_httpMsg_free(msg);
+	csc_http_free(msg);
 	fclose(fin);
 }
 
@@ -278,29 +278,29 @@ void testSrvRcv4()
 {	const csc_nameVal_t *nv;
 // Resources.
 	FILE *fin = fopen("testSrvRcv4.txt", "r"); assert(fin);
-	csc_httpMsg_t *msg = csc_httpMsg_new();
+	csc_http_t *msg = csc_http_new();
  
 // Read all in.
-	csc_httpErr_t errVal = csc_httpMsg_rcvSrvFILE(msg, fin);
+	csc_httpErr_t errVal = csc_http_rcvSrvFILE(msg, fin);
 	testReport_iVal(stdout, "http_sRcv4_retVal", csc_httpErr_Ok, errVal);
  
 // Check all the headers.
 	testReport_sVal(stdout, "http_sRcv4_proto", "HTTP/1.1",
-					csc_httpMsg_getSF(msg, csc_httpSF_protocol));
+					csc_http_getSF(msg, csc_httpSF_protocol));
 	testReport_sVal(stdout, "http_sRcv4_method", "GET",
-					csc_httpMsg_getSF(msg, csc_httpSF_method));
+					csc_http_getSF(msg, csc_httpSF_method));
 	testReport_sVal(stdout, "http_sRcv4_reqUri", "/hello world.php",
-					csc_httpMsg_getSF(msg, csc_httpSF_reqUri));
+					csc_http_getSF(msg, csc_httpSF_reqUri));
  
 // Check URL encoded values.
-	nv = csc_httpMsg_getUrlVal(msg,"name"); assert(nv);
+	nv = csc_http_getUrlVal(msg,"name"); assert(nv);
 	testReport_sVal(stdout, "http_sRcv4_reqValName", "Fred Bloggs", nv->val);
  
-	nv = csc_httpMsg_getUrlVal(msg,"rate"); assert(nv);
+	nv = csc_http_getUrlVal(msg,"rate"); assert(nv);
 	testReport_sVal(stdout, "http_sRcv4_reqValRate", "12%+1", nv->val);
  
 // Free resources.
-	csc_httpMsg_free(msg);
+	csc_http_free(msg);
 	fclose(fin);
 }
 
@@ -309,38 +309,38 @@ void testSrvRcv3()
 {	const csc_nameVal_t *nv;
 // Resources.
 	FILE *fin = fopen("testSrvRcv3.txt", "r"); assert(fin);
-	csc_httpMsg_t *msg = csc_httpMsg_new();
+	csc_http_t *msg = csc_http_new();
  
 // Read all in.
-	csc_httpErr_t errVal = csc_httpMsg_rcvSrvFILE(msg, fin);
+	csc_httpErr_t errVal = csc_http_rcvSrvFILE(msg, fin);
 	testReport_iVal(stdout, "http_sRcv3_retVal", csc_httpErr_Ok, errVal);
  
 // Check all the headers.
 	testReport_sVal(stdout, "http_sRcv3_proto", "HTTP/1.1",
-					csc_httpMsg_getSF(msg, csc_httpSF_protocol));
+					csc_http_getSF(msg, csc_httpSF_protocol));
 	testReport_sVal(stdout, "http_sRcv3_method", "GET",
-					csc_httpMsg_getSF(msg, csc_httpSF_method));
+					csc_http_getSF(msg, csc_httpSF_method));
 	testReport_sVal(stdout, "http_sRcv3_reqUri", "/helloWorld.php",
-					csc_httpMsg_getSF(msg, csc_httpSF_reqUri));
+					csc_http_getSF(msg, csc_httpSF_reqUri));
  
 // Check URL encoded values.
-	nv = csc_httpMsg_getUrlVal(msg,"name"); assert(nv);
+	nv = csc_http_getUrlVal(msg,"name"); assert(nv);
 	testReport_sVal(stdout, "http_sRcv3_reqValName", "fred", nv->val);
  
-	nv = csc_httpMsg_getUrlVal(msg,"middle"); assert(nv);
+	nv = csc_http_getUrlVal(msg,"middle"); assert(nv);
 	testReport_sVal(stdout, "http_sRcv3_reqEmptyVal", "", nv->val);
  
-	nv = csc_httpMsg_getUrlVal(msg,"male"); assert(nv);
+	nv = csc_http_getUrlVal(msg,"male"); assert(nv);
 	testReport_sVal(stdout, "http_sRcv3_reqNoVal", NULL, nv->val);
  
-	nv = csc_httpMsg_getUrlVal(msg,"weight"); assert(nv);
+	nv = csc_http_getUrlVal(msg,"weight"); assert(nv);
 	testReport_sVal(stdout, "http_sRcv3_reqValWeight", "25", nv->val);
  
-	nv = csc_httpMsg_getUrlVal(msg,"notThere");
+	nv = csc_http_getUrlVal(msg,"notThere");
 	testReport_sVal(stdout, "http_sRcv3_reqValNotThere", NULL, (const char*)nv);
 	
 // Free resources.
-	csc_httpMsg_free(msg);
+	csc_http_free(msg);
 	fclose(fin);
 }
 

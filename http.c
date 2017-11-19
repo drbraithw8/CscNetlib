@@ -11,7 +11,7 @@ csc_dynArray_headers(nameValArr, csc_nameVal)
 csc_dynArray_code(nameValArr, csc_nameVal)
 
 
-typedef struct csc_httpMsg_t
+typedef struct csc_http_t
 {	
 // Errors.
 	csc_httpErr_t errCode;
@@ -26,13 +26,13 @@ typedef struct csc_httpMsg_t
 // URI args: Name value string string pairs.
 	csc_mapSS_t *uriArgs;
 
-} csc_httpMsg_t;
+} csc_http_t;
 
 
-csc_httpMsg_t *csc_httpMsg_new()
+csc_http_t *csc_http_new()
 {	
 // Allocate the structure.
-	csc_httpMsg_t *msg = csc_allocOne(csc_httpMsg_t);
+	csc_http_t *msg = csc_allocOne(csc_http_t);
 	
 // Errors.
 	msg->errCode = csc_httpErr_Ok;
@@ -53,7 +53,7 @@ csc_httpMsg_t *csc_httpMsg_new()
 }
 
 
-void csc_httpMsg_free(csc_httpMsg_t *msg)
+void csc_http_free(csc_http_t *msg)
 {	
 // Errors.
 	if (msg->errMsg)
@@ -77,7 +77,7 @@ void csc_httpMsg_free(csc_httpMsg_t *msg)
 }
 
 
-static void setErr(csc_httpMsg_t *msg, csc_httpErr_t errCode, const char *errMsg)
+static void setErr(csc_http_t *msg, csc_httpErr_t errCode, const char *errMsg)
 {	if (msg->errMsg)
 		free(msg->errMsg);
 	msg->errCode = errCode;
@@ -85,7 +85,7 @@ static void setErr(csc_httpMsg_t *msg, csc_httpErr_t errCode, const char *errMsg
 }
 
 
-csc_httpErr_t csc_httpMsg_addSF(csc_httpMsg_t *msg, csc_httpSF_t fldNdx, const char *value)
+csc_httpErr_t csc_http_addSF(csc_http_t *msg, csc_httpSF_t fldNdx, const char *value)
 {	csc_httpErr_t errCode;
  
 // Check that the field index is within range.
@@ -108,21 +108,21 @@ csc_httpErr_t csc_httpMsg_addSF(csc_httpMsg_t *msg, csc_httpSF_t fldNdx, const c
 }
 
 
-csc_httpErr_t csc_httpMsg_addHdr(csc_httpMsg_t *msg, const char *name, const char *value)
+csc_httpErr_t csc_http_addHdr(csc_http_t *msg, const char *name, const char *value)
 {	csc_nameVal_t *nv = csc_nameVal_new(name, value);
 	nameValArr_add(msg->headers, nv);
 	return csc_httpErr_Ok;
 }
 
 
-const char *csc_httpMsg_getSF(csc_httpMsg_t *msg, csc_httpSF_t fldNdx)
+const char *csc_http_getSF(csc_http_t *msg, csc_httpSF_t fldNdx)
 {	if (fldNdx<0 || fldNdx>=csc_httpSF_numSF)
 		return NULL;
 	return msg->startFields[fldNdx];
 }
 
 
-const char *csc_httpMsg_getHdr(csc_httpMsg_t *msg, const char *name)
+const char *csc_http_getHdr(csc_http_t *msg, const char *name)
 {	const char *val = NULL;
 	csc_nameVal_t **els = msg->headers->els;
 	int nEls = msg->headers->nEls;
@@ -136,17 +136,17 @@ const char *csc_httpMsg_getHdr(csc_httpMsg_t *msg, const char *name)
 }
 
 
-csc_httpErr_t csc_httpMsg_getErrCode(csc_httpMsg_t *msg)
+csc_httpErr_t csc_http_getErrCode(csc_http_t *msg)
 {	return msg->errCode;
 }
 
 
-const char *csc_httpMsg_getErrMsg(csc_httpMsg_t *msg)
+const char *csc_http_getErrStr(csc_http_t *msg)
 {	return msg->errMsg;
 }
 
 
-void skipTillBlankLine(csc_ioAnyRead_t *rca)
+static void skipTillBlankLine(csc_ioAnyRead_t *rca)
 {	int prevCh = ' ';
 	int ch = '\n';
 	while (ch!=EOF && (ch!='\n' || prevCh!='\n'))
@@ -184,7 +184,7 @@ typedef struct httpIn_t
  
 const int httpIn_bufLen = 255;
 
-httpIn_t *httpIn_new(csc_ioAnyRead_t *rca)
+static httpIn_t *httpIn_new(csc_ioAnyRead_t *rca)
 {	httpIn_t *hin = csc_allocOne(httpIn_t);
 	hin->rca = rca;
 	hin->nextCh = 0;
@@ -193,12 +193,12 @@ httpIn_t *httpIn_new(csc_ioAnyRead_t *rca)
 	return hin;
 }
 
-void httpIn_free(httpIn_t *hin)
+static void httpIn_free(httpIn_t *hin)
 {	free(hin);
 }
 
 
-int httpIn_getc(httpIn_t *hin)
+static int httpIn_getc(httpIn_t *hin)
 // Intended for http.
 // *	Replaces \r\n[\s|\t] by \s.
 // *	Replaces \n[\s|\t] by \s.
@@ -259,10 +259,10 @@ int httpIn_getc(httpIn_t *hin)
 }
 
 
-httpIn_result_t httpIn_getLine( httpIn_t *hin
-							  , csc_str_t *headName
-							  , csc_str_t *content
-							  )
+static httpIn_result_t httpIn_getLine( httpIn_t *hin
+									  , csc_str_t *headName
+									  , csc_str_t *content
+									  )
 {	httpIn_result_t result = httpIn_OK;
 	int ch;
 
@@ -329,7 +329,7 @@ freeResources:
 // ------------------------------------------------
 
 
-csc_httpErr_t csc_httpMsg_rcv(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
+static csc_httpErr_t readHeaders(csc_http_t *msg, csc_ioAnyRead_t *rca)
 {	
 // Resources.
 	httpIn_t *hin = httpIn_new(rca);
@@ -351,7 +351,7 @@ csc_httpErr_t csc_httpMsg_rcv(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
 		if (  getLineResult == httpIn_OK
 		   || getLineResult == httpIn_lineTooLong
 		   )
-		{	csc_httpMsg_addHdr(msg, csc_str_charr(headName), csc_str_charr(content));
+		{	csc_http_addHdr(msg, csc_str_charr(headName), csc_str_charr(content));
 		}
 	}
 			
@@ -361,7 +361,7 @@ csc_httpErr_t csc_httpMsg_rcv(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
 	httpIn_free(hin);
  
 // Return the restlt.
-	return csc_httpMsg_getErrCode(msg);
+	return csc_http_getErrCode(msg);
 }
 
 
@@ -466,7 +466,7 @@ csc_str_t *csc_http_pcentEnc(const char *dec, csc_bool_t isSlashOk)
 // HTTP request line.  If 'val' is NULL, there will be no "=value" part.
 // If 'val' is "", then there will be an equals sign, but the value will be
 // empty.
-csc_httpErr_t csc_httpMsg_addUrlVal(csc_httpMsg_t *msg, const char *name, const char *val)
+csc_httpErr_t csc_http_addUrlVal(csc_http_t *msg, const char *name, const char *val)
 {	
 	if (!csc_mapSS_addex(msg->uriArgs, name, val))
 	{	setErr(msg, csc_httpErr_AlreadyUrlArg, "URL encoded argument already present");
@@ -481,7 +481,7 @@ csc_httpErr_t csc_httpMsg_addUrlVal(csc_httpMsg_t *msg, const char *name, const 
 // request line.  Returns NULL if there is no entry for that name.  The
 // value element will be NULL if there is no value associated with the
 // entry.  The value element will be "" if the value part is empty.
-const csc_nameVal_t *csc_httpMsg_getUrlVal(csc_httpMsg_t *msg, const char *name)
+const csc_nameVal_t *csc_http_getUrlVal(csc_http_t *msg, const char *name)
 {	
 	const csc_nameVal_t *nv = csc_mapSS_get(msg->uriArgs, name);
 	return nv;
@@ -489,7 +489,7 @@ const csc_nameVal_t *csc_httpMsg_getUrlVal(csc_httpMsg_t *msg, const char *name)
 
 
 // Destructively parse the URI.
-static csc_httpErr_t parseUri(csc_httpMsg_t *msg, char *uri)
+static csc_httpErr_t parseUri(csc_http_t *msg, char *uri)
 {	char **msgUri = &msg->startFields[csc_httpSF_reqUri];
 	csc_httpErr_t result = csc_httpErr_Ok;
 	csc_httpErr_t rslt;
@@ -551,7 +551,7 @@ static csc_httpErr_t parseUri(csc_httpMsg_t *msg, char *uri)
 			decArgVal = NULL; 
  
 	// Assign the arg name and value.
-		rslt = csc_httpMsg_addUrlVal(msg, decArgName, decArgVal);
+		rslt = csc_http_addUrlVal(msg, decArgName, decArgVal);
 		if (result == csc_httpErr_Ok)
 			result = rslt;
  
@@ -568,7 +568,7 @@ static csc_httpErr_t parseUri(csc_httpMsg_t *msg, char *uri)
 
 
 // Receive a HTTP message from whatever as a server.
-csc_httpErr_t csc_httpMsg_rcvSrv(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
+csc_httpErr_t csc_http_rcvSrv(csc_http_t *msg, csc_ioAnyRead_t *rca)
 {	int wdLen;
 	csc_httpErr_t errCode;
 	const char *wd;
@@ -588,7 +588,7 @@ csc_httpErr_t csc_httpMsg_rcvSrv(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
  
 // Add the method.
 	wd = csc_str_charr(word);
-	errCode = csc_httpMsg_addSF(msg, csc_httpSF_method, wd);
+	errCode = csc_http_addSF(msg, csc_httpSF_method, wd);
 	if (errCode != csc_httpErr_Ok)
 	{	skipTillBlankLine(rca);
 		goto freeResources;
@@ -637,7 +637,7 @@ csc_httpErr_t csc_httpMsg_rcvSrv(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
 	}
  
 // Add the protocol.
-	errCode = csc_httpMsg_addSF(msg, csc_httpSF_protocol, csc_str_charr(word));
+	errCode = csc_http_addSF(msg, csc_httpSF_protocol, csc_str_charr(word));
 	if (errCode != csc_httpErr_Ok)
 	{	skipTillBlankLine(rca);
 		goto freeResources;
@@ -651,7 +651,7 @@ csc_httpErr_t csc_httpMsg_rcvSrv(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
 	}
  
 // Read in all the other headers.
-	csc_httpMsg_rcv(msg, rca);
+	readHeaders(msg, rca);
  
 // Free resources.
 freeResources:
@@ -661,12 +661,12 @@ freeResources:
 		free(uri);
  
 // Bye.
-	return csc_httpMsg_getErrCode(msg);
+	return csc_http_getErrCode(msg);
 }
 
 
 // Receive a HTTP message from whatever as a client.
-csc_httpErr_t csc_httpMsg_rcvCli(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
+csc_httpErr_t csc_http_rcvCli(csc_http_t *msg, csc_ioAnyRead_t *rca)
 {	int wdLen;
 	csc_httpErr_t errCode;
  
@@ -682,7 +682,7 @@ csc_httpErr_t csc_httpMsg_rcvCli(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
 	}
  
 // Add the protocol.
-	errCode = csc_httpMsg_addSF(msg, csc_httpSF_protocol, csc_str_charr(word));
+	errCode = csc_http_addSF(msg, csc_httpSF_protocol, csc_str_charr(word));
 	if (errCode != csc_httpErr_Ok)
 	{	skipTillBlankLine(rca);
 		goto freeResources;
@@ -703,7 +703,7 @@ csc_httpErr_t csc_httpMsg_rcvCli(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
 	}
  
 // Add the response code.
-	errCode = csc_httpMsg_addSF(msg, csc_httpSF_statCode, csc_str_charr(word));
+	errCode = csc_http_addSF(msg, csc_httpSF_statCode, csc_str_charr(word));
 	if (errCode != csc_httpErr_Ok)
 	{	skipTillBlankLine(rca);
 		goto freeResources;
@@ -725,14 +725,14 @@ csc_httpErr_t csc_httpMsg_rcvCli(csc_httpMsg_t *msg, csc_ioAnyRead_t *rca)
 	}
  
 // Add the reason phrase.
-	errCode = csc_httpMsg_addSF(msg, csc_httpSF_reason, csc_str_charr(word));
+	errCode = csc_http_addSF(msg, csc_httpSF_reason, csc_str_charr(word));
 	if (errCode != csc_httpErr_Ok)
 	{	skipTillBlankLine(rca);
 		goto freeResources;
 	}
  
 // Read in all the other headers.
-	csc_httpMsg_rcv(msg, rca);
+	readHeaders(msg, rca);
  
 // Free resources.
 freeResources:
@@ -740,19 +740,19 @@ freeResources:
 		csc_str_free(word);
  
 // Bye.
-	return csc_httpMsg_getErrCode(msg);
+	return csc_http_getErrCode(msg);
 }
 
 
 // Receive a HTTP message from an input string as a client.
-csc_httpErr_t csc_httpMsg_rcvCliStr(csc_httpMsg_t *msg, const char *str)
+csc_httpErr_t csc_http_rcvCliStr(csc_http_t *msg, const char *str)
 {	
 // Create the stream.
 	csc_ioAny_readChStr_t *inStr = csc_ioAny_readChStr_new(str);
 	csc_ioAnyRead_t *rca = csc_ioAnyRead_new(csc_ioAny_readCharStr, inStr);
  
 // Read the HTTP.
-	csc_httpErr_t errCode = csc_httpMsg_rcvCli(msg, rca);
+	csc_httpErr_t errCode = csc_http_rcvCli(msg, rca);
  
 // Free the stream.
 	csc_ioAnyRead_free(rca);
@@ -763,13 +763,13 @@ csc_httpErr_t csc_httpMsg_rcvCliStr(csc_httpMsg_t *msg, const char *str)
 }
 
 // Receive a HTTP message from an input FILE stream as a client.
-csc_httpErr_t csc_httpMsg_rcvCliFILE(csc_httpMsg_t *msg, FILE *fin)
+csc_httpErr_t csc_http_rcvCliFILE(csc_http_t *msg, FILE *fin)
 {
 // Create the stream.
 	csc_ioAnyRead_t *rca = csc_ioAnyRead_new(csc_ioAny_readCharFILE, fin);
  
 // Read the HTTP.
-	csc_httpErr_t errCode = csc_httpMsg_rcvCli(msg, rca);
+	csc_httpErr_t errCode = csc_http_rcvCli(msg, rca);
  
 // Free the stream.
 	csc_ioAnyRead_free(rca);
@@ -780,14 +780,14 @@ csc_httpErr_t csc_httpMsg_rcvCliFILE(csc_httpMsg_t *msg, FILE *fin)
 
 
 // Receive a HTTP message from an input string as a client.
-csc_httpErr_t csc_httpMsg_rcvSrvStr(csc_httpMsg_t *msg, const char *str)
+csc_httpErr_t csc_http_rcvSrvStr(csc_http_t *msg, const char *str)
 {	
 // Create the stream.
 	csc_ioAny_readChStr_t *inStr = csc_ioAny_readChStr_new(str);
 	csc_ioAnyRead_t *rca = csc_ioAnyRead_new(csc_ioAny_readCharStr, inStr);
  
 // Read the HTTP.
-	csc_httpErr_t errCode = csc_httpMsg_rcvSrv(msg, rca);
+	csc_httpErr_t errCode = csc_http_rcvSrv(msg, rca);
  
 // Free the stream.
 	csc_ioAnyRead_free(rca);
@@ -798,13 +798,13 @@ csc_httpErr_t csc_httpMsg_rcvSrvStr(csc_httpMsg_t *msg, const char *str)
 }
 
 // Receive a HTTP message from an input FILE stream as a client.
-csc_httpErr_t csc_httpMsg_rcvSrvFILE(csc_httpMsg_t *msg, FILE *fin)
+csc_httpErr_t csc_http_rcvSrvFILE(csc_http_t *msg, FILE *fin)
 {
 // Create the stream.
 	csc_ioAnyRead_t *rca = csc_ioAnyRead_new(csc_ioAny_readCharFILE, fin);
  
 // Read the HTTP.
-	csc_httpErr_t errCode = csc_httpMsg_rcvSrv(msg, rca);
+	csc_httpErr_t errCode = csc_http_rcvSrv(msg, rca);
  
 // Free the stream.
 	csc_ioAnyRead_free(rca);

@@ -60,21 +60,21 @@ void hashTest1()
 {	csc_bool_t ret;
 	csc_mapSS_t *map = csc_mapSS_new();
  
-	testReport_sVal("mapss_empty", NULL, csc_mapSS_get(map, "fred"));
+	testReport_sVal("mapss_empty", NULL, (const char*)csc_mapSS_get(map, "fred"));
  
 	ret = csc_mapSS_addex(map, "fred", "bloggs");
 	testReport_bVal("mapss_fred_add1", csc_TRUE, ret);
-	testReport_sVal("mapss_fred_add2", "bloggs", csc_mapSS_get(map, "fred"));
+	testReport_sVal("mapss_fred_add2", "bloggs", csc_mapSS_get(map,"fred")->val);
  
 	ret = csc_mapSS_addex(map, "fred", "blogs");
 	testReport_bVal("mapss_fred_addex1", csc_FALSE, ret);
-	testReport_sVal("mapss_fred_addex1a", "bloggs", csc_mapSS_get(map, "fred"));
+	testReport_sVal("mapss_fred_addex1a", "bloggs", csc_mapSS_get(map,"fred")->val);
  
 	ret = csc_mapSS_addex(map, "john", "smith");
-	testReport_sVal("mapss_empty", "smith", csc_mapSS_get(map, "john"));
+	testReport_sVal("mapss_empty", "smith", csc_mapSS_get(map,"john")->val);
  
 	testReport_bVal("mapss_fred_out1a", csc_TRUE, csc_mapSS_out(map, "fred"));
-	testReport_sVal("mapss_fred_out1a", NULL, csc_mapSS_get(map, "fred"));
+	testReport_sVal("mapss_fred_out1a", NULL, (const char*)csc_mapSS_get(map,"fred"));
 
 	csc_mapSS_free(map);
 }
@@ -106,7 +106,7 @@ void hashTest2()
 	isOK = csc_TRUE;
 	for (int i=0; i<mHits; i++)
 	{	nvhit_t *hit = &hits[i];
-		if (strcmp(hit->val, csc_mapSS_get(map, hit->name)))
+		if (strcmp(hit->val, csc_mapSS_get(map,hit->name)->val))
 		{	isOK = csc_FALSE;
 		}
 	}
