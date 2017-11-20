@@ -55,7 +55,7 @@ csc_ioAnyWrite_t *csc_ioAnyWrite_new(csc_ioAny_writeFunc_t writeStr, void *conte
 void csc_ioAnyWrite_free(csc_ioAnyWrite_t *rca);
 
 // Write a string.
-void csc_ioAnyWrite_puts(csc_ioAnyWrite_t *rca, char *str);
+void csc_ioAnyWrite_puts(csc_ioAnyWrite_t *rca, const char *str);
 
 
 

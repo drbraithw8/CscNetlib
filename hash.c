@@ -260,6 +260,13 @@ void csc_hash_free(csc_hash_t *h)
 }
 
 
+int csc_hash_count(csc_hash_t *h)
+/*  Returns the number of elements in the hash table.
+ */ 
+{   return h->count; 
+}
+
+
 csc_ulong csc_hash_str(void *arg)
 /*  Creates a hash index from a null terminated string.  (case sensitive).
  */
@@ -430,7 +437,8 @@ csc_nameVal_t *csc_nameVal_new(const char *name, const char *val)
 }
 
 void csc_nameVal_free(csc_nameVal_t *nv)
-{	free((void*)nv->name);
+{
+	free((void*)nv->name);
 	if (nv->val)
 		free((void*)nv->val);
 	free(nv);
@@ -476,6 +484,10 @@ csc_bool_t csc_mapSS_addex(csc_mapSS_t *hss, const char *name, const char *val)
 	if (!ret)
 		csc_nameVal_free(nv);
 	return ret;
+}
+
+int csc_mapSS_count(csc_mapSS_t *hss)
+{	return csc_hash_count(hss->hash);
 }
 
 const csc_nameVal_t *csc_mapSS_get(csc_mapSS_t *hss, const char *name)

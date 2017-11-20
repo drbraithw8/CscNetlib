@@ -146,18 +146,6 @@ const char *csc_http_getErrStr(csc_http_t *msg)
 }
 
 
-static void skipTillBlankLine(csc_ioAnyRead_t *rca)
-{	int prevCh = ' ';
-	int ch = '\n';
-	while (ch!=EOF && (ch!='\n' || prevCh!='\n'))
-	{	prevCh = ch;
-		ch = csc_ioAnyRead_getc(rca);
-		if (ch == '\r')
-			ch = csc_ioAnyRead_getc(rca);
-	}
-}
-
-
 // ------------------------------------------------
 // ---------- Class for input of HTTP -------------
 // ------------------------------------------------
@@ -219,16 +207,14 @@ static int httpIn_getc(httpIn_t *hin)
 	if (ch == '\r')
 	{	ch = csc_ioAnyRead_getc(hin->rca);
 		if (ch == '\n')
-		{	if (hin->lastCh != '\n')
-			{	ch = csc_ioAnyRead_getc(hin->rca);
-				if (ch==' ' || ch=='\t')
-				{	hin->lastCh = ' ';
-				}
-				else
-				{	hin->nextCh = ch;
-					hin->isNextCh = csc_TRUE;
-					hin->lastCh = '\n';
-				}
+		{	ch = csc_ioAnyRead_getc(hin->rca);
+			if (ch==' ' || ch=='\t')
+			{	hin->lastCh = ' ';
+			}
+			else
+			{	hin->nextCh = ch;
+				hin->isNextCh = csc_TRUE;
+				hin->lastCh = '\n';
 			}
 		}
 		else
@@ -238,19 +224,22 @@ static int httpIn_getc(httpIn_t *hin)
 		}
 	}
 	else if (ch == '\n')
-	{	if (hin->lastCh != '\n')
-		{	ch = csc_ioAnyRead_getc(hin->rca);
-			if (ch==' ' || ch=='\t')
-				hin->lastCh = ' ';
-			else
-			{	hin->nextCh = ch;
-				hin->isNextCh = csc_TRUE;
-				hin->lastCh = '\n';
-			}
+	{	ch = csc_ioAnyRead_getc(hin->rca);
+		if (ch==' ' || ch=='\t')
+			hin->lastCh = ' ';
+		else
+		{	hin->nextCh = ch;
+			hin->isNextCh = csc_TRUE;
+			hin->lastCh = '\n';
 		}
 	}
 	else if (ch == '\t')
 		hin->lastCh = ' ';
+	else if (ch == -1)
+	{	hin->nextCh = ch;
+		hin->isNextCh = csc_TRUE;
+		hin->lastCh = -1;
+	}
 	else
 		hin->lastCh = ch;
  
@@ -259,7 +248,75 @@ static int httpIn_getc(httpIn_t *hin)
 }
 
 
-static httpIn_result_t httpIn_getLine( httpIn_t *hin
+int httpIn_getline(httpIn_t *hin, csc_str_t *line)
+{   int ch;
+    csc_str_reset(line);
+ 
+// Skip leading space.
+	ch = httpIn_getc(hin);
+	while (ch==' ' || ch=='\t')
+	ch = httpIn_getc(hin);
+ 
+// Read in line. 
+    while (ch!=EOF && ch!='\n')
+    {   if (ch != '\r')
+            csc_str_append_ch(line, ch);
+		ch = httpIn_getc(hin);
+    }
+ 
+// Trim space from end of line.
+    const char *buf = csc_str_charr(line);
+	int bufLen = csc_str_length(line);
+	while (bufLen>0 && buf[bufLen-1]==' ')
+		bufLen--;
+	csc_str_truncate(line, bufLen);
+ 
+// Return result. 
+    if (ch == EOF)
+        return -1;
+    else
+        return csc_str_length(line);
+}
+
+
+static void httpIn_skipTillBlankLine(httpIn_t *hin)
+{	int prevCh = ' ';
+	int ch = '\n';
+	while (ch!=EOF && (ch!='\n' || prevCh!='\n'))
+	{	prevCh = ch;
+		ch = httpIn_getc(hin);
+		if (ch == '\r')
+			ch = httpIn_getc(hin);
+	}
+}
+
+
+int httpIn_getwd(httpIn_t *hin, csc_str_t *word)
+{
+	int ch = httpIn_getc(hin);
+    csc_str_reset(word);
+ 
+/* Skip whitespace */
+	while(isspace(ch))
+		ch = httpIn_getc(hin);
+ 
+/* Deal with a possible EOF */
+	if(ch==EOF)
+		return -1;
+ 
+/* read in the word */
+	while(!isspace(ch) && ch!=EOF)
+	{	csc_str_append_ch(word, ch);
+		ch = httpIn_getc(hin);
+	}
+ 
+/* Return the length. */
+	return csc_str_length(word);
+}
+
+
+
+static httpIn_result_t httpIn_getHdr( httpIn_t *hin
 									  , csc_str_t *headName
 									  , csc_str_t *content
 									  )
@@ -293,30 +350,9 @@ static httpIn_result_t httpIn_getLine( httpIn_t *hin
  
 // Assign the header name.
     csc_str_assign_str(headName, buf);
- 
-// Skip whitespace.
-	while (ch == ' ')
-		ch = httpIn_getc(hin);
-	if (ch == ':')
-		ch = httpIn_getc(hin);
-	while (ch == ' ')
-		ch = httpIn_getc(hin);
- 
+
 // Get the remainder of the line.
-	csc_str_truncate(buf, 0); 
-	while (ch!=-1 && ch!='\n')
-	{	csc_str_append_ch(buf, ch);
-		ch = httpIn_getc(hin);
-	}
- 
-// Trim space from end of line.
-    const char *line = csc_str_charr(buf);
-	int bufLen = csc_str_length(buf);
-	while (bufLen>0 && line[bufLen-1]==' ')
-		bufLen--;
-	csc_str_truncate(buf, bufLen);
- 
-// Assign the line.
+	httpIn_getline(hin, buf);
     csc_str_assign_str(content, buf);
 
 freeResources:
@@ -329,17 +365,16 @@ freeResources:
 // ------------------------------------------------
 
 
-static csc_httpErr_t readHeaders(csc_http_t *msg, csc_ioAnyRead_t *rca)
+static csc_httpErr_t readHeaders(csc_http_t *msg, httpIn_t *hin)
 {	
 // Resources.
-	httpIn_t *hin = httpIn_new(rca);
 	csc_str_t *headName = csc_str_new(NULL);
 	csc_str_t *content = csc_str_new(NULL);
 			
 // Read in the headers.
 	httpIn_result_t getLineResult = httpIn_OK;
 	while (getLineResult==httpIn_OK || getLineResult==csc_httpErr_LineTooLong)
-	{	getLineResult = httpIn_getLine(hin, headName, content);
+	{	getLineResult = httpIn_getHdr(hin, headName, content);
  
 	// Set error code.
 		if (getLineResult == httpIn_error)
@@ -358,7 +393,6 @@ static csc_httpErr_t readHeaders(csc_http_t *msg, csc_ioAnyRead_t *rca)
 // Free resouces.
 	csc_str_free(headName);
 	csc_str_free(content);
-	httpIn_free(hin);
  
 // Return the restlt.
 	return csc_http_getErrCode(msg);
@@ -576,10 +610,14 @@ csc_httpErr_t csc_http_rcvSrv(csc_http_t *msg, csc_ioAnyRead_t *rca)
 // Resources.
 	csc_str_t *word = NULL;
 	char *uri = NULL;
+	httpIn_t *hin = NULL;
+ 
+// Input processing.
+	hin = httpIn_new(rca);
  
 // Get the method.
 	word = csc_str_new(NULL);
-	wdLen = csc_ioAnyRead_getwd(rca, word);
+	wdLen = httpIn_getwd(hin, word);
 	if (wdLen < 1)
 	{	setErr( msg, csc_httpErr_UnexpectedEOF
 			  , "Unexpected EOF reading method of request line");
@@ -590,7 +628,7 @@ csc_httpErr_t csc_http_rcvSrv(csc_http_t *msg, csc_ioAnyRead_t *rca)
 	wd = csc_str_charr(word);
 	errCode = csc_http_addSF(msg, csc_httpSF_method, wd);
 	if (errCode != csc_httpErr_Ok)
-	{	skipTillBlankLine(rca);
+	{	httpIn_skipTillBlankLine(hin);
 		goto freeResources;
 	}
  
@@ -600,12 +638,12 @@ csc_httpErr_t csc_http_rcvSrv(csc_http_t *msg, csc_ioAnyRead_t *rca)
 	   && strcmp(wd,"OPTIONS") 
 	   )
 	{	setErr(msg, csc_httpErr_BadMethod, "Bad method in request line");
-		skipTillBlankLine(rca);
+		httpIn_skipTillBlankLine(hin);
 		goto freeResources;
 	}
  
 // Get the resource URI.
-	wdLen = csc_ioAnyRead_getwd(rca, word);
+	wdLen = httpIn_getwd(hin, word);
 	if (wdLen < 1)
 	{	setErr( msg, csc_httpErr_UnexpectedEOF
 			  , "Unexpected EOF reading resource in request line");
@@ -616,7 +654,7 @@ csc_httpErr_t csc_http_rcvSrv(csc_http_t *msg, csc_ioAnyRead_t *rca)
 	uri = csc_str_alloc_charr(word);
 	errCode = parseUri(msg, uri);
 	if (errCode != csc_httpErr_Ok)
-	{	skipTillBlankLine(rca);
+	{	httpIn_skipTillBlankLine(hin);
 		goto freeResources;
 	}
  
@@ -624,12 +662,12 @@ csc_httpErr_t csc_http_rcvSrv(csc_http_t *msg, csc_ioAnyRead_t *rca)
 // 	wd = csc_str_charr(word);
 // 	if (  !csc_isValid_decentAbsPath(wd))
 // 	{	setErr(msg, csc_httpErr_BadReqUri, "Bad requested resource in request line");
-// 		skipTillBlankLine(rca);
+// 		httpIn_skipTillBlankLine(hin);
 // 		goto freeResources;
 // 	}
  
 // Get the protocol.
-	wdLen = csc_ioAnyRead_getwd(rca, word);
+	wdLen = httpIn_getline(hin, word);
 	if (wdLen < 1)
 	{	setErr( msg, csc_httpErr_UnexpectedEOF
 			  , "Unexpected EOF reading protocol in request line");
@@ -639,19 +677,19 @@ csc_httpErr_t csc_http_rcvSrv(csc_http_t *msg, csc_ioAnyRead_t *rca)
 // Add the protocol.
 	errCode = csc_http_addSF(msg, csc_httpSF_protocol, csc_str_charr(word));
 	if (errCode != csc_httpErr_Ok)
-	{	skipTillBlankLine(rca);
+	{	httpIn_skipTillBlankLine(hin);
 		goto freeResources;
 	}
  
 // Check the protocol
 	if (strcmp(csc_str_charr(word),"HTTP/1.1") && strcmp(csc_str_charr(word),"HTTP/1.0"))
 	{	setErr(msg, csc_httpErr_BadProtocol, "Bad protocol in request line");
-		skipTillBlankLine(rca);
+		httpIn_skipTillBlankLine(hin);
 		goto freeResources;
 	}
  
 // Read in all the other headers.
-	readHeaders(msg, rca);
+	readHeaders(msg, hin);
  
 // Free resources.
 freeResources:
@@ -659,6 +697,8 @@ freeResources:
 		csc_str_free(word);
 	if (uri)
 		free(uri);
+	if (hin)
+		httpIn_free(hin);
  
 // Bye.
 	return csc_http_getErrCode(msg);
@@ -672,10 +712,14 @@ csc_httpErr_t csc_http_rcvCli(csc_http_t *msg, csc_ioAnyRead_t *rca)
  
 // Resources.
 	csc_str_t *word = NULL;
+	httpIn_t *hin = NULL;
+ 
+// Input processing.
+	hin = httpIn_new(rca);
  
 // Get the protocol.
 	word = csc_str_new(NULL);
-	wdLen = csc_ioAnyRead_getwd(rca, word);
+	wdLen = httpIn_getwd(hin, word);
 	if (wdLen < 1)
 	{	setErr(msg, csc_httpErr_UnexpectedEOF, "Unexpected EOF reading status line");
 		goto freeResources;
@@ -684,19 +728,19 @@ csc_httpErr_t csc_http_rcvCli(csc_http_t *msg, csc_ioAnyRead_t *rca)
 // Add the protocol.
 	errCode = csc_http_addSF(msg, csc_httpSF_protocol, csc_str_charr(word));
 	if (errCode != csc_httpErr_Ok)
-	{	skipTillBlankLine(rca);
+	{	httpIn_skipTillBlankLine(hin);
 		goto freeResources;
 	}
  
 // Check the protocol
 	if (strcmp(csc_str_charr(word),"HTTP/1.1") && strcmp(csc_str_charr(word),"HTTP/1.0"))
 	{	setErr(msg, csc_httpErr_BadProtocol, "Bad protocol in status line");
-		skipTillBlankLine(rca);
+		httpIn_skipTillBlankLine(hin);
 		goto freeResources;
 	}
  
 // Get the response code.
-	wdLen = csc_ioAnyRead_getwd(rca, word);
+	wdLen = httpIn_getwd(hin, word);
 	if (wdLen < 1)
 	{	setErr(msg, csc_httpErr_UnexpectedEOF, "Unexpected EOF reading status line");
 		goto freeResources;
@@ -705,7 +749,7 @@ csc_httpErr_t csc_http_rcvCli(csc_http_t *msg, csc_ioAnyRead_t *rca)
 // Add the response code.
 	errCode = csc_http_addSF(msg, csc_httpSF_statCode, csc_str_charr(word));
 	if (errCode != csc_httpErr_Ok)
-	{	skipTillBlankLine(rca);
+	{	httpIn_skipTillBlankLine(hin);
 		goto freeResources;
 	}
  
@@ -713,12 +757,12 @@ csc_httpErr_t csc_http_rcvCli(csc_http_t *msg, csc_ioAnyRead_t *rca)
 	if (!csc_isValidRange_int(csc_str_charr(word), 100, 599, NULL))
 	{
 		setErr(msg, csc_httpErr_BadStatCode, "Bad status code in status line");
-		skipTillBlankLine(rca);
+		httpIn_skipTillBlankLine(hin);
 		goto freeResources;
 	}
  
 // Get the reason phrase.
-	wdLen = csc_ioAnyRead_getline(rca, word);
+	wdLen = httpIn_getline(hin, word);
 	if (wdLen < 1)
 	{	setErr(msg, csc_httpErr_UnexpectedEOF, "Unexpected EOF 3 reading status line");
 		goto freeResources;
@@ -727,17 +771,19 @@ csc_httpErr_t csc_http_rcvCli(csc_http_t *msg, csc_ioAnyRead_t *rca)
 // Add the reason phrase.
 	errCode = csc_http_addSF(msg, csc_httpSF_reason, csc_str_charr(word));
 	if (errCode != csc_httpErr_Ok)
-	{	skipTillBlankLine(rca);
+	{	httpIn_skipTillBlankLine(hin);
 		goto freeResources;
 	}
  
 // Read in all the other headers.
-	readHeaders(msg, rca);
+	readHeaders(msg, hin);
  
 // Free resources.
 freeResources:
 	if (word)
 		csc_str_free(word);
+	if (hin)
+		httpIn_free(hin);
  
 // Bye.
 	return csc_http_getErrCode(msg);
@@ -810,6 +856,104 @@ csc_httpErr_t csc_http_rcvSrvFILE(csc_http_t *msg, FILE *fin)
 	csc_ioAnyRead_free(rca);
  
 // Return the error code.
+	return errCode;
+}
+
+
+csc_httpErr_t csc_http_SendCli(csc_http_t *msg, csc_ioAnyWrite_t* out)
+{	
+// The method.
+	char *method = msg->startFields[csc_httpSF_method];
+	if (method == NULL) 
+	{	setErr(msg, csc_httpErr_MissingMethod, "Missing method for request line");
+		return csc_httpErr_MissingMethod;
+	}
+ 
+// The request URI.
+	char *reqUri = msg->startFields[csc_httpSF_reqUri];
+	if (reqUri == NULL) 
+	{	setErr(msg, csc_httpErr_MissingReqUri, "Missing request-URI for request line");
+		return csc_httpErr_MissingReqUri;
+	}
+ 
+// The protocol.
+	char *protocol = msg->startFields[csc_httpSF_protocol];
+	if (protocol == NULL) 
+		protocol = "HTTP/1.1";
+ 
+// Send the method.
+	csc_ioAnyWrite_puts(out, method);
+	csc_ioAnyWrite_puts(out, " ");
+ 
+// Send the request URI and all the args bundled into the request URI.
+	csc_ioAnyWrite_puts(out, reqUri);
+	if (csc_mapSS_count(msg->uriArgs) > 0)
+	{	const csc_nameVal_t *nv;
+		csc_mapSS_iter_t *iter;
+		int count = 0;
+ 
+		iter = csc_mapSS_iter_new(msg->uriArgs);
+		while ((nv = csc_mapSS_iter_next(iter)) != NULL)
+		{	
+		// The preceeding char.
+			if (count++ == 0)
+				csc_ioAnyWrite_puts(out, "?");
+			else
+				csc_ioAnyWrite_puts(out, "&");
+ 
+		// The name.
+			csc_str_t *nameEnc = csc_http_pcentEnc(nv->name, csc_FALSE);
+			csc_ioAnyWrite_puts(out, csc_str_charr(nameEnc));
+			csc_str_free(nameEnc);
+ 
+		// The value, if there is one.
+			if (nv->val != NULL)
+			{	csc_ioAnyWrite_puts(out, "=");
+				csc_str_t *valEnc = csc_http_pcentEnc(nv->val, csc_FALSE);
+				csc_ioAnyWrite_puts(out, csc_str_charr(valEnc));
+				csc_str_free(valEnc);
+			}
+		}
+		csc_mapSS_iter_free(iter);
+	}
+	csc_ioAnyWrite_puts(out, " ");
+ 
+// Send the protocol.
+	csc_ioAnyWrite_puts(out, protocol);
+	csc_ioAnyWrite_puts(out, "\r\n");
+ 
+// Send each header.
+	const char *val = NULL;
+	csc_nameVal_t **els = msg->headers->els;
+	int nEls = msg->headers->nEls;
+	for (int i=0; i<nEls; i++)
+	{	csc_nameVal_t *nv = els[i];
+		csc_ioAnyWrite_puts(out, nv->name);
+		csc_ioAnyWrite_puts(out, ": ");
+		csc_ioAnyWrite_puts(out, nv->val);
+		csc_ioAnyWrite_puts(out, "\r\n");
+	}
+ 
+// Send a blank line to terminate.
+	csc_ioAnyWrite_puts(out, "\r\n");
+ 
+// We are done.
+	return csc_httpErr_Ok;
+}
+
+
+csc_httpErr_t csc_http_SendCliFILE(csc_http_t *msg, FILE* fout)
+{	csc_ioAnyWrite_t *out = csc_ioAnyWrite_new(csc_ioAny_writeFILE, fout);
+	csc_httpErr_t errCode = csc_http_SendCli(msg, out);
+	csc_ioAnyWrite_free(out);
+	return errCode;
+}
+
+
+csc_httpErr_t csc_http_SendCliStr(csc_http_t *msg, csc_str_t *sout)
+{	csc_ioAnyWrite_t *out = csc_ioAnyWrite_new(csc_ioAny_writeCstr, sout);
+	csc_httpErr_t errCode = csc_http_SendCli(msg, out);
+	csc_ioAnyWrite_free(out);
 	return errCode;
 }
 

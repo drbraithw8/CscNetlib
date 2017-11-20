@@ -6,6 +6,9 @@
 #include <CscNetLib/alloc.h>
 #include <CscNetLib/http.h>
 
+// void nameValArr_show(nameValArr_t *arr)
+// {	
+
 
 void testReport_iVal(FILE *fout, const char *testName, int required, int got)
 {	if (got == required)	
@@ -307,14 +310,40 @@ void testSrvRcv4()
 
 void testSrvRcv3()
 {	const csc_nameVal_t *nv;
-// Resources.
-	FILE *fin = fopen("testSrvRcv3.txt", "r"); assert(fin);
-	csc_http_t *msg = csc_http_new();
+	const char *tempFname = "csc_temp_SrvRcv3.txt";
+	csc_httpErr_t errCode;
+	csc_http_t *msg;
+	FILE *fout, *fin;
+
+	const char *testRcv3 =
+		"GET /helloWorld.php?name=fred&male&middle=&weight=25 HTTP/1.1\n"
+		"Accept: */*\n"
+		"Accept-Language: en-us\n"
+		"Accept-Encoding: gzip, deflate\n"
+		"User-Agent: Mozilla/4.0\n"
+		"Host: www.ft.com\n"
+		"Connection: Keep-Alive\n"
+		"\n" ;
+
+// Read from string to message.
+	msg = csc_http_new();
+	errCode = csc_http_rcvSrvStr(msg, testRcv3);
+	testReport_iVal(stdout, "http_sRcv3_retVal1", csc_httpErr_Ok, errCode);
+
+// Write the message out to a temporary file.
+	fout = fopen(tempFname, "w"); assert(fout);
+	errCode = csc_http_SendCliFILE(msg, fout);
+	testReport_iVal(stdout, "http_sRcv3_retVal2", csc_httpErr_Ok, errCode);
+	fclose(fout);
+	csc_http_free(msg);
  
 // Read all in.
-	csc_httpErr_t errVal = csc_http_rcvSrvFILE(msg, fin);
-	testReport_iVal(stdout, "http_sRcv3_retVal", csc_httpErr_Ok, errVal);
- 
+	msg = csc_http_new();
+	fin = fopen(tempFname, "r"); assert(fin);
+	errCode = csc_http_rcvSrvFILE(msg, fin);
+	fclose(fin);
+	testReport_iVal(stdout, "http_sRcv3_retVal3", csc_httpErr_Ok, errCode);
+
 // Check all the headers.
 	testReport_sVal(stdout, "http_sRcv3_proto", "HTTP/1.1",
 					csc_http_getSF(msg, csc_httpSF_protocol));
@@ -332,16 +361,31 @@ void testSrvRcv3()
  
 	nv = csc_http_getUrlVal(msg,"male"); assert(nv);
 	testReport_sVal(stdout, "http_sRcv3_reqNoVal", NULL, nv->val);
- 
+
 	nv = csc_http_getUrlVal(msg,"weight"); assert(nv);
 	testReport_sVal(stdout, "http_sRcv3_reqValWeight", "25", nv->val);
  
 	nv = csc_http_getUrlVal(msg,"notThere");
 	testReport_sVal(stdout, "http_sRcv3_reqValNotThere", NULL, (const char*)nv);
+
+// Check the headers.
+	testReport_sVal(stdout, "http_sRcv3_accept", "*/*",
+					csc_http_getHdr(msg, "Accept"));
+	testReport_sVal(stdout, "http_sRcv3_accLang", "en-us",
+					csc_http_getHdr(msg, "Accept-Language"));
+	testReport_sVal(stdout, "http_sRcv3_accEnc", "gzip, deflate",
+					csc_http_getHdr(msg, "Accept-Encoding"));
+	testReport_sVal(stdout, "http_sRcv3_userAgent", "Mozilla/4.0",
+					csc_http_getHdr(msg, "User-Agent"));
+	testReport_sVal(stdout, "http_sRcv3_host", "www.ft.com",
+					csc_http_getHdr(msg, "Host"));
+	testReport_sVal(stdout, "http_sRcv3_connection", "Keep-Alive",
+					csc_http_getHdr(msg, "Connection"));
+	testReport_sVal(stdout, "http_sRcv3_notThere", NULL,
+					csc_http_getHdr(msg, "notThere"));
 	
 // Free resources.
 	csc_http_free(msg);
-	fclose(fin);
 }
 
 

@@ -90,7 +90,7 @@ void csc_ioAnyWrite_free(csc_ioAnyWrite_t *rca)
 {   free(rca);
 }
 
-void csc_ioAnyWrite_puts(csc_ioAnyWrite_t *rca, char *str)
+void csc_ioAnyWrite_puts(csc_ioAnyWrite_t *rca, const char *str)
 {   rca->writeStr(rca->context, str);
 }
 

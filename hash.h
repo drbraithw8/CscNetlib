@@ -57,6 +57,9 @@ void csc_hash_free(csc_hash_t *hash);
  * space associated with the table.
  */ 
 
+int csc_hash_count(csc_hash_t *h);
+/* Returns the number of elements in the hash table.
+ */
 
 // --------------------------------------------------
 // --------- Miscellaneous useful -------------------
@@ -137,6 +140,9 @@ csc_mapSS_t *csc_mapSS_new();
 
 // Destructor
 void csc_mapSS_free(csc_mapSS_t *hss);
+
+// Number of elements.
+int csc_mapSS_count(csc_mapSS_t *hss);
 
 // Add a name value pair.  Return csc_TRUE on success.
 csc_bool_t csc_mapSS_addex(csc_mapSS_t *hss, const char *name, const char *val);

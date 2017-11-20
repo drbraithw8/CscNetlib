@@ -100,7 +100,7 @@ csc_httpErr_t csc_http_rcvSrv(csc_http_t *msg, csc_ioAnyRead_t *rca);
 // Receive a HTTP message from an input FILE stream as a server.
 csc_httpErr_t csc_http_rcvSrvFILE(csc_http_t *msg, FILE *fin);
 
-// Receive a HTTP message from an input FILE stream as a server.
+// Receive a HTTP message from an input string as a server.
 csc_httpErr_t csc_http_rcvSrvStr(csc_http_t *msg, const char *str);
 
 
@@ -111,6 +111,8 @@ csc_httpErr_t csc_http_rcvSrvStr(csc_http_t *msg, const char *str);
 // does not mind, e.g. "Host".  Returns error code.  csc_httpErr_Ok
 // indicates success.
 csc_httpErr_t csc_http_sendCli(csc_http_t *msg, csc_ioAnyWrite_t *ws);
+csc_httpErr_t csc_http_SendCliFILE(csc_http_t *msg, FILE* fout);
+csc_httpErr_t csc_http_SendCliStr(csc_http_t *msg, csc_str_t *sout);
 
 
 // Sends a HTTP message, as a server, to whatever.  The following pseudo
