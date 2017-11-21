@@ -71,7 +71,7 @@ do
 # Find any resulting output files and concatenate them into the top level out file.
 	echo >> $topLevelOutFile
 	echo '['"$valDir"']' >> $topLevelOutFile
-	outFiles=$( find . -name $testOut )
+	outFiles=$( find . -name "$testOut" )
 	for outFile in $outFiles
 	do
 		cat $outFile >> $topLevelOutFile
@@ -82,7 +82,7 @@ do
 	then
 		make $targetClean
 	fi
-	find . \( -name $cleanOut -or -name $testOut -or -name $testFail \) -delete
+	find . \( -name "$cleanOut" -or -name "$testOut" -or -name "$testFail" \) -delete
 
 done
 

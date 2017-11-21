@@ -1,8 +1,0 @@
-GET /hello%20world.php?name=Fred%20Bloggs&rate=12%25%2B1 HTTP/1.1
-Accept: */*
-Accept-Language: en-us
-Accept-Encoding: gzip, deflate
-User-Agent: Mozilla/4.0
-Host: www.ft.com
-Connection: Keep-Alive
-

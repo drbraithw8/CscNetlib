@@ -476,10 +476,9 @@ char *csc_http_pcentDec(const char *enc)
 
 // Performs percent encoding on a string.
 // Returns allocated string that must be csc_str_free()d by the caller.
-csc_str_t *csc_http_pcentEnc(const char *dec, csc_bool_t isSlashOk)
+void csc_http_pcentEnc(const char *dec, csc_str_t *enc, csc_bool_t isSlashOk)
 {	const char *hexDigs = "0123456789ABCDEF";
-    csc_str_t *enc = csc_str_new(dec);
-    csc_str_truncate(enc, 0);
+    csc_str_reset(enc);
 	const char *pd = dec;
 	int ch = *pd++;
 	while (ch != '\0')
@@ -492,7 +491,6 @@ csc_str_t *csc_http_pcentEnc(const char *dec, csc_bool_t isSlashOk)
 		}
 		ch = *pd++;
 	}
-	return enc;
 }
 
 
@@ -860,20 +858,26 @@ csc_httpErr_t csc_http_rcvSrvFILE(csc_http_t *msg, FILE *fin)
 }
 
 
-csc_httpErr_t csc_http_SendCli(csc_http_t *msg, csc_ioAnyWrite_t* out)
-{	
+csc_httpErr_t csc_http_sendCli(csc_http_t *msg, csc_ioAnyWrite_t* out)
+{	csc_httpErr_t result = csc_httpErr_Ok;
+ 
+// Resources.
+	csc_str_t *pcEnc = NULL;
+ 
 // The method.
 	char *method = msg->startFields[csc_httpSF_method];
 	if (method == NULL) 
 	{	setErr(msg, csc_httpErr_MissingMethod, "Missing method for request line");
-		return csc_httpErr_MissingMethod;
+		result = csc_httpErr_MissingMethod;
+		goto freeResources;
 	}
  
 // The request URI.
 	char *reqUri = msg->startFields[csc_httpSF_reqUri];
 	if (reqUri == NULL) 
 	{	setErr(msg, csc_httpErr_MissingReqUri, "Missing request-URI for request line");
-		return csc_httpErr_MissingReqUri;
+		result = csc_httpErr_MissingReqUri;
+		goto freeResources;
 	}
  
 // The protocol.
@@ -885,8 +889,12 @@ csc_httpErr_t csc_http_SendCli(csc_http_t *msg, csc_ioAnyWrite_t* out)
 	csc_ioAnyWrite_puts(out, method);
 	csc_ioAnyWrite_puts(out, " ");
  
-// Send the request URI and all the args bundled into the request URI.
-	csc_ioAnyWrite_puts(out, reqUri);
+// Send the request URI.
+	pcEnc = csc_str_new(reqUri);
+	csc_http_pcentEnc(reqUri, pcEnc, csc_TRUE);
+	csc_ioAnyWrite_puts(out, csc_str_charr(pcEnc));
+ 
+// Send all the args bundled into the request URI.
 	if (csc_mapSS_count(msg->uriArgs) > 0)
 	{	const csc_nameVal_t *nv;
 		csc_mapSS_iter_t *iter;
@@ -902,16 +910,14 @@ csc_httpErr_t csc_http_SendCli(csc_http_t *msg, csc_ioAnyWrite_t* out)
 				csc_ioAnyWrite_puts(out, "&");
  
 		// The name.
-			csc_str_t *nameEnc = csc_http_pcentEnc(nv->name, csc_FALSE);
-			csc_ioAnyWrite_puts(out, csc_str_charr(nameEnc));
-			csc_str_free(nameEnc);
+			csc_http_pcentEnc(nv->name, pcEnc, csc_FALSE);
+			csc_ioAnyWrite_puts(out, csc_str_charr(pcEnc));
  
 		// The value, if there is one.
 			if (nv->val != NULL)
 			{	csc_ioAnyWrite_puts(out, "=");
-				csc_str_t *valEnc = csc_http_pcentEnc(nv->val, csc_FALSE);
-				csc_ioAnyWrite_puts(out, csc_str_charr(valEnc));
-				csc_str_free(valEnc);
+				csc_http_pcentEnc(nv->val, pcEnc, csc_FALSE);
+				csc_ioAnyWrite_puts(out, csc_str_charr(pcEnc));
 			}
 		}
 		csc_mapSS_iter_free(iter);
@@ -937,25 +943,100 @@ csc_httpErr_t csc_http_SendCli(csc_http_t *msg, csc_ioAnyWrite_t* out)
 // Send a blank line to terminate.
 	csc_ioAnyWrite_puts(out, "\r\n");
  
+// Free resources.
+freeResources:
+	if (pcEnc)
+		csc_str_free(pcEnc);
+ 
 // We are done.
+	return result;
+}
+
+
+csc_httpErr_t csc_http_sendCliFILE(csc_http_t *msg, FILE* fout)
+{	csc_ioAnyWrite_t *out = csc_ioAnyWrite_new(csc_ioAny_writeFILE, fout);
+	csc_httpErr_t errCode = csc_http_sendCli(msg, out);
+	csc_ioAnyWrite_free(out);
+	return errCode;
+}
+
+
+csc_httpErr_t csc_http_sendCliStr(csc_http_t *msg, csc_str_t *sout)
+{	csc_ioAnyWrite_t *out = csc_ioAnyWrite_new(csc_ioAny_writeCstr, sout);
+	csc_httpErr_t errCode = csc_http_sendCli(msg, out);
+	csc_ioAnyWrite_free(out);
+	return errCode;
+}
+
+
+csc_httpErr_t csc_http_sendSrv(csc_http_t *msg, csc_ioAnyWrite_t *out)
+{	
+// The protocol.
+	char *protocol = msg->startFields[csc_httpSF_protocol];
+	if (protocol == NULL) 
+		protocol = "HTTP/1.1";
+ 
+// The status code.
+	char *statCode = msg->startFields[csc_httpSF_statCode];
+	if (statCode == NULL) 
+	{	setErr( msg
+			  , csc_httpErr_MissingStatCode
+			  , "Missing status code for response line"
+			  );
+		return csc_httpErr_MissingStatCode;
+	}
+ 
+// The reason.
+	char *reason = msg->startFields[csc_httpSF_reason];
+	if (reason == NULL) 
+	{	setErr(msg, csc_httpErr_MissingReason, "Missing reason for response line");
+		return csc_httpErr_MissingReason;
+	}
+ 
+// Send the protocol.
+	csc_ioAnyWrite_puts(out, protocol);
+	csc_ioAnyWrite_puts(out, " ");
+ 
+// Send the status code.
+	csc_ioAnyWrite_puts(out, statCode);
+	csc_ioAnyWrite_puts(out, " ");
+ 
+// Send the reason.
+	csc_ioAnyWrite_puts(out, reason);
+	csc_ioAnyWrite_puts(out, "\r\n");
+ 
+// Send each header.
+	const char *val = NULL;
+	csc_nameVal_t **els = msg->headers->els;
+	int nEls = msg->headers->nEls;
+	for (int i=0; i<nEls; i++)
+	{	csc_nameVal_t *nv = els[i];
+		csc_ioAnyWrite_puts(out, nv->name);
+		csc_ioAnyWrite_puts(out, ": ");
+		csc_ioAnyWrite_puts(out, nv->val);
+		csc_ioAnyWrite_puts(out, "\r\n");
+	}
+ 
+// Send a blank line to terminate.
+	csc_ioAnyWrite_puts(out, "\r\n");
+ 
+// Bye.
 	return csc_httpErr_Ok;
 }
 
 
-csc_httpErr_t csc_http_SendCliFILE(csc_http_t *msg, FILE* fout)
+csc_httpErr_t csc_http_sendSrvFILE(csc_http_t *msg, FILE* fout)
 {	csc_ioAnyWrite_t *out = csc_ioAnyWrite_new(csc_ioAny_writeFILE, fout);
-	csc_httpErr_t errCode = csc_http_SendCli(msg, out);
+	csc_httpErr_t errCode = csc_http_sendSrv(msg, out);
 	csc_ioAnyWrite_free(out);
 	return errCode;
 }
 
 
-csc_httpErr_t csc_http_SendCliStr(csc_http_t *msg, csc_str_t *sout)
+csc_httpErr_t csc_http_sendSrvStr(csc_http_t *msg, csc_str_t *sout)
 {	csc_ioAnyWrite_t *out = csc_ioAnyWrite_new(csc_ioAny_writeCstr, sout);
-	csc_httpErr_t errCode = csc_http_SendCli(msg, out);
+	csc_httpErr_t errCode = csc_http_sendSrv(msg, out);
 	csc_ioAnyWrite_free(out);
 	return errCode;
 }
-
-
-
+ 

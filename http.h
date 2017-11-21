@@ -110,9 +110,9 @@ csc_httpErr_t csc_http_rcvSrvStr(csc_http_t *msg, const char *str);
 // "csc_http_protocol".  Other headers may be required even if this class
 // does not mind, e.g. "Host".  Returns error code.  csc_httpErr_Ok
 // indicates success.
+csc_httpErr_t csc_http_sendCliFILE(csc_http_t *msg, FILE* fout);
+csc_httpErr_t csc_http_sendCliStr(csc_http_t *msg, csc_str_t *sout);
 csc_httpErr_t csc_http_sendCli(csc_http_t *msg, csc_ioAnyWrite_t *ws);
-csc_httpErr_t csc_http_SendCliFILE(csc_http_t *msg, FILE* fout);
-csc_httpErr_t csc_http_SendCliStr(csc_http_t *msg, csc_str_t *sout);
 
 
 // Sends a HTTP message, as a server, to whatever.  The following pseudo
@@ -120,7 +120,9 @@ csc_httpErr_t csc_http_SendCliStr(csc_http_t *msg, csc_str_t *sout);
 // ALREADY been set by csc_http_addHdr():- "csc_http_statCode",
 // "csc_http_reason" and "csc_http_protocol".  Returns error code.
 // csc_httpErr_Ok indicates success.
-csc_httpErr_t csc_http_sendSrv(csc_http_t *msg, csc_ioAnyWrite_t *ws);
+csc_httpErr_t csc_http_sendSrvFILE(csc_http_t *msg, FILE *fout);
+csc_httpErr_t csc_http_sendSrvStr(csc_http_t *msg, csc_str_t *sout);
+csc_httpErr_t csc_http_sendSrv(csc_http_t *msg, csc_ioAnyWrite_t *out);
 
 
 // Returns a string that describes the error.  Returns NULL if there is no error.
@@ -131,8 +133,8 @@ csc_httpErr_t csc_http_getErrCode(csc_http_t *msg);
 // Returns allocated string that must be free()d by the caller.
 char *csc_http_pcentDec(const char *enc);
 
-// Performs percent encoding on a string.
-// Returns allocated string that must be csc_str_free()d by the caller.
-csc_str_t *csc_http_pcentEnc(const char *dec, csc_bool_t isSlashOk);
+// Assigns percent encoded version of 'dec' to 'enc'.
+// Encodes slashes and colons only if 'isSlashOk'.
+void csc_http_pcentEnc(const char *dec, csc_str_t *enc, csc_bool_t isSlashOk);
 
 #endif
