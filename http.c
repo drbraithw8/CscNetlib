@@ -808,17 +808,9 @@ csc_httpErr_t csc_http_rcvCliStr(csc_http_t *msg, const char *str)
 
 // Receive a HTTP message from an input FILE stream as a client.
 csc_httpErr_t csc_http_rcvCliFILE(csc_http_t *msg, FILE *fin)
-{
-// Create the stream.
-	csc_ioAnyRead_t *rca = csc_ioAnyRead_new(csc_ioAny_readCharFILE, fin);
- 
-// Read the HTTP.
+{	csc_ioAnyRead_t *rca = csc_ioAnyRead_new(csc_ioAny_readCharFILE, fin);
 	csc_httpErr_t errCode = csc_http_rcvCli(msg, rca);
- 
-// Free the stream.
 	csc_ioAnyRead_free(rca);
- 
-// Return the error code.
 	return errCode;
 }
 
@@ -843,17 +835,9 @@ csc_httpErr_t csc_http_rcvSrvStr(csc_http_t *msg, const char *str)
 
 // Receive a HTTP message from an input FILE stream as a client.
 csc_httpErr_t csc_http_rcvSrvFILE(csc_http_t *msg, FILE *fin)
-{
-// Create the stream.
-	csc_ioAnyRead_t *rca = csc_ioAnyRead_new(csc_ioAny_readCharFILE, fin);
- 
-// Read the HTTP.
+{	csc_ioAnyRead_t *rca = csc_ioAnyRead_new(csc_ioAny_readCharFILE, fin);
 	csc_httpErr_t errCode = csc_http_rcvSrv(msg, rca);
- 
-// Free the stream.
 	csc_ioAnyRead_free(rca);
- 
-// Return the error code.
 	return errCode;
 }
 
