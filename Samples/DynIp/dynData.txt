@@ -1,0 +1,3 @@
+url=http://update.dnsexit.com/RemoteUpdate.sv
+base=http://update.dnsexit.com/
+version=2.0
