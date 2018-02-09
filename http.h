@@ -84,24 +84,15 @@ const csc_nameVal_t *csc_http_getUrlVal(csc_http_t *msg, const char *name);
 
 
 // Receive a HTTP message from whatever as a client.
-// Receive a HTTP message from whatever as a client.
-csc_httpErr_t csc_http_rcvCli(csc_http_t *msg, csc_ioAnyRead_t *rca);
-
-// Receive a HTTP message from an input FILE stream as a client.
 csc_httpErr_t csc_http_rcvCliFILE(csc_http_t *msg, FILE *fin);
-
-// Receive a HTTP message from an input string as a client.
 csc_httpErr_t csc_http_rcvCliStr(csc_http_t *msg, const char *str);
+csc_httpErr_t csc_http_rcvCli(csc_http_t *msg, csc_ioAnyRead_t *rca);
 
 
 // Receive a HTTP message by receiving HTTP from whatever as a server.
-csc_httpErr_t csc_http_rcvSrv(csc_http_t *msg, csc_ioAnyRead_t *rca);
-
-// Receive a HTTP message from an input FILE stream as a server.
 csc_httpErr_t csc_http_rcvSrvFILE(csc_http_t *msg, FILE *fin);
-
-// Receive a HTTP message from an input string as a server.
 csc_httpErr_t csc_http_rcvSrvStr(csc_http_t *msg, const char *str);
+csc_httpErr_t csc_http_rcvSrv(csc_http_t *msg, csc_ioAnyRead_t *rca);
 
 
 // Sends a HTTP message, as a client, to whatever.  The following pseudo
