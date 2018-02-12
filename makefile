@@ -1,7 +1,7 @@
 
 CscNetLib := libCscNet.a
 
-CscNetLibObj := iniFile.o logger.o netCli.o netSrv.o servBase.o \
+CscNetLibObj := iniFile.o logger.o netCli.o netSrv.o udp.o servBase.o \
 					ioAny.o cstr.o signal.o isvalid.o fileProperties.o \
 					std.o alloc.o hash.o list.o memcheck.o json.o http.o
 

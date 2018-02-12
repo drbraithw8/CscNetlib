@@ -71,14 +71,14 @@ int csc_srv_setAddr(csc_srv_t *this, const char *addr, int portNo, int backlog)
  
 // Check the port number. 
     if (portNo<MinPortNo || portNo>MaxPortNo)
-    {   setErrMsg(this, csc_alloc_str("netCli: Invalid port number"));
+    {   setErrMsg(this, csc_alloc_str("netSrv: Invalid port number"));
         return 0;
     }
     sprintf(portStr, "%d", portNo);
  
 // Check the address.
     if (addr!=NULL && !csc_isValid_ipV4(addr) && !csc_isValid_ipV6(addr))
-    {   setErrMsg(this, csc_alloc_str("netcli: Invalid IP address"));
+    {   setErrMsg(this, csc_alloc_str("Srvcli: Invalid IP address"));
         return 0;
     }
  

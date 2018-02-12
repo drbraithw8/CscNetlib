@@ -11,6 +11,9 @@
 
 #define csc_versionStr "1.8.0"
 
+#define MinPortNo 1
+#define MaxPortNo 65535
+#define MaxPortNoStrSize 5
 
 #define csc_streq(a,b)  (!strcmp((a),(b)))
 #define csc_strieq(a,b)  (!stricmp((a),(b)))
