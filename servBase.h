@@ -5,8 +5,8 @@
 #define __SERVBASE_H__ 1
 
 // ======= srvBase ===============================
-// Logging, Configuration and Forking
-// Uses netSrv.
+// Logging, Configuration and Forking for TCP 
+// server.  Uses netSrv.
 // ===============================================
 
 
@@ -35,13 +35,11 @@
 // 
 // This routine takes the following arguments:-
 // 
-// 1)   connType -   Either "TCP" or "UDP".
+// 1)   servModel -  Either "OneByOne" or "Forking".  ("ThreadPool" coming soon).
 // 
-// 2)   servModel -  Either "OneByOne" or "Forking".  ("ThreadPool" coming soon).
+// 2)   logPath - The path to the file for logging.
 // 
-// 3)   logPath - The path to the file for logging.
-// 
-// 4)   configPath - The path to the configuration file.  The configuration
+// 3)   configPath - The path to the configuration file.  The configuration
 //  file is read into an object of type iniFile_t, which is passed on to
 //  doConn().  The server object uses the following from the 'ServerBase'
 //  section:-
@@ -51,7 +49,7 @@
 //  *   MaxThreads - (optional. Dflt=10) Maximum simultaneous connections.
 //  *   Backlog -    (optional. Dflt=10) Max size of connection queue.
 // 
-// 5)  doConn() is called for each connection.  doConn() returns 0 on
+// 4)  doConn() is called for each connection.  doConn() returns 0 on
 //  success, negative on error.  doConn() must close the file descriptor
 //  'fd' before returning.  Its args are:-
 //     1:  fd - the file descriptor for the connection.
@@ -60,16 +58,15 @@
 //     4:  log - The logging object (as passed to srvBase_setup()).
 //     5:  local - The pointer to your stuff (as passed to srvBase_setup()).
 // 
-// 6)  doInit() is called before any connections are accepted.  If you
+// 5)  doInit() is called before any connections are accepted.  If you
 //  need something to be done after the configuration and logging have
 //  been initialised, but before any connections are accepted, then pass
 //  a function to do this, otherwise pass NULL.
 // 
-// 7)  local - A pointer to whatever your want (usually a structure).  This
+// 6)  local - A pointer to whatever your want (usually a structure).  This
 //  merely passed onto doInit() and also to doConn().  Pass NULL if you
 //  have nothing to pass to doInit() and doConn().
-int csc_servBase_server( char *connType
-                       , char *srvModelStr
+int csc_servBase_server( char *srvModelStr
                        , char *logPath
                        , char *configPath
                        , int (*doConn)( int fd            // client file descriptor

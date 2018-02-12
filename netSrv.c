@@ -28,8 +28,7 @@
 
 
 typedef struct csc_srv_t 
-{   int conType;
-    char *errMsg;
+{   char *errMsg;
     int portNo;
     struct addrinfo *servAddresses; 
     struct addrinfo sockHints;
@@ -64,21 +63,11 @@ const char *csc_srv_getErrMsg(const csc_srv_t *this)
 }
 
 
-int csc_srv_setAddr(csc_srv_t *this, const char *conType, const char *addr, int portNo, int backlog)
+int csc_srv_setAddr(csc_srv_t *this, const char *addr, int portNo, int backlog)
 {   int result;
     char portStr[MaxPortNoStrSize + 1];
     struct addrinfo *addrInfo; 
     int sockfd;
- 
-// Check the connection type.
-    if (csc_streq(conType,"UDP"))
-        this->conType = SOCK_DGRAM; // UDP sockets
-    else if (csc_streq(conType,"TCP"))
-        this->conType = SOCK_STREAM; // TCP stream sockets
-    else 
-    {   setErrMsg(this, csc_alloc_str("csc_srv_setAddr(): Invalid connection type"));
-        return 0;
-    }
  
 // Check the port number. 
     if (portNo<MinPortNo || portNo>MaxPortNo)
@@ -101,7 +90,7 @@ int csc_srv_setAddr(csc_srv_t *this, const char *conType, const char *addr, int 
     memset(&this->sockHints, 0, sizeof(this->sockHints)); // make sure the struct is empty
     this->sockHints.ai_family = AF_UNSPEC;     // don't care IPv4 or IPv6
     this->sockHints.ai_flags = AI_PASSIVE;     // fill in my IP for me
-    this->sockHints.ai_socktype = this->conType; // TCP or UDP stream sockets
+    this->sockHints.ai_socktype = SOCK_STREAM;
  
 // Resolve the address.
     result = getaddrinfo(addr,portStr,&this->sockHints,&this->servAddresses);
@@ -189,3 +178,4 @@ void csc_srv_free(csc_srv_t *this)
 // Free the parent structure.
     free(this);
 }
+

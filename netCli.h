@@ -1,6 +1,11 @@
 // Author: Dr Stephen Braithwaite.
 // This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
 
+// ======= netCli ===============
+// Make TCP connection to server.
+// ==============================
+
+
 #ifndef csc_NETCLI_H
 #define csc_NETCLI_H 1
 
@@ -15,8 +20,6 @@ csc_cli_t *csc_cli_new();
 
 // Tell the netCli object what we will connect to.
 // 
-// 'conType' must be either "TCP" or "UDP".
-// 
 // The address may be in the form of a URL, e.g. "www.google.com".  Or it
 // may be in IPV4 format, e.g. "192.168.0.3".  Or it may be in IPV6 format,
 // e.g. "2001:0db8:c9d2:0012:0000:0000:0000:0051" or
@@ -25,7 +28,6 @@ csc_cli_t *csc_cli_new();
 // Returns 1 on success, and 0 on failure.  Use csc_cli_getErrMsg() 
 // to get details of failure.
 int csc_cli_setServAddr( csc_cli_t *cli
-                      , const char *conType
                       , const char *addr
                       , int portNo
                       );

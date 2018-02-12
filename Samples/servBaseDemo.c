@@ -1,6 +1,10 @@
 // Author: Dr Stephen Braithwaite.
 // This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
 
+----------------------------
+Basis for simple TCP server.
+----------------------------
+
 #include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -107,8 +111,7 @@ int doConn( int fd0            // client file descriptor
 int main(int argc, char **argv)
 {   boxDim_t boxDims;
  
-    csc_servBase_server( "TCP"         // Connection type.
-                       , "OneByOne"    // Server Model.
+    csc_servBase_server( "OneByOne"    // Server Model.
                        , "test.log"    // Path to log file.
                        , "test.ini"    // Path to configuration file.
                        , doConn       // Callback called for each connection.

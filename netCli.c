@@ -25,8 +25,7 @@
 
 
 typedef struct csc_cli_t
-{   int conType;
-    char *errMsg;
+{   char *errMsg;
     int portNo;
     struct addrinfo *servAddresses; 
     struct addrinfo sockHints;
@@ -53,25 +52,15 @@ static void setErrMsg(csc_cli_t *this, char *newErrMsg)
 }
 
 
-int csc_cli_setServAddr(csc_cli_t *this, const char *conType, const char *addr, int portNo)
+int csc_cli_setServAddr(csc_cli_t *this, const char *addr, int portNo)
 {   int result;
     char portStr[MaxPortNoStrSize + 1];
- 
-// Check the connection type.
-    if (csc_streq(conType,"UDP"))
-        this->conType = SOCK_DGRAM; // UDP sockets
-    else if (csc_streq(conType,"TCP"))
-        this->conType = SOCK_STREAM; // TCP stream sockets
-    else 
-    {   setErrMsg(this, csc_alloc_str("csc_cli_setServAddr(): Invalid connection type"));
-        return 0;
-    }
  
 // Set up the sockHints.
     memset(&this->sockHints, 0, sizeof(this->sockHints)); // Make sure the struct is empty.
     this->sockHints.ai_family = AF_UNSPEC;     // Don't care IPv4 or IPv6..
     this->sockHints.ai_flags = AI_PASSIVE;     // Fill in my IP for me.
-    this->sockHints.ai_socktype = this->conType; // TCP stream sockets.
+    this->sockHints.ai_socktype = SOCK_STREAM; // TCP stream sockets.
  
 // Check the port number. 
     if (portNo<MinPortNo || portNo>MaxPortNo)

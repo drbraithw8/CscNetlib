@@ -1,9 +1,9 @@
 // Author: Dr Stephen Braithwaite.
 // This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
 
-// ======= netSrv ================================
-// Listen for and accept connections from clients.
-// ===============================================
+// ======= netSrv ====================================
+// Listen for and accept TCP connections from clients.
+// ===================================================
 
 
 #ifndef csc_SRV_H
@@ -24,8 +24,6 @@ csc_srv_t *csc_srv_new();
 // It is expected that this is called once after calling csc_srv_new(), and
 // before calling csc_srv_accept().
 // 
-// 'conType' must be either "TCP" or "UDP".
-// 
 // The address, 'addr', may be in the form of  may be in IPV4 format, e.g.
 // "192.168.0.3".  Or it may be in IPV6 format, e.g.
 // "2001:0db8:c9d2:0012:0000:0000:0000:0051" or "2001:db8:c9d2:12::51".
@@ -44,7 +42,6 @@ csc_srv_t *csc_srv_new();
 // Returns 1 on success, and 0 on failure.  Use csc_srv_getErrMsg() 
 // to get details of failure.
 int csc_srv_setAddr( csc_srv_t *srv
-                  , const char *conType  // Either "TCP" or "UDP"
                   , const char *addr    // NULL or the IP number of the interface.
                   , int portNo         // Port number to serve on.
                   , int backlog);     // -1, or how many connections to queue.
@@ -56,7 +53,7 @@ int csc_srv_setAddr( csc_srv_t *srv
 int csc_srv_accept(csc_srv_t *srv);
 
 
-// Returns address of client just connected to.  Returns NULL on failure.
+// Returns address of client whose connection was just accepted.  Returns NULL on failure.
 const char *csc_srv_acceptAddr(csc_srv_t *srv);
 
 

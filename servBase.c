@@ -217,8 +217,7 @@ static int serv_Forking( csc_srv_t *srv
 }
 
 
-int csc_servBase_server( char *connType
-                       , char *srvModelStr
+int csc_servBase_server( char *srvModelStr
                        , char *logPath
                        , char *configPath
                        , int (*doConn)( int fd            // client file descriptor
@@ -237,11 +236,13 @@ int csc_servBase_server( char *connType
     const char *logLevelStr, *portNumStr, *backlogStr, *ipStr, *maxThreadsStr;
     int iniFileLineNum, portNum, srvModel, backlog, maxThreads, result;
  
+csc_CKCK;
 // Resources to free (should match Free resources in cleanup).
     csc_log_t *log = NULL;
     csc_ini_t *ini = NULL;
     csc_srv_t *srv = NULL;
  
+csc_CKCK;
 // Initialise the logging.
     log = csc_log_new(logPath, initialLogLevel);
     if (log == NULL)
@@ -250,6 +251,7 @@ int csc_servBase_server( char *connType
         goto cleanup;
     }
  
+csc_CKCK;
 // Check the server model.
     if (csc_streq(srvModelStr,srvModelStr_OneByOne))
         srvModel = srvModel_OneByOne;
@@ -263,6 +265,7 @@ int csc_servBase_server( char *connType
         goto cleanup;
     }
  
+csc_CKCK;
 // Get configuration object.
     ini = csc_ini_new();
     if (ini == NULL)
@@ -272,6 +275,7 @@ int csc_servBase_server( char *connType
         goto cleanup;
     }
  
+csc_CKCK;
 // Read configuration.
     iniFileLineNum = csc_ini_read(ini, configPath);
     if (iniFileLineNum > 0)
@@ -289,6 +293,7 @@ int csc_servBase_server( char *connType
         goto cleanup;
     }
  
+csc_CKCK;
 // Get and set logging level
     logLevelStr = csc_ini_getStr(ini, ConfSection, ConfIdentLogLevel);
     if (logLevelStr != NULL)
@@ -305,6 +310,7 @@ int csc_servBase_server( char *connType
         }
     }
  
+csc_CKCK;
 // Get the port number.
     portNumStr = csc_ini_getStr(ini, ConfSection, ConfIdentPort);
     if (portNumStr==NULL || !csc_isValid_int(portNumStr))
@@ -320,6 +326,7 @@ int csc_servBase_server( char *connType
     }
     portNum = atoi(portNumStr);;
  
+csc_CKCK;
 // Get the IP.
     ipStr = csc_ini_getStr(ini, ConfSection, ConfIdentIp);
     // Error handling for this is performed already in csc_srv_setAddr().
@@ -341,6 +348,7 @@ int csc_servBase_server( char *connType
     }
     backlog = atoi(backlogStr);
  
+csc_CKCK;
 // Get the max number of connections.
     maxThreadsStr = csc_ini_getStr(ini, ConfSection, ConfIdentMaxThreads);
     if (maxThreadsStr == NULL)
@@ -358,6 +366,7 @@ int csc_servBase_server( char *connType
     }
     maxThreads = atoi(maxThreadsStr);
  
+csc_CKCK;
 // Create netSrv object.
     srv = csc_srv_new();
     if (srv == NULL)
@@ -365,14 +374,16 @@ int csc_servBase_server( char *connType
         goto cleanup;
     }
  
+csc_CKCK;
 // Set up the server object.
-    result = csc_srv_setAddr(srv, connType, ipStr, portNum, backlog);
+    result = csc_srv_setAddr(srv, ipStr, portNum, backlog);
     if (!result)
     {   csc_log_str(log , csc_log_FATAL, csc_srv_getErrMsg(srv));
         retVal = csc_FALSE; 
         goto cleanup;
     }
  
+csc_CKCK;
 // Perform initialisations.
     if (doInit != NULL)
     {   if (!doInit(ini, log, local))
@@ -381,21 +392,23 @@ int csc_servBase_server( char *connType
         }
     }
  
+csc_CKCK;
 // Log success so far.
     csc_log_printf( log
                  , csc_log_NOTICE
-                 , "%s server accepting %s connections on port %d"  
+                 , "%s server accepting connections on port %d"  
                  , srvModelStr
-                 , connType
                  , portNum
                  );
  
+csc_CKCK;
 // Do each successful connection.
     if (srvModel == srvModel_OneByOne)
         serv_OneByOne(srv, ini, log, local, doConn);
     else
         serv_Forking(srv, maxThreads, ini, log, local, doConn);
  
+csc_CKCK;
 cleanup:  // Free resources.
     if (ini != NULL)
         csc_ini_free(ini);
