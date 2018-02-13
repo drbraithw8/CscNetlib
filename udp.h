@@ -59,12 +59,6 @@ csc_bool_t csc_udp_setRcvAddr( csc_udp_t *udp       // UDP object.
 							 );
 
 
-// csc_TRUE indicates success.  csc_FALSE indicates error.
-csc_bool_t csc_udpAddr_setFlags( csc_udpAddr_t *addr
-							   , int flags
-							   );
-
-
 // On success returns number of bytes read.  On error returns -1.
 int csc_udp_rcv( csc_udp_t *udp          // UDP object.
 			   , char *buf, int bufSiz   // Buffer to read into.
