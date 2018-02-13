@@ -5,21 +5,23 @@
 // Set up socket for UDP server.
 // ===============================================
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include <errno.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <errno.h>
 
 #include "std.h"
 #include "alloc.h"
 #include "isvalid.h"
+
 #include "udp.h"
 
 // --------------------------------------------
@@ -28,8 +30,8 @@
 typedef struct csc_udpAddr_t
 {	int flags;
 	char *errMsg;
-	int portDest;
-	char *addrDest;
+	struct sockaddr_storage caller;
+	int isSet;
 } csc_udpAddr_t;  // Address to send to.
 
 
@@ -45,36 +47,74 @@ const char *csc_udpAddr_getErrMsg(const csc_udpAddr_t *this)
 }
 
 
+const char *csc_udpAddr_resetErrMsg(csc_udpAddr_t *this)
+{   if (this->errMsg != NULL)
+    {   free(this->errMsg);
+		this->errMsg = NULL;
+	}
+}
+
+
 csc_udpAddr_t *csc_udpAddr_new()
-{	csc_udpAddr_t *addr = allocOne(csc_udpAddr_t);  assert(addr);
+{	csc_udpAddr_t *addr = csc_allocOne(csc_udpAddr_t);  assert(addr);
+	addr->errMsg = NULL;
 	addr->flags = 0;
-	addr->portDest = -1;
-	addr->addrDest = NULL;
-	addr->errMsg = NULL;
+	addr->isSet = csc_FALSE;
 }
 
 
-csc_bool_t csc_udpAddr_setAddr( csc_udpAddr_t *addr
-							  , char *addrDest
-							  , int portDest
-							  , int flags    
-							  )
-{	addr->portDest = portDest;
-	addr->addrDest = addrDest;
-	addr->flags = flags;
-	addr->errMsg = NULL;
+static csc_bool_t csc_udpAddr_setAdd( csc_udpAddr_t *addr
+							 , struct sockaddr_storage *caller
+							 )
+{	memcpy(&addr->caller, caller, sizeof (struct sockaddr_storage));
 }
 
 
-csc_bool_t csc_udpAddr_setFlags(csc_udpAddr_t *addr , int flags)
-{	addr->flags = flags;
+char *csc_udpAddr_getAllocIpStr(csc_udpAddr_t *addr)
+{	char ipStr[INET6_ADDRSTRLEN+1];
+ 
+	if (!addr->isSet)
+	{	return NULL;
+	}
+	else if (addr->caller.ss_family == AF_INET)
+	{	inet_ntop( addr->caller.ss_family
+				 , (const void*)&((struct sockaddr_in*)(&addr->caller))->sin_addr
+				 , ipStr
+				 , INET6_ADDRSTRLEN
+				 );
+		ipStr[15] = '\0';
+	}
+	else if (addr->caller.ss_family == AF_INET6)
+	{	inet_ntop( addr->caller.ss_family
+				 , (const void*)&((struct sockaddr_in6*)(&addr->caller))->sin6_addr 
+				 , ipStr
+				 , INET6_ADDRSTRLEN
+				 );
+		ipStr[INET6_ADDRSTRLEN] = '\0';
+	}
+	else
+		assert(csc_FALSE);
+ 
+	return csc_allocStr(ipStr);
 }
 
 
+int csc_udpAddr_getPortNum(csc_udpAddr_t *addr)
+{	int portNum;
+ 
+	if (!addr->isSet)
+		portNum = -1;
+	else if (addr->caller.ss_family == AF_INET)
+		portNum = ((struct sockaddr_in*)(&addr->caller))->sin_port;
+	else if (addr->caller.ss_family == AF_INET6)
+		portNum = ((struct sockaddr_in6*)(&addr->caller))->sin6_port;
+ 
+	return portNum;
+}
+
+	
 void csc_udpAddr_free(csc_udpAddr_t *addr)
-{	if (addr->addrDest)
-		free(addr->addrDest);
-	if (addr->errMsg)
+{	if (addr->errMsg)
 		free(addr->errMsg);
 	free(addr);
 }
@@ -84,19 +124,11 @@ void csc_udpAddr_free(csc_udpAddr_t *addr)
 // ------------------ UDP ---------------------
 
 
-static void *get_in_addr(struct sockaddr *sa)
-{	if (sa->sa_family == AF_INET)
-	{	return &(((struct sockaddr_in*)sa)->sin_addr);
-    }
-    return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
-
-
 typedef struct csc_udp_t
 {	int flags;
 	int portSrc;
 	char *addrSrc;
-	int sockFd;
+	int sockfd;
 	char *errMsg;
 } csc_udp_t;
 
@@ -114,12 +146,12 @@ const char *csc_udp_getErrMsg(const csc_udp_t *this)
 
 
 csc_udp_t *csc_udp_new()
-{	csc_udp_t *udp = allocOne(csc_udp_t);  assert(udp);
+{	csc_udp_t *udp = csc_allocOne(csc_udp_t);  assert(udp);
 	udp->portSrc = -1;
 	udp->addrSrc = NULL;
 	udp->errMsg = NULL;
 	udp->flags = 0;
-	udp->sockFd = -1;
+	udp->sockfd = -1;
 }
 
 
@@ -128,6 +160,8 @@ void csc_udp_free(csc_udp_t *udp)
 		free(udp->errMsg);
 	if (udp->addrSrc)
 		free(udp->addrSrc);
+	if (udp->sockfd != -1)
+		close(udp->sockfd);
 	free(udp);
 }
 
@@ -139,28 +173,28 @@ csc_bool_t csc_udp_setRcvAddr( csc_udp_t *udp       // UDP object.
 							 )
 {   int result;
     char portStr[MaxPortNoStrSize + 1];
-    struct addrinfo hints, *servInfo, *addrInfo; 
-
+    struct addrinfo hints, *servInfo=NULL, *addrInfo; 
+ 
 // Misc.
-	udp->sockFd = -1;
+	udp->sockfd = -1;
 	udp->flags = flags;
-
+ 
 // The port number. 
     if (portNo<MinPortNo || portNo>MaxPortNo)
-	{	udp_setErrMsg(udp, "udpSetRcvAddr: Invalid port number");
+	{	udp_setErrMsg(udp, "csc_udp_setRcvAddr(): Invalid port number");
         return csc_FALSE;
     }
 	udp->portSrc = portNo;
-
+ 
 // The address.
     if (addr!=NULL && !csc_isValid_ipV4(addr) && !csc_isValid_ipV6(addr))
-	{	udp_setErrMsg(udp, "udpSetRcvAddr: Invalid IP address");
+	{	udp_setErrMsg(udp, "csc_udp_setRcvAddr(): Invalid IP address");
         return csc_FALSE;
     }
 	if (udp->addrSrc)
 		free(udp->addrSrc);
 	udp->addrSrc = csc_allocStr(addr);
-
+ 
 // Set up the sockHints.
     memset(&hints, 0, sizeof(hints)); // make sure the struct is empty
     hints.ai_family = AF_UNSPEC;     // don't care IPv4 or IPv6
@@ -170,23 +204,25 @@ csc_bool_t csc_udp_setRcvAddr( csc_udp_t *udp       // UDP object.
 // Resolve the address.
     result = getaddrinfo(NULL,portStr,&hints,&servInfo);
     if (result != 0)
-    {   udp_setErrMsg(udp, "udpSetRcvAddr: getaddrinfo() failed");
+    {   udp_setErrMsg(udp, "csc_udp_setRcvAddr(): getaddrinfo() failed");
         return csc_FALSE;
     }
     addrInfo = servInfo; 
  
 // Get a socket for the connection.
+	if (udp->sockfd != -1)
+		close(udp->sockfd);
     udp->sockfd = socket(addrInfo->ai_family, addrInfo->ai_socktype, addrInfo->ai_protocol);
-    if (sockfd == -1)
-    {   udp_setErrMsg(udp, "udpSetRcvAddr: socket() failed");
+    if (udp->sockfd == -1)
+    {   udp_setErrMsg(udp, "csc_udp_setRcvAddr(): socket() failed");
         freeaddrinfo(servInfo);
         return csc_FALSE;
     }
  
 // Bind the socket to the address.
-    result = bind(sockfd, addrInfo->ai_addr, addrInfo->ai_addrlen);
+    result = bind(udp->sockfd, addrInfo->ai_addr, addrInfo->ai_addrlen);
     if (result != 0)
-    {   setErrMsg(errCall, "udpSetRcvAddr: bind() failed");
+    {   udp_setErrMsg(udp, "csc_udp_setRcvAddr(): bind() failed");
         freeaddrinfo(servInfo);
 		close(udp->sockfd);
 		udp->sockfd = -1;
@@ -195,5 +231,38 @@ csc_bool_t csc_udp_setRcvAddr( csc_udp_t *udp       // UDP object.
  
 	freeaddrinfo(servInfo);
     return csc_TRUE;
+}
+ 
+
+// On success returns number of bytes read.  On error returns -1.
+int csc_udp_rcv( csc_udp_t *udp          // UDP object.
+			   , char *buf, int bufSiz   // Buffer to read into.
+			   , csc_udpAddr_t **addr  // Address to assign allocated or NULL.
+			   )
+{	int numRead;
+	struct sockaddr_storage caller;
+	
+// Receive the packet.
+	socklen_t addrLen = sizeof(caller);
+	numRead = recvfrom( udp->sockfd
+					  , buf, bufSiz
+					  , udp->flags
+					  , (struct sockaddr *)&caller, &addrLen
+					  );
+	if (numRead == -1)
+    {   udp_setErrMsg(udp, "csc_udp_setRcvAddr(): recvform() failed");
+		if (udp->sockfd)
+			close(udp->sockfd);
+		return -1;
+	}
+ 
+// Address packet received from.
+	if (addr != NULL)
+	{	if (*addr != NULL)
+		{	csc_udpAddr_free(*addr);
+		}
+		*addr = csc_udpAddr_new();
+		csc_udpAddr_setAdd(*addr, &caller);
+	}
 }
 

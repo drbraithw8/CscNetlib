@@ -6,6 +6,9 @@
 
 #include "std.h"
 
+#define csc_allocStr(s)  csc_alloc_str(s) 
+
+
 #ifndef csc_mck_IS_ON 
 
 // Allocate a objects of type t.
