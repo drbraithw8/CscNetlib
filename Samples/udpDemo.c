@@ -2,11 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netdb.h>
 #include <errno.h>
 
 #include <CscNetLib/std.h>
@@ -15,38 +10,39 @@
 #include <CscNetLib/udp.h>
 
 
-
 #define MaxBufLen 100
 int main(int argc, char **argv)
-{	int numRead;
-	char buf[MaxBufLen+1];
-	struct sockaddr_storage callerAddr;
-	char s[INET6_ADDRSTRLEN];
-	const char *errMsg;
-	
-// Get the socket.
-	int sockfd = csc_udpRcv_sock( "127.0.0.1", 9992, &errMsg);
-	if (sockfd == -1)
-	{	fprintf(stderr, "Error: %s\n", errMsg);
-		exit(1);
+{	char buf[MaxBufLen+1];
+	int ret, nRead;
+
+// Resources.
+	csc_udp_t *udp = NULL;
+	csc_udpAddr_t *addr = NULL;
+	char *ipStr = NULL;
+
+// Receive the packet.
+	udp = csc_udp_new();  assert(udp);
+	ret = csc_udp_setRcvAddr(udp, "127.0.0.1", 9992, 0);
+	if (!ret)
+	{	fprintf(stderr, "Error: %s.\n", csc_udp_getErrMsg(udp));
+		perror(NULL);
+		goto freeAll;
 	}
- 
-// Get a packet.
-	socklen_t addrLen = sizeof(callerAddr);
-	numRead = recvfrom(sockfd, buf, MaxBufLen, 0, (struct sockaddr *)&callerAddr, &addrLen);
-	if (numRead == -1)
-	{	fprintf(stderr, "Error: %s\n", "Failed recieve");
-		close(sockfd);
-		exit(1);
-	}
- 
-// Report what we got, and where from.
-    printf("Got packet from %s\n",
-        inet_ntop(callerAddr.ss_family,
-            get_in_addr((struct sockaddr *)&callerAddr),
-            s, sizeof s));
-    printf("Packet is %d bytes long\n", numRead);
-    buf[numRead] = '\0';
-    printf("Packet contains \"%s\"\n", buf);
+	nRead = csc_udp_rcv(udp, buf, MaxBufLen, &addr);  assert(ret); assert(addr);
+
+// Print out.
+	buf[nRead] = '\0';
+	ipStr = csc_udpAddr_getAllocIpStr(addr);
+	int portNum = csc_udpAddr_getPortNum(addr);
+	printf("Got from %s %d \"%s\"\n", ipStr, portNum, buf);
+
+// Free resources.
+freeAll:
+	free(ipStr);
+	csc_udpAddr_free(addr);
+	csc_udp_free(udp);
+	exit(0);
 }
+
+ 
 	

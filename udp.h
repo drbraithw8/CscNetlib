@@ -15,9 +15,6 @@
 
 typedef struct csc_udpAddr_t csc_udpAddr_t;
 csc_udpAddr_t *csc_udpAddr_new();
-static csc_bool_t csc_udpAddr_setAdd( csc_udpAddr_t *addr
-							 , struct sockaddr_storage *caller
-							 );
 char *csc_udpAddr_getAllocIpStr(csc_udpAddr_t *addr);
 int csc_udpAddr_getPortNum(csc_udpAddr_t *addr);
 void csc_udpAddr_free(csc_udpAddr_t *addr);
@@ -49,7 +46,6 @@ int csc_udp_rcv( csc_udp_t *udp          // UDP object.
 			   );
 
 //-- Errors --
-static void udp_setErrMsg(csc_udp_t *this, char *newErrMsg);
 const char *csc_udp_getErrMsg(const csc_udp_t *this);
 
 #endif
