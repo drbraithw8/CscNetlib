@@ -15,6 +15,7 @@
 
 typedef struct csc_udpAddr_t csc_udpAddr_t;
 csc_udpAddr_t *csc_udpAddr_new();
+csc_bool_t csc_udpAddr_setAddr(csc_udpAddr_t *addr, char *ipStr, int portNum);
 char *csc_udpAddr_getAllocIpStr(csc_udpAddr_t *addr);
 int csc_udpAddr_getPortNum(csc_udpAddr_t *addr);
 void csc_udpAddr_free(csc_udpAddr_t *addr);
@@ -33,17 +34,26 @@ csc_udp_t *csc_udp_new();
 void csc_udp_free(csc_udp_t *udp);
 
 // On success returns number of bytes read.  On error returns -1.
-csc_bool_t csc_udp_setRcvAddr( csc_udp_t *udp       // UDP object.
-							 , const char *addr    // NULL or IP of interface.
-							 , int portNo         // Port number to serve on.
-							 , int flags         // flags to recv sys call.
-							 );
+csc_bool_t csc_udp_setCli( csc_udp_t *udp       // UDP object.
+						 , int ipType   // AF_INET or AF_INET6
+						 );
+ 
+// On success returns number of bytes read.  On error returns -1.
+csc_bool_t csc_udp_setSrv( csc_udp_t *udp       // UDP object.
+						 , const char *addr    // NULL or IP of interface.
+						 , int portNo         // Port number to serve on.
+						 );
  
 // On success returns number of bytes read.  On error returns -1.
 int csc_udp_rcv( csc_udp_t *udp          // UDP object.
 			   , char *buf, int bufSiz  // Buffer to read into.
 			   , csc_udpAddr_t **addr  // Address to assign allocated or NULL.
 			   );
+
+csc_bool_t csc_udp_snd( csc_udp_t *udp          // UDP object.
+					  , char *buf, int msgLen   // Buffer to read into.
+					  , csc_udpAddr_t *addr  // Address.
+					  );
 
 //-- Errors --
 const char *csc_udp_getErrMsg(const csc_udp_t *this);
