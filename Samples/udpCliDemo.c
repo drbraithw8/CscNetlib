@@ -52,6 +52,13 @@ int main(int argc, char **argv)
 		goto freeAll;
 	}
 
+// Set the timeout for receiving packets.
+	ret = csc_udp_setRcvTimeout(udp, 3);
+	if (!ret)
+	{	fprintf(stderr, "Error: %s.\n", csc_udp_getErrMsg(udp));
+		goto freeAll;
+	}
+
 // Send the packet.
 	ret = csc_udp_snd(udp, argv[3], strlen(argv[3]), addr);
 	if (!ret)
@@ -61,13 +68,17 @@ int main(int argc, char **argv)
 
 // Receive the response.
 	nRead = csc_udp_rcv(udp, buf, MaxBufLen, NULL);
-	if (nRead == -1)
+	if (nRead == -2)
+	{	fprintf(stderr, "Receive packet timed out.\n");
+		goto freeAll;
+	}
+	else if (nRead == -1)
 	{	fprintf(stderr, "Error: %s.\n", csc_udp_getErrMsg(udp));
 		goto freeAll;
 	}
-	buf[nRead] = '\0';
 
 // Print the result.
+	buf[nRead] = '\0';
 	printf("Got: %s\n", buf);
 
 // Free resources.

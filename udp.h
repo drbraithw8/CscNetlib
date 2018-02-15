@@ -45,6 +45,9 @@ csc_bool_t csc_udp_setSrv( csc_udp_t *udp       // UDP object.
 						 );
  
 // On success returns number of bytes read.  On error returns -1.
+csc_bool_t csc_udp_setRcvTimeout(csc_udp_t *udp, int millisecs);
+
+// On success returns number of bytes read.  On error returns -1.
 int csc_udp_rcv( csc_udp_t *udp          // UDP object.
 			   , char *buf, int bufSiz  // Buffer to read into.
 			   , csc_udpAddr_t **addr  // Address to assign allocated or NULL.

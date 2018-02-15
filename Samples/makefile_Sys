@@ -4,7 +4,7 @@
 LIBS :=  -L /usr/local/lib -lCscNet -lpthread
 
 all: netCliDemo netSrvDemo servBaseDemo filePropertiesDemo \
-	 parseWordsOnLines iniDemo logDemo jsonDemo udpDemo
+	 parseWordsOnLines iniDemo logDemo jsonDemo udpCliDemo udpSrvDemo
 
 netCliDemo: netCliDemo.o
 	gcc netCliDemo.o $(LIBS) -o netCliDemo
@@ -36,10 +36,13 @@ iniDemo: iniDemo.o
 jsonDemo: jsonDemo.o
 	gcc jsonDemo.o $(LIBS) -o jsonDemo
 
-udpDemo: udpDemo.o
-	gcc udpDemo.o $(LIBS) -o udpDemo
+udpCliDemo: udpCliDemo.o
+	gcc udpCliDemo.o $(LIBS) -o udpCliDemo
+
+udpSrvDemo: udpSrvDemo.o
+	gcc udpSrvDemo.o $(LIBS) -o udpSrvDemo
 
 clean:
 	rm netSrvDemo servBaseDemo parseWordsOnLines filePropertiesDemo \
-        netCliDemo iniDemo logDemo jsonDemo udpDemo *.o test.log
+        netCliDemo iniDemo logDemo jsonDemo udpCliDemo udpSrvDemo *.o test.log
 

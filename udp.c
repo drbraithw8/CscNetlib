@@ -176,13 +176,16 @@ void csc_udpAddr_free(csc_udpAddr_t *addr)
 // --------------------------------------------
 // ------------------ UDP ---------------------
 
+typedef enum udpState { udpStateNone=0, udpStateCli, udpStateSrv} udpState_t;
+
 
 typedef struct csc_udp_t
 {	int flags;
 	int portRcv;
 	char *ipRcv;
-	int sockfd;
+	int sock;
 	char *errMsg;
+	udpState_t state;
 } csc_udp_t;
 
 
@@ -211,7 +214,8 @@ csc_udp_t *csc_udp_new()
 	udp->ipRcv = NULL;
 	udp->errMsg = NULL;
 	udp->flags = 0;
-	udp->sockfd = -1;
+	udp->sock = -1;
+	udp->state = udpStateNone;
 }
 
 
@@ -220,8 +224,8 @@ void csc_udp_free(csc_udp_t *udp)
 		free(udp->errMsg);
 	if (udp->ipRcv)
 		free(udp->ipRcv);
-	if (udp->sockfd != -1)
-		close(udp->sockfd);
+	if (udp->sock != -1)
+		close(udp->sock);
 	free(udp);
 }
 
@@ -235,9 +239,9 @@ csc_bool_t csc_udp_setSrv( csc_udp_t *udp       // UDP object.
     struct addrinfo hints, *servInfo=NULL, *addrInfo; 
  
 // Clear the socket.
-	if (udp->sockfd != -1)
-		close(udp->sockfd);
-	udp->sockfd = -1;
+	if (udp->sock != -1)
+		close(udp->sock);
+	udp->sock = -1;
  
 // The port number. 
     if (portNo<MinPortNo || portNo>MaxPortNo)
@@ -271,23 +275,24 @@ csc_bool_t csc_udp_setSrv( csc_udp_t *udp       // UDP object.
     addrInfo = servInfo; 
  
 // Get a socket for the connection.
-    udp->sockfd = socket(addrInfo->ai_family, addrInfo->ai_socktype, addrInfo->ai_protocol);
-    if (udp->sockfd == -1)
+    udp->sock = socket(addrInfo->ai_family, addrInfo->ai_socktype, addrInfo->ai_protocol);
+    if (udp->sock == -1)
     {   udp_setErrMsg(udp, "csc_udp_setSrv(): socket() failed", strerror(result));
         freeaddrinfo(servInfo);
         return csc_FALSE;
     }
  
 // Bind the socket to the address.
-    result = bind(udp->sockfd, addrInfo->ai_addr, addrInfo->ai_addrlen);
+    result = bind(udp->sock, addrInfo->ai_addr, addrInfo->ai_addrlen);
     if (result != 0)
     {   udp_setErrMsg(udp, "csc_udp_setSrv(): bind() failed", strerror(result));
         freeaddrinfo(servInfo);
-		close(udp->sockfd);
-		udp->sockfd = -1;
+		close(udp->sock);
+		udp->sock = -1;
         return csc_FALSE;
     }
  
+	udp->state = udpStateSrv;
 	freeaddrinfo(servInfo);
     return csc_TRUE;
 }
@@ -300,17 +305,18 @@ csc_bool_t csc_udp_setCli(csc_udp_t *udp, int ipType)
     struct addrinfo hints, *servInfo=NULL, *addrInfo; 
  
 // Clear the socket.
-	if (udp->sockfd != -1)
-		close(udp->sockfd);
-	udp->sockfd = -1;
+	if (udp->sock != -1)
+		close(udp->sock);
+	udp->sock = -1;
  
 // Get a socket for the connection.
-    udp->sockfd = socket(ipType, SOCK_DGRAM, 0);
-    if (udp->sockfd == -1)
+    udp->sock = socket(ipType, SOCK_DGRAM, 0);
+    if (udp->sock == -1)
     {   udp_setErrMsg(udp, "csc_udp_setCli(): socket() failed", strerror(result));
         return csc_FALSE;
     }
  
+	udp->state = udpStateCli;
     return csc_TRUE;
 }
 
@@ -320,15 +326,21 @@ csc_bool_t csc_udp_snd( csc_udp_t *udp          // UDP object.
 					  , csc_udpAddr_t *addr  // Address.
 					  )
 {	socklen_t addrLen = sizeof(addr->sockAddr);
-
+ 
+// Have things been set up?
+	if (udp->state!=udpStateCli && udp->state!=udpStateSrv)
+    {   udp_setErrMsg( udp, "csc_udp_snd(): udp object not initialised", NULL);
+		return csc_FALSE;
+	}
+ 
 // Check that the address is valid.
 	if (!addr->isSet)
     {   udp_setErrMsg(udp, "csc_udp_snd(): address not set", NULL);
 		return csc_FALSE;
 	}
-
+ 
 // Send the packet.
-	int nSent = sendto( udp->sockfd
+	int nSent = sendto( udp->sock
 					  , buf, msgLen
 					  , addr->flags
 					  , (struct sockaddr *)&addr->sockAddr, addrLen
@@ -337,12 +349,12 @@ csc_bool_t csc_udp_snd( csc_udp_t *udp          // UDP object.
     {   udp_setErrMsg(udp, "csc_udp_snd(): sendto() failed", strerror(errno));
 		return csc_FALSE;
 	}
-
+ 
 	return csc_TRUE;
 }
 
 
-// On success returns number of bytes read.  On error returns -1.
+// Returns >=0:nBytes read, -2:timeout, -1:error - use csc_udp_getErrMsg().
 int csc_udp_rcv( csc_udp_t *udp          // UDP object.
 			   , char *buf, int bufSiz   // Buffer to read into.
 			   , csc_udpAddr_t **addr  // Address to assign allocated or NULL.
@@ -350,18 +362,27 @@ int csc_udp_rcv( csc_udp_t *udp          // UDP object.
 {	int numRead;
 	struct sockaddr_storage caller;
 	
+// Have things been set up?
+	if (udp->state!=udpStateCli && udp->state!=udpStateSrv)
+    {   udp_setErrMsg( udp, "csc_udp_rcv(): udp object not initialised", NULL);
+		return -1;
+	}
+ 
 // Receive the packet.
 	socklen_t addrLen = sizeof(caller);
-	numRead = recvfrom( udp->sockfd
+	numRead = recvfrom( udp->sock
 					  , buf, bufSiz
 					  , udp->flags
 					  , (struct sockaddr *)&caller, &addrLen
 					  );
 	if (numRead == -1)
-    {   udp_setErrMsg(udp, "csc_udp_setRcvAddr(): recvform() failed", NULL);
-		if (udp->sockfd)
-			close(udp->sockfd);
-		return -1;
+    {   if (errno == EAGAIN)
+		{	return -2;  // Receive packet timed out.
+		}
+		else
+		{	udp_setErrMsg(udp, "csc_udp_setRcvAddr(): recvform() failed", strerror(errno));
+			return -1;
+		}
 	}
 	buf[numRead] = '\0';
  
@@ -373,8 +394,37 @@ int csc_udp_rcv( csc_udp_t *udp          // UDP object.
 		*addr = csc_udpAddr_new();
 		csc_udpAddr_setAdd(*addr, &caller);
 	}
-
+ 
 // Bye.
 	return numRead;
 }
+
+
+csc_bool_t csc_udp_setRcvTimeout(csc_udp_t *udp, int secs)
+{	int ret;
+
+// Have things been set up?
+	if (udp->state!=udpStateCli && udp->state!=udpStateSrv)
+    {   udp_setErrMsg( udp, "csc_udp_setRcvTimeout(): udp object not initialised", NULL);
+		return csc_FALSE;
+	}
+	assert(udp->sock != -1);
+
+// Attempt to set the socket timeout.
+	struct timeval tv;
+	tv.tv_sec = secs;
+	tv.tv_usec = 0;
+	ret = setsockopt( udp->sock
+					, SOL_SOCKET, SO_RCVTIMEO
+					, (struct timeval*)&tv, sizeof(struct timeval)
+					);
+	if (ret != 0)
+    {   udp_setErrMsg(udp, "csc_udp_setRcvTimeout(): setsockopt() failed", strerror(errno));
+		return csc_FALSE;
+	}
+
+// Return success.
+	return csc_TRUE;
+}
+ 
 
