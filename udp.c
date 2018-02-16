@@ -334,7 +334,7 @@ csc_bool_t csc_udp_snd( csc_udp_t *udp          // UDP object.
 	}
  
 // Check that the address is valid.
-	if (!addr->isSet)
+	if (addr==NULL || !addr->isSet)
     {   udp_setErrMsg(udp, "csc_udp_snd(): address not set", NULL);
 		return csc_FALSE;
 	}
