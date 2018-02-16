@@ -229,7 +229,6 @@ csc_bool_t csc_hash_del(csc_hash_t *h, void *key)
         return csc_FALSE;
     else
     {   h->free_rec(p);
-        h->count--;
         return csc_TRUE;
     }
 }
