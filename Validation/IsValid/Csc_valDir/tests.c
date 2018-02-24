@@ -54,6 +54,7 @@ void main(int argc, char **argv)
 
 // csc_isValid_hex().
 	tr = testReport_new(csc_isValid_hex, "csc_isValid_hex");
+	testReport_test(tr, "NULL", NULL, csc_FALSE);
 	testReport_test(tr, "emptyString", "", csc_FALSE);
 	testReport_test(tr, "single", "3", csc_TRUE);
 	testReport_test(tr, "pairBad", "3s", csc_FALSE);
@@ -72,6 +73,7 @@ void main(int argc, char **argv)
 
 // csc_isValid_int().
 	tr = testReport_new(csc_isValid_int, "csc_isValid_int");
+	testReport_test(tr, "NULL", NULL, csc_FALSE);
 	testReport_test(tr, "emptyString", "", csc_FALSE);
 	testReport_test(tr, "zero", "0", csc_TRUE);
 	testReport_test(tr, "float0", "0.3", csc_FALSE);
@@ -90,6 +92,7 @@ void main(int argc, char **argv)
 
 // csc_isValid_float().
 	tr = testReport_new(csc_isValid_float, "csc_isValid_float");
+	testReport_test(tr, "NULL", NULL, csc_FALSE);
 	testReport_test(tr, "emptyString", "", csc_FALSE);
 	testReport_test(tr, "zero", "0", csc_TRUE);
 	testReport_test(tr, "negativeZero", "-0", csc_TRUE);
@@ -119,6 +122,7 @@ void main(int argc, char **argv)
 
 // csc_isValid_IpV4().
 	tr = testReport_new(csc_isValid_ipV4, "csc_isValid_ipV4");
+	testReport_test(tr, "NULL", NULL, csc_FALSE);
 	testReport_test(tr, "emptyString", "", csc_FALSE);
 	testReport_test(tr, "number", "3", csc_FALSE);
 	testReport_test(tr, "ipGood1", "192.168.1.1", csc_TRUE);
@@ -134,6 +138,7 @@ void main(int argc, char **argv)
 
 // csc_isValid_IpV6().
 	tr = testReport_new(csc_isValid_ipV6, "csc_isValid_ipV6");
+	testReport_test(tr, "NULL", NULL, csc_FALSE);
 	testReport_test(tr, "emptyString", "", csc_FALSE);
 	testReport_test(tr, "number", "3", csc_FALSE);
 	testReport_test(tr, "ipGood1", "192.168.1.1", csc_FALSE);
@@ -159,6 +164,7 @@ void main(int argc, char **argv)
 
 // csc_isValid_domain().
 	tr = testReport_new(csc_isValid_domain, "csc_isValid_domain");
+	testReport_test(tr, "NULL", NULL, csc_FALSE);
 	testReport_test(tr, "emptyString", "", csc_FALSE);
 	testReport_test(tr, "good1", "google.com", csc_TRUE);
 	testReport_test(tr, "good2", "google.COM.au", csc_TRUE);

@@ -18,7 +18,7 @@ void csc_ini_free(csc_ini_t *ini);
 
 // Read the ini file, whose path is given by 'iniFilePath' into the ini
 // file object.  Expects only ASCII characters in ini file, not unicode
-// characters. 
+// characters.  'iniFilePath' needs to be absolute for a real server.
 // 
 // On success, will assimilate all the ini information from the ini file
 // and return 0.  If this routine cannot read the ini file, this function

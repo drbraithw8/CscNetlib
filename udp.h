@@ -48,6 +48,9 @@ csc_bool_t csc_udp_setSrv( csc_udp_t *udp       // UDP object.
 csc_bool_t csc_udp_setRcvTimeout(csc_udp_t *udp, int millisecs);
 
 // On success returns number of bytes read.  On error returns -1.
+// If addr is not NULL, then *addr should be NULL.  In the latter case,
+// *addr will be assigned a new object.  The caller owns the new address
+// object and is responsible for csc_udpAddr_free()ing it.  
 int csc_udp_rcv( csc_udp_t *udp          // UDP object.
 			   , char *buf, int bufSiz  // Buffer to read into.
 			   , csc_udpAddr_t **addr  // Address to assign allocated or NULL.

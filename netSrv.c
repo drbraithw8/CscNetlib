@@ -16,6 +16,8 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <errno.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
 
 #include "std.h"
 #include "alloc.h"
@@ -177,5 +179,49 @@ void csc_srv_free(csc_srv_t *this)
  
 // Free the parent structure.
     free(this);
+}
+
+
+void csc_srv_daemonise(csc_log_t *log)
+{   pid_t pid, sid;
+ 
+// Fork the Parent Process
+    pid = fork();
+    if (pid < 0)
+    {   csc_log_str(log, csc_log_FATAL,
+                    "srvBase_daemonise() Forking failed");
+        exit(1);
+    }
+ 
+// Close the Parent Process
+    if (pid > 0)
+    {   exit(1);
+    }
+ 
+// Change File Mask
+    umask(0);
+ 
+// Create a new session id.
+    sid = setsid();
+    if (sid < 0)
+    {   csc_log_str(log, csc_log_FATAL,
+                    "srvBase_daemonise() Create session id failed");
+        exit(1);
+    }
+ 
+// Change Directory
+    if ((chdir("/")) < 0)
+    {   csc_log_str(log, csc_log_FATAL,
+                    "srvBase_daemonise() Change directory failed");
+        exit(1);
+    }
+ 
+// Close Standard File Descriptors
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+
+// Announce success.
+    csc_log_str(log, csc_log_NOTICE, "Daemonisation successful");
 }
 

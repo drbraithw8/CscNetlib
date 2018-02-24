@@ -43,7 +43,7 @@ csc_log_t *csc_log_new(const char *path, csc_log_level_t logLevel)
  
 // Test the logger with an initial entry.
     lgr->isShowProcessId = csc_TRUE;
-    if (!csc_log_str(lgr, logLevel, "Logging commenced"))
+    if (!csc_log_str(lgr, csc_log_NOTICE, "Logging commenced"))
     {   fprintf( stderr
                , "Error: Logger failed to write intial entry to log file:"
                        "\n\"%s\"!\n" , path);
@@ -78,13 +78,14 @@ csc_bool_t csc_log_setLogLevel(csc_log_t *logger, csc_log_level_t logLevel)
 }
 
 
-void csc_log_free(csc_log_t *logger)
+void csc_log_free(csc_log_t *log)
 {   int retVal;
-    free(logger->path);
-    if (logger->idStr != NULL)
-        free(logger->idStr);
-    retVal = sem_destroy(&logger->sem); assert(retVal==0);
-    free(logger);
+    csc_log_str(log, csc_log_NOTICE, "Logging terminated normally");
+    free(log->path);
+    if (log->idStr != NULL)
+        free(log->idStr);
+    retVal = sem_destroy(&log->sem); assert(retVal==0);
+    free(log);
 }
 
 

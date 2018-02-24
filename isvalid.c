@@ -110,11 +110,15 @@ csc_bool_t csc_isValidRange_float(const char *word, double min, double max, doub
 
 csc_bool_t csc_isValid_ipV4(const char *str)
 {   struct sockaddr_in sa;
+	if (str == NULL)
+        return csc_FALSE;
     return inet_pton(AF_INET, str, &(sa.sin_addr)) != 0;
 }
 
 csc_bool_t csc_isValid_ipV6(const char *str)
 {   struct sockaddr_in6 sa;
+	if (str == NULL)
+        return csc_FALSE;
     return inet_pton(AF_INET6, str, &(sa.sin6_addr)) != 0;
 }
 

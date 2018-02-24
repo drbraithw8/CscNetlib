@@ -10,6 +10,7 @@
 #define csc_SRV_H 1
 
 #include "std.h"
+#include "logger.h"
 
 typedef struct csc_srv_t csc_srv_t ;
 
@@ -64,6 +65,9 @@ void csc_srv_free(csc_srv_t *srv);
 // Returns a string representation of details of a previous error.  The
 // string returned is valid until the next non const method call.
 const char *csc_srv_getErrMsg(const csc_srv_t *srv);
+
+// Disconnect the process from the current session.
+void csc_srv_daemonise(csc_log_t *log);
 
 
 #endif
