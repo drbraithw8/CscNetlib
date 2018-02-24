@@ -425,11 +425,11 @@ void csc_srvBase_daemonise(csc_log_t *log)
 // Change File Mask
     umask(0);
  
-// Create a new signature id.
+// Create a new session id.
     sid = setsid();
     if (sid < 0)
     {   csc_log_str(log, csc_log_ERROR,
-                    "srvBase_daemonise() Create signature id failed");
+                    "srvBase_daemonise() Create session id failed");
         exit(1);
     }
  

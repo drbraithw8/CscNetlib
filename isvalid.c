@@ -11,27 +11,38 @@
 
 
 csc_bool_t csc_isValid_hex(const char *word)
-{   char ch = *word;
+{   char ch;
+	if (word == NULL)
+        return csc_FALSE;
+    ch = *word;
     if (ch == '\0')
-        return(csc_FALSE);
+        return csc_FALSE;
     while((ch = *(word++)) != '\0')
-    {   if (!((ch>='0' && ch<='9') || (ch>='a' && ch<='f') || (ch>='A' && ch<='F')))
-            return(csc_FALSE);
+    {   if ( !(  (ch>='0' && ch<='9')
+			  || (ch>='a' && ch<='f')
+			  || (ch>='A' && ch<='F')
+			  )
+		   )
+		{	return csc_FALSE;
+		}
     }
-    return(csc_TRUE);
+    return csc_TRUE;
 }
 
 
 csc_bool_t csc_isValid_int(const char *word)
-{   char ch = *word;
+{   char ch;
+	if (word == NULL)
+        return csc_FALSE;
+    ch = *word;
     if (ch=='-')
         ch = *(++word);
     if (ch == '\0')
-        return(csc_FALSE);
+        return csc_FALSE;
     while((ch = *(word++)) != '\0')
         if (ch<'0' || ch>'9')
-            return(csc_FALSE);
-    return(csc_TRUE);
+            return csc_FALSE;
+    return csc_TRUE;
 }
 
 
@@ -51,6 +62,8 @@ csc_bool_t csc_isValidRange_int(const char *word, int min, int max, int *value)
 csc_bool_t csc_isValid_float(const char *str)
 {   int has_point, has_e, has_num;
     char ch;
+	if (str == NULL)
+        return csc_FALSE;
     ch = *str;
     if (ch=='-' || ch=='+')
         str++;
@@ -64,7 +77,7 @@ csc_bool_t csc_isValid_float(const char *str)
             break;
         case 'e': case 'E':
             if (has_e || !has_num)
-                return(csc_FALSE);
+                return csc_FALSE;
             if (*str=='-' || *str=='+')
                 str++;
             has_e = csc_TRUE;
@@ -72,13 +85,13 @@ csc_bool_t csc_isValid_float(const char *str)
             break;
         case '.':
             if (has_point || has_e)
-                return(csc_FALSE);
+                return csc_FALSE;
             has_point = csc_TRUE;
             break;
         default:
-            return(csc_FALSE);
+            return csc_FALSE;
     }
-    return(has_num);
+    return has_num;
 }
 
 
@@ -109,10 +122,12 @@ csc_bool_t csc_isValid_ipV6(const char *str)
 csc_bool_t csc_isValid_domain(const char *str)
 {   int sLen=strlen(str);
     int segLen, i;
-
+ 
 // Reject the empty string.
+	if (str == NULL)
+        return csc_FALSE;
 	if (csc_streq(str,""))
-       return csc_FALSE;
+        return csc_FALSE;
  
 // Look at the ends of the domain name.
     if ( str[0] == '.'
@@ -139,7 +154,7 @@ csc_bool_t csc_isValid_domain(const char *str)
         else
             return csc_FALSE; //invalid char...
     }
-
+ 
 // There should be at least two segments.
 	if (segLen == sLen)
 		return csc_FALSE;
@@ -152,6 +167,9 @@ csc_bool_t csc_isValid_decentRelPath(const char *str)
 {   int segLen;
     const char *p;
     int ch;
+ 
+	if (str == NULL)
+        return csc_FALSE;
  
 // Test each char of 'str' in turn.
     p = str;
@@ -190,14 +208,18 @@ csc_bool_t csc_isValid_decentRelPath(const char *str)
 
 
 csc_bool_t csc_isValid_decentPath(const char *str)
-{   if (*str == '/')
+{	if (str == NULL)
+        return csc_FALSE;
+    if (*str == '/')
         str++;
     return csc_isValid_decentRelPath(str);
 }
 
 
 csc_bool_t csc_isValid_decentAbsPath(const char *str)
-{   if (*str != '/')
+{	if (str == NULL)
+        return csc_FALSE;
+    if (*str != '/')
         return csc_FALSE;
     else
         return csc_isValid_decentRelPath(str+1);
