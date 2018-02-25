@@ -78,7 +78,7 @@ static csc_bool_t csc_udpAddr_setAdd( csc_udpAddr_t *addr
 }
 
 
-csc_bool_t csc_udpAddr_setAddr(csc_udpAddr_t *addr, char *ipStr, int portNum)
+csc_bool_t csc_udpAddr_setAddr(csc_udpAddr_t *addr, const char *ipStr, int portNum)
 {   int result;
     char portStr[MaxPortNoStrSize + 1];
     struct addrinfo hints, *servInfo=NULL, *addrInfo; 
