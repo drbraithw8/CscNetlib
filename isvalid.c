@@ -124,14 +124,13 @@ csc_bool_t csc_isValid_ipV6(const char *str)
 
 
 csc_bool_t csc_isValid_domain(const char *str)
-{   int sLen=strlen(str);
-    int segLen, i;
- 
+{   
 // Reject the empty string.
 	if (str == NULL)
         return csc_FALSE;
 	if (csc_streq(str,""))
         return csc_FALSE;
+	int sLen=strlen(str);
  
 // Look at the ends of the domain name.
     if ( str[0] == '.'
@@ -142,8 +141,8 @@ csc_bool_t csc_isValid_domain(const char *str)
     }
  
 // Look at each character in turn.
-    segLen = 0;
-    for(i=0; i<sLen; i++)
+    int segLen = 0;
+    for(int i=0; i<sLen; i++)
     {   if (str[i] == '.')
         {   if (segLen == 0)
                 return csc_FALSE;
@@ -168,63 +167,78 @@ csc_bool_t csc_isValid_domain(const char *str)
 
 
 csc_bool_t csc_isValid_decentRelPath(const char *str)
-{   int segLen;
+{	csc_bool_t result = csc_TRUE;
     const char *p;
-    int ch;
+	int segLen, ch;
  
 	if (str == NULL)
-        return csc_FALSE;
- 
-// Test each char of 'str' in turn.
-    p = str;
-    segLen = 0;
-    while (ch = *(p++))
-    {
-        if (isalnum(ch) || ch=='_' || ch==',')
-        {   segLen++;
-        }
-        else if (ch == '/')
-        { // Path segment consisting of zero or more dots not allowed.
-            if (segLen == 0)
-                return csc_FALSE;
-            else
-                segLen = 0;
-        }
-        else if (ch == '.')
-        {  // Here we do not increment segLen.
-        }
-        else if (ch == '-')
-        { // Path segements beginning with '-' are not allowed.
-            if (segLen == 0)
-                return csc_FALSE;
-        }
-        else
-            return csc_FALSE;
+    {   result = csc_FALSE;
+	}
+	else
+	{ // Test each char of 'str' in turn.
+		p = str;
+		segLen = 0;
+		while (ch = *(p++))
+		{
+			if (isalnum(ch) || ch=='_' || ch==',')
+			{   segLen++;
+			}
+			else if (ch == '/')
+			{ // Path segment consisting of zero or more dots not allowed.
+				if (segLen == 0)
+				{	result = csc_FALSE;
+					break;
+				}
+				else
+					segLen = 0;
+			}
+			else if (ch == '.')
+			{ // Here we do not increment segLen.
+			}
+			else if (ch == '-')
+			{ // Path segements beginning with '-' are not allowed.
+				if (segLen == 0)
+				{	result = csc_FALSE;
+					break;
+				}
+			}
+			else
+			{	result = csc_FALSE;
+				break;
+			}
+		}
+
+	// Path should not be empty or end with a slash or consist only of dots.
+		if (segLen == 0)
+			result = csc_FALSE;
     }
  
-// Path should not be empty or end with a slash or consist only of dots.
-    if (segLen == 0)
-        return csc_FALSE;
- 
 // Its all good if we got this far.
-    return csc_TRUE;
+	return result;
 }
 
 
 csc_bool_t csc_isValid_decentPath(const char *str)
-{	if (str == NULL)
-        return csc_FALSE;
-    if (*str == '/')
-        str++;
-    return csc_isValid_decentRelPath(str);
+{	csc_bool_t result;
+	if (str == NULL)
+        result = csc_FALSE;
+    else
+	{	if (*str == '/')
+			str++;
+        result = csc_isValid_decentRelPath(str+1);
+	}
+	return result;
 }
 
 
 csc_bool_t csc_isValid_decentAbsPath(const char *str)
-{	if (str == NULL)
-        return csc_FALSE;
-    if (*str != '/')
-        return csc_FALSE;
+{	csc_bool_t result;
+	if (str == NULL)
+        result = csc_FALSE;
+    else if (*str != '/')
+        result = csc_FALSE;
     else
-        return csc_isValid_decentRelPath(str+1);
+        result = csc_isValid_decentRelPath(str+1);
+	return result;
 }
+

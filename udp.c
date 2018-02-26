@@ -258,7 +258,10 @@ csc_bool_t csc_udp_setSrv( csc_udp_t *udp       // UDP object.
     }
 	if (udp->ipRcv)
 		free(udp->ipRcv);
-	udp->ipRcv = csc_allocStr(ipStr);
+	if (ipStr == NULL)
+		udp->ipRcv = NULL;
+	else
+		udp->ipRcv = csc_allocStr(ipStr);
  
 // Set up the sockHints.
     memset(&hints, 0, sizeof(hints)); // make sure the struct is empty
