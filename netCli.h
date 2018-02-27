@@ -41,6 +41,12 @@ int csc_cli_setServAddr( csc_cli_t *cli
 int csc_cli_connect(csc_cli_t *cli);
 
 
+// Combines csc_cli_setServAddr() and csc_cli_connect().
+// Returns a file descriptor on success, and -1 on failure.  Use
+// csc_cli_getErrMsg() to get details of failure.
+int csc_cli_mkConn(csc_cli_t *cli, const char *addr, int portNo);
+
+
 // Destructor.  Cleans up memory associated with a netCli object.
 void csc_cli_free(csc_cli_t *cli);
 

@@ -15,8 +15,7 @@ int main(int argc, char **argv)
 
 // Make the connection.
     csc_cli_t *ntp = csc_cli_new();
-    int retVal = csc_cli_setServAddr(ntp, "example.com", 80); assert(retVal);
-    int fdes0 = csc_cli_connect(ntp); assert(fdes0!=-1);
+    int fdes0 = csc_cli_mkConn(ntp, "example.com", 80); assert(fdes0!=-1);
     csc_cli_free(ntp);
 
 // Convert file descriptor to input and output streams.

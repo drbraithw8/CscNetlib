@@ -8,11 +8,11 @@
 #include "std.h"
 
 typedef enum csc_httpStartLineFields_e
-{	csc_httpSF_method = 0
-,	csc_httpSF_reqUri
-,	csc_httpSF_protocol
-,	csc_httpSF_statCode
-,	csc_httpSF_reason
+{	csc_httpSF_method = 0   // First field of a request line.
+,	csc_httpSF_reqUri       // 2nd field of a request line.
+,	csc_httpSF_protocol     // 3rd field of a request line AND 1st field of a status line.
+,	csc_httpSF_statCode     // 2nd field of a status line.
+,	csc_httpSF_reason       // 3rd field of a status line.
 ,	csc_httpSF_numSF
 } csc_httpSF_t;
 
@@ -44,11 +44,10 @@ typedef struct csc_http_t csc_http_t;
 // Create a new empty HTTP message.
 csc_http_t *csc_http_new();
 
-
 // Release resources associated with a HTTP message.
 void csc_http_free(csc_http_t *msg);
 
-
+// Add a start line field.  See def of csc_httpStartLineFields_e, above.
 csc_httpErr_t csc_http_addSF(csc_http_t *msg, csc_httpSF_t field, const char *hdrValue);
 
 // Get a start line field.
@@ -56,16 +55,14 @@ const char *csc_http_getSF(csc_http_t *msg, csc_httpSF_t fldNdx);
 
 
 // Add a header to a HTTP message.  HTTP permits a header to be added more
-// than once, although it is not recommended.  Pseudo headers will need
-// to be set, and these can definitely only be set once.
+// than once, although it is not recommended.  
 csc_httpErr_t csc_http_addHdr(csc_http_t *msg, const char *hdrName, const char *hdrValue);
 
 
 // Gets the value of a HTTP header (in the case that there is more than one
-// such header, the first one will be returned.
-// Returns fields of the status line or request line as pseudo headers.
-// Returns "" if the message is empty.  Returns NULL if there is no such
-// header.
+// such header, the first one will be returned.  Returns fields of the
+// status line or request line.  Returns "" if the message is empty.
+// Returns NULL if there is no such header.
 const char *csc_http_getHdr(csc_http_t *msg, const char *hdrName);
 
 
@@ -76,7 +73,7 @@ const char *csc_http_getHdr(csc_http_t *msg, const char *hdrName);
 csc_httpErr_t csc_http_addUrlVal(csc_http_t *msg, const char *name, const char *val);
 
 
-// Gets a name/value pair from URL encoded requestUrl part of a HTTP
+// Gets the value of a name/value pair from URL encoded requestUrl part of a HTTP
 // request line.  Returns NULL if there is no entry for that name.  The
 // value element will be NULL if there is no value associated with the
 // entry.  The value element will be "" if the value part is empty.
@@ -95,21 +92,17 @@ csc_httpErr_t csc_http_rcvSrvStr(csc_http_t *msg, const char *str);
 csc_httpErr_t csc_http_rcvSrv(csc_http_t *msg, csc_ioAnyRead_t *rca);
 
 
-// Sends a HTTP message, as a client, to whatever.  The following pseudo
-// headers, that correspond to the request line are required to have
-// ALREADY been set:- "csc_http_method", "csc_http_reqUri" and
-// "csc_http_protocol".  Other headers may be required even if this class
-// does not mind, e.g. "Host".  Returns error code.  csc_httpErr_Ok
+// Sends a HTTP message, as a client, to whatever.  The 3 request line
+// parameters must have already been set.  The server will requires some
+// headers also, e.g. "Host".  Returns error code.  csc_httpErr_Ok
 // indicates success.
 csc_httpErr_t csc_http_sendCliFILE(csc_http_t *msg, FILE* fout);
 csc_httpErr_t csc_http_sendCliStr(csc_http_t *msg, csc_str_t *sout);
 csc_httpErr_t csc_http_sendCli(csc_http_t *msg, csc_ioAnyWrite_t *ws);
 
 
-// Sends a HTTP message, as a server, to whatever.  The following pseudo
-// headers, that correspond to the request line are required to have
-// ALREADY been set by csc_http_addHdr():- "csc_http_statCode",
-// "csc_http_reason" and "csc_http_protocol".  Returns error code.
+// Sends a HTTP message, as a server, to whatever.  The 3 response line
+// parameters must have already been set.  Returns error code.
 // csc_httpErr_Ok indicates success.
 csc_httpErr_t csc_http_sendSrvFILE(csc_http_t *msg, FILE *fout);
 csc_httpErr_t csc_http_sendSrvStr(csc_http_t *msg, csc_str_t *sout);
