@@ -8,7 +8,7 @@ CscNetLibObj := iniFile.o logger.o netCli.o netSrv.o udp.o servBase.o \
 LIBS= 
 
 .c.o :
-	gcc -c -std=gnu99 $<
+	gcc -c -std=gnu11 $<
 
 all: $(CscNetLib)
 
