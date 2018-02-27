@@ -876,6 +876,7 @@ csc_httpErr_t csc_http_sendCli(csc_http_t *msg, csc_ioAnyWrite_t* out)
 // Send the request URI.
 	pcEnc = csc_str_new(reqUri);
 	csc_http_pcentEnc(reqUri, pcEnc, csc_TRUE);
+	csc_ioAnyWrite_puts(out, "/");
 	csc_ioAnyWrite_puts(out, csc_str_charr(pcEnc));
  
 // Send all the args bundled into the request URI.
@@ -941,6 +942,7 @@ csc_httpErr_t csc_http_sendCliFILE(csc_http_t *msg, FILE* fout)
 {	csc_ioAnyWrite_t *out = csc_ioAnyWrite_new(csc_ioAny_writeFILE, fout);
 	csc_httpErr_t errCode = csc_http_sendCli(msg, out);
 	csc_ioAnyWrite_free(out);
+	fflush(fout);
 	return errCode;
 }
 
