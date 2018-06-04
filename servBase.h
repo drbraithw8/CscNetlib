@@ -61,7 +61,8 @@
 // 5)  doInit() is called before any connections are accepted.  If you
 //  need something to be done after the configuration and logging have
 //  been initialised, but before any connections are accepted, then pass
-//  a function to do this, otherwise pass NULL.
+//  a function to do this, otherwise pass NULL.  Return TRUE on success
+//  or FALSE to terminate the server.
 // 
 // 6)  local - A pointer to whatever your want (usually a structure).  This
 //  merely passed onto doInit() and also to doConn().  Pass NULL if you

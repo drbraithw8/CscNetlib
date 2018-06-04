@@ -7,6 +7,7 @@
 #include "hash.h"
 #include "std.h"
 
+
 typedef enum csc_httpStartLineFields_e
 {	csc_httpSF_method = 0   // First field of a request line.
 ,	csc_httpSF_reqUri       // 2nd field of a request line.
@@ -120,5 +121,133 @@ char *csc_http_pcentDec(const char *enc);
 // Assigns percent encoded version of 'dec' to 'enc'.
 // Encodes slashes and colons only if 'isSlashOk'.
 void csc_http_pcentEnc(const char *dec, csc_str_t *enc, csc_bool_t isSlashOk);
+
+
+
+// Status codes and reasons.
+typedef enum
+{       csc_http_statCode_100 = 100
+#define csc_http_reason_100 "Continue"
+ 
+,       csc_http_statCode_101 = 101
+#define csc_http_reason_101 "Switching Protocols"
+ 
+,       csc_http_statCode_200 = 200
+#define csc_http_reason_200 "OK"
+ 
+,       csc_http_statCode_201 = 201
+#define csc_http_reason_201 "Created"
+ 
+,       csc_http_statCode_202 = 202
+#define csc_http_reason_202 "Accepted"
+ 
+,       csc_http_statCode_203 = 203
+#define csc_http_reason_203 "Non-Authoritative Information"
+ 
+,       csc_http_statCode_204 = 204
+#define csc_http_reason_204 "No Content"
+ 
+,       csc_http_statCode_205 = 205
+#define csc_http_reason_205 "Reset Content"
+ 
+,       csc_http_statCode_206 = 206
+#define csc_http_reason_206 "Partial Content"
+ 
+,       csc_http_statCode_300 = 300
+#define csc_http_reason_300 "Multiple Choices"
+ 
+,       csc_http_statCode_301 = 301
+#define csc_http_reason_301 "Moved Permanently"
+ 
+,       csc_http_statCode_302 = 302
+#define csc_http_reason_302 "Found"
+ 
+,       csc_http_statCode_303 = 303
+#define csc_http_reason_303 "See Other"
+ 
+,       csc_http_statCode_304 = 304
+#define csc_http_reason_304 "Not Modified"
+ 
+,       csc_http_statCode_305 = 305
+#define csc_http_reason_305 "Use Proxy"
+ 
+,       csc_http_statCode_306 = 306
+#define csc_http_reason_306 "(Unused)"
+ 
+,       csc_http_statCode_307 = 307
+#define csc_http_reason_307 "Temporary Redirect"
+ 
+,       csc_http_statCode_400 = 400
+#define csc_http_reason_400 "Bad Request"
+ 
+,       csc_http_statCode_401 = 401
+#define csc_http_reason_401 "Unauthorized"
+ 
+,       csc_http_statCode_402 = 402
+#define csc_http_reason_402 "Payment Required"
+ 
+,       csc_http_statCode_403 = 403
+#define csc_http_reason_403 "Forbidden"
+ 
+,       csc_http_statCode_404 = 404
+#define csc_http_reason_404 "Not Found"
+ 
+,       csc_http_statCode_405 = 405
+#define csc_http_reason_405 "Method Not Allowed"
+ 
+,       csc_http_statCode_406 = 406
+#define csc_http_reason_406 "Not Acceptable"
+ 
+,       csc_http_statCode_407 = 407
+#define csc_http_reason_407 "Proxy Authentication Required"
+ 
+,       csc_http_statCode_408 = 408
+#define csc_http_reason_408 "Request Timeout"
+ 
+,       csc_http_statCode_409 = 409
+#define csc_http_reason_409 "Conflict"
+ 
+,       csc_http_statCode_410 = 410
+#define csc_http_reason_410 "Gone"
+ 
+,       csc_http_statCode_411 = 411
+#define csc_http_reason_411 "Length Required"
+ 
+,       csc_http_statCode_412 = 412
+#define csc_http_reason_412 "Precondition Failed"
+ 
+,       csc_http_statCode_413 = 413
+#define csc_http_reason_413 "Request Entity Too Large"
+ 
+,       csc_http_statCode_414 = 414
+#define csc_http_reason_414 "Request-URI Too Long"
+ 
+,       csc_http_statCode_415 = 415
+#define csc_http_reason_415 "Unsupported Media Type"
+ 
+,       csc_http_statCode_416 = 416
+#define csc_http_reason_416 "Requested Range Not Satisfiable"
+ 
+,       csc_http_statCode_417 = 417
+#define csc_http_reason_417 "Expectation Failed"
+ 
+,       csc_http_statCode_500 = 500
+#define csc_http_reason_500 "Internal Server Error"
+ 
+,       csc_http_statCode_501 = 501
+#define csc_http_reason_501 "Not Implemented"
+ 
+,       csc_http_statCode_502 = 502
+#define csc_http_reason_502 "Bad Gateway"
+ 
+,       csc_http_statCode_503 = 503
+#define csc_http_reason_503 "Service Unavailable"
+ 
+,       csc_http_statCode_504 = 504
+#define csc_http_reason_504 "Gateway Timeout"
+ 
+,       csc_http_statCode_505 = 505
+#define csc_http_reason_505 "HTTP Version Not Supported"
+} csc_http_statCode_t;
 
 #endif

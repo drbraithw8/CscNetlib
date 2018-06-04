@@ -16,16 +16,16 @@ typedef struct csc_http_t
 // Errors.
 	csc_httpErr_t errCode;
 	char *errMsg;
-
+ 
 // Start line.
 	char *startFields[csc_httpSF_numSF];
  
 // Headers.
 	nameValArr_t *headers;
-
+ 
 // URI args: Name value string string pairs.
 	csc_mapSS_t *uriArgs;
-
+ 
 } csc_http_t;
 
 
@@ -37,7 +37,7 @@ csc_http_t *csc_http_new()
 // Errors.
 	msg->errCode = csc_httpErr_Ok;
 	msg->errMsg = NULL;
-
+ 
 // Start Fields.
 	for (int i=0; i<csc_httpSF_numSF; i++)
 		msg->startFields[i] = NULL;
@@ -47,7 +47,7 @@ csc_http_t *csc_http_new()
  
 // URI args.
 	msg->uriArgs = csc_mapSS_new();
-
+ 
 // Home with the bacon.
 	return msg;
 }
@@ -187,65 +187,82 @@ static void httpIn_free(httpIn_t *hin)
 
 
 static int httpIn_getc(httpIn_t *hin)
-// Intended for http.
-// *	Replaces \r\n[\s|\t] by \s.
-// *	Replaces \n[\s|\t] by \s.
-// *	Replaces \r\n by \n.
-// *	Does not ask for the next char if it got
-//		the end, cos that would block.
-{	int ch = 0;
- 
-// Substitute saved char, if one is waiting
-	if (hin->isNextCh)
-	{	hin->isNextCh = csc_FALSE;
-		ch = hin->nextCh;
-	}
-	else
-	{	ch = csc_ioAnyRead_getc(hin->rca);
-	}
- 
+{	int ch;
+	ch = csc_ioAnyRead_getc(hin->rca);
 	if (ch == '\r')
-	{	ch = csc_ioAnyRead_getc(hin->rca);
-		if (ch == '\n')
-		{	ch = csc_ioAnyRead_getc(hin->rca);
-			if (ch==' ' || ch=='\t')
-			{	hin->lastCh = ' ';
-			}
-			else
-			{	hin->nextCh = ch;
-				hin->isNextCh = csc_TRUE;
-				hin->lastCh = '\n';
-			}
-		}
-		else
-		{	hin->nextCh = ch;
-			hin->isNextCh = csc_TRUE;
-			hin->lastCh = '\r';
-		}
-	}
-	else if (ch == '\n')
-	{	ch = csc_ioAnyRead_getc(hin->rca);
-		if (ch==' ' || ch=='\t')
-			hin->lastCh = ' ';
-		else
-		{	hin->nextCh = ch;
-			hin->isNextCh = csc_TRUE;
-			hin->lastCh = '\n';
-		}
-	}
-	else if (ch == '\t')
-		hin->lastCh = ' ';
-	else if (ch == -1)
-	{	hin->nextCh = ch;
-		hin->isNextCh = csc_TRUE;
-		hin->lastCh = -1;
-	}
-	else
-		hin->lastCh = ch;
- 
-// Return char.
-	return hin->lastCh;
+		ch = csc_ioAnyRead_getc(hin->rca);
+	return ch;
 }
+
+// The previous just ignores a single '\r' anywhere.
+// It does not bother handling continuation lines.
+// 
+// The following tries to only ignore '\r' if it is followed by a '\n'.
+// It also tries to join continued lines.
+// It turned out to be complicated, and sadly does not work too well.  It blocks.
+// To make this work, it has to be careful not to look ahead whenever it
+// has had an empty line.
+
+// static int httpIn_getc(httpIn_t *hin)
+// // Intended for http.
+// // *	Replaces \r\n[\s|\t] by \s.
+// // *	Replaces \n[\s|\t] by \s.
+// // *	Replaces \r\n by \n.
+// // *	Does not ask for the next char if it got
+// //		the end, cos that would block.
+// {	int ch = 0;
+//  
+// // Substitute saved char, if one is waiting
+// 	if (hin->isNextCh)
+// 	{	hin->isNextCh = csc_FALSE;
+// 		ch = hin->nextCh;
+// 	}
+// 	else
+// 	{	ch = csc_ioAnyRead_getc(hin->rca);
+// 	}
+//  
+// 	if (ch == '\r')
+// 	{	ch = csc_ioAnyRead_getc(hin->rca);
+// 		if (ch == '\n')
+// 		{	ch = csc_ioAnyRead_getc(hin->rca);
+// 			if (ch==' ' || ch=='\t')
+// 			{	hin->lastCh = ' ';
+// 			}
+// 			else
+// 			{	hin->nextCh = ch;
+// 				hin->isNextCh = csc_TRUE;
+// 				hin->lastCh = '\n';
+// 			}
+// 		}
+// 		else
+// 		{	hin->nextCh = ch;
+// 			hin->isNextCh = csc_TRUE;
+// 			hin->lastCh = '\r';
+// 		}
+// 	}
+// 	else if (ch == '\n')
+// 	{	ch = csc_ioAnyRead_getc(hin->rca);
+// 		if (ch==' ' || ch=='\t')
+// 			hin->lastCh = ' ';
+// 		else
+// 		{	hin->nextCh = ch;
+// 			hin->isNextCh = csc_TRUE;
+// 			hin->lastCh = '\n';
+// 		}
+// 	}
+// 	else if (ch == '\t')
+// 		hin->lastCh = ' ';
+// 	else if (ch == -1)
+// 	{	hin->nextCh = ch;
+// 		hin->isNextCh = csc_TRUE;
+// 		hin->lastCh = -1;
+// 	}
+// 	else
+// 		hin->lastCh = ch;
+//  
+// // Return char.
+// 	return hin->lastCh;
+// }
 
 
 int httpIn_getline(httpIn_t *hin, csc_str_t *line)

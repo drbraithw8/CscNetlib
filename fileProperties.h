@@ -28,11 +28,11 @@ int csc_fileProp_isOK(csc_fileProp_t *fprop);
 int csc_fileProp_isExist(csc_fileProp_t *fprop);
 
 
-// Returns csc_TRUE only if the file is a regular file and no errors.
+// Returns csc_TRUE only if the file exists, is a regular file and no errors.
 int csc_fileProp_isRegFile(csc_fileProp_t *fprop);
 
 
-// Returns csc_TRUE only if the file is a directory and no errors.
+// Returns csc_TRUE only if the file exists, is a directory and no errors.
 int csc_fileProp_isDir(csc_fileProp_t *fprop);
 
 

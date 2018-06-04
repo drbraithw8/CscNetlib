@@ -16,4 +16,4 @@ $(CscNetLib) :  $(CscNetLibObj)
 	ar rcs $(CscNetLib) $(CscNetLibObj) 
 
 clean:  
-	rm $(CscNetLibObj) $(CscNetLib)
+	rm $(CscNetLibObj) $(CscNetLib) tags 2>/dev/null ; true

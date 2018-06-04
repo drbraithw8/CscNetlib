@@ -59,7 +59,8 @@ csc_bool_t csc_isValid_domain(const char *str);
 //
 // Absolute paths, empty path segments, path segments consisting only of
 // one or more '.' and path segments beginning with '-' are also not
-// considered by this function to be decent.
+// considered by this function to be decent.  Paths ending with a '/'
+// are also disallowed.
 csc_bool_t csc_isValid_decentRelPath(const char *str);
 csc_bool_t csc_isValid_decentAbsPath(const char *str);
 csc_bool_t csc_isValid_decentPath(const char *str);
