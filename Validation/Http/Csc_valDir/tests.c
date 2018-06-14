@@ -330,6 +330,8 @@ void testSrvRcv3()
 					csc_http_getSF(msg, csc_httpSF_method));
 	testReport_sVal(stdout, "http_sRcv3_reqUri", "/helloWorld.php",
 					csc_http_getSF(msg, csc_httpSF_reqUri));
+// 	csc_CKCK; printf("Got \"%s\"\n", csc_http_getSF(msg, csc_httpSF_reqUri));
+
  
 // Check URL encoded values.
 	nv = csc_http_getUrlVal(msg,"name"); assert(nv);

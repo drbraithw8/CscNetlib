@@ -128,6 +128,21 @@ int csc_param_quote(char *argv[], char *line, int n)
 }
 
 
+int64_t csc_xferBytes(FILE *fin, FILE *fout)
+{   int ch;
+    int64_t iByte = 0;
+	ch = getc(fin);
+    while (ch != EOF)  // If we should still xfer bytes.
+	{   ch = putc(ch,fout);  // Write out the byte.
+		if (ch != EOF)
+		{	iByte++;  // Keep count of bytes successfully transferred.
+			ch = getc(fin);
+		}
+	}
+    return iByte;  // Return the numbers of bytes transferred. 
+}
+
+
 int64_t csc_xferBytesN(FILE *fin, FILE *fout, int64_t nBytes)
 {   int ch;
     int64_t iByte = 0;
@@ -136,8 +151,11 @@ int64_t csc_xferBytesN(FILE *fin, FILE *fout, int64_t nBytes)
         if (ch == EOF)    // If we found the end of file, then
             nBytes = -1; // Terminate the loop.
         else
-        {   putc(ch,fout);  // Write out the byte.
-            iByte++;  // Keep count of bytes transferred.
+        {   ch = putc(ch,fout);  // Write out the byte.
+			if (ch == EOF)
+				nBytes = -1;   // Terminate the loop.
+			else
+				iByte++;  	 // Keep count of bytes successfully transferred.
         }
     }
     return iByte;  // Return the numbers of bytes transferred. 

@@ -11,20 +11,34 @@
 typedef struct csc_ioAnyRead_s 
 {   csc_ioAny_readFunc_t readChar;
     void *context;
+	csc_bool_t isOK;
 } csc_ioAnyRead_t;
 
 csc_ioAnyRead_t *csc_ioAnyRead_new(csc_ioAny_readFunc_t readChar, void *context)
 {   csc_ioAnyRead_t *rca = csc_allocOne(csc_ioAnyRead_t);
     rca->readChar = readChar;
     rca->context = context;
+	rca->isOK = csc_TRUE;
 }
 
 void csc_ioAnyRead_free(csc_ioAnyRead_t *rca)
 {   free(rca);
 }
 
+csc_bool_t csc_ioAnyRead_isOK(csc_ioAnyRead_t *rca)
+{	return rca->isOK;
+}
+
 int csc_ioAnyRead_getc(csc_ioAnyRead_t *rca)
-{   return rca->readChar(rca->context);
+{   int ch;
+	if (rca->isOK)
+	{	ch = rca->readChar(rca->context);
+		if (ch == EOF)
+			rca->isOK = csc_FALSE;
+	}
+	else
+		ch = EOF;
+	return ch;
 }
 
 int csc_ioAnyRead_getline(csc_ioAnyRead_t *ior, csc_str_t *line)
@@ -78,20 +92,34 @@ int csc_ioAnyRead_getwd(csc_ioAnyRead_t *ior, csc_str_t *word)
 typedef struct csc_ioAnyWrite_s
 {   csc_ioAny_writeFunc_t writeStr;
     void *context;
+	csc_bool_t isOK;
 }  csc_ioAnyWrite_t;
 
 csc_ioAnyWrite_t *csc_ioAnyWrite_new(csc_ioAny_writeFunc_t writeStr, void *context)
 {   csc_ioAnyWrite_t *rca = csc_allocOne(csc_ioAnyWrite_t);
     rca->writeStr = writeStr;
     rca->context = context;
+	rca->isOK = csc_TRUE;
 }
 
 void csc_ioAnyWrite_free(csc_ioAnyWrite_t *rca)
 {   free(rca);
 }
 
-void csc_ioAnyWrite_puts(csc_ioAnyWrite_t *rca, const char *str)
-{   rca->writeStr(rca->context, str);
+csc_bool_t csc_ioAnyWrite_isOK(csc_ioAnyWrite_t *rca)
+{	return rca->isOK;
+}
+
+int csc_ioAnyWrite_puts(csc_ioAnyWrite_t *rca, const char *str)
+{   int nBytes;
+	if (rca->isOK)
+	{	nBytes = rca->writeStr(rca->context, str);
+		if (nBytes == EOF)
+			rca->isOK = csc_FALSE;
+	}
+	else 
+		nBytes = EOF;
+	return nBytes;
 }
 
 
@@ -136,8 +164,8 @@ int csc_ioAny_readChStr_getc(csc_ioAny_readChStr_t *rcs)
 //======================================================
 
 // Write to a FILE*.
-void csc_ioAny_writeFILE(void *context, const char *str)
-{   fprintf((FILE*)context, "%s", str);
+int csc_ioAny_writeFILE(void *context, const char *str)
+{	return fputs(str, (FILE*)context);
 }
 
 // Reading from a FILE*.
@@ -146,8 +174,10 @@ int csc_ioAny_readCharFILE(void *context)
 }
 
 // Write to a Cstr.
-void csc_ioAny_writeCstr(void *context, const char *str)
-{   csc_str_append((csc_str_t*)context, str);
+int csc_ioAny_writeCstr(void *context, const char *str)
+{   int len = strlen(str);
+	csc_str_append((csc_str_t*)context, str);
+	return len;
 }
 
 // Reading from a char* string.

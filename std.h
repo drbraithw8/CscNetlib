@@ -9,7 +9,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-#define csc_versionStr "1.8.0"
+#define csc_versionStr "1.9.0"
 
 #define MinPortNo 1
 #define MaxPortNo 65535
@@ -78,6 +78,10 @@ int csc_param_quote(char *argv[], char *line, int n);
 #define csc_timeStrSize 15
 void csc_dateTimeStr(char str[csc_timeStrSize+1]);
 
+
+// Transfers all bytes from the stream 'fin' to the stream 'fout'.
+// Returns the number of bytes actually transferred.
+int64_t csc_xferBytes(FILE *fin, FILE *fout);
 
 // Transfers up to 'N' bytes from the stream 'fin' to the stream 'fout'.
 // May transfer less than 'N' if the end of file is discovered, or on

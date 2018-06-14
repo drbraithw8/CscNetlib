@@ -101,6 +101,15 @@ csc_httpErr_t csc_http_addSF(csc_http_t *msg, csc_httpSF_t fldNdx, const char *v
 		setErr(msg, errCode, "Start line field assigned twice");
 		return errCode;
 	}
+
+// Check the URI.
+	if (fldNdx == csc_httpSF_reqUri)
+	{	if (!csc_isValid_decentAbsPath(value))
+		{	errCode = csc_httpErr_BadReqUri;
+			setErr(msg, errCode, "Bad Request URI");
+			return errCode;
+		}
+	}
  
 // Assign it.
 	msg->startFields[fldNdx] = csc_alloc_str(value);
@@ -265,7 +274,7 @@ static int httpIn_getc(httpIn_t *hin)
 // }
 
 
-int httpIn_getline(httpIn_t *hin, csc_str_t *line)
+static int httpIn_getline(httpIn_t *hin, csc_str_t *line)
 {   int ch;
     csc_str_reset(line);
  
@@ -308,7 +317,7 @@ static void httpIn_skipTillBlankLine(httpIn_t *hin)
 }
 
 
-int httpIn_getwd(httpIn_t *hin, csc_str_t *word)
+static int httpIn_getwd(httpIn_t *hin, csc_str_t *word)
 {
 	int ch = httpIn_getc(hin);
     csc_str_reset(word);
@@ -339,7 +348,7 @@ static httpIn_result_t httpIn_getHdr( httpIn_t *hin
 									  )
 {	httpIn_result_t result = httpIn_OK;
 	int ch;
-
+ 
 // Resources.
     csc_str_t *buf = csc_str_new("------ make initial size suitable to avoid unnecessary realloc -----");
  
@@ -367,11 +376,11 @@ static httpIn_result_t httpIn_getHdr( httpIn_t *hin
  
 // Assign the header name.
     csc_str_assign_str(headName, buf);
-
+ 
 // Get the remainder of the line.
 	httpIn_getline(hin, buf);
     csc_str_assign_str(content, buf);
-
+ 
 freeResources:
 	csc_str_free(buf);
  
@@ -564,7 +573,6 @@ static csc_httpErr_t parseUri(csc_http_t *msg, char *uri)
 // Decode and assign each argument in turn.
 	while (ch != '\0')
 	{
-
 	// Name value pair.
 		char *argName;
 		char *argVal;
@@ -578,7 +586,7 @@ static csc_httpErr_t parseUri(csc_http_t *msg, char *uri)
 		ch = *p++;
 		while (ch!='=' && ch!='&' && ch!='\0')
 			ch = *p++;
-
+ 
 		*(p-1) = '\0';
  
 	// Read the arg value if there is one.
@@ -893,7 +901,7 @@ csc_httpErr_t csc_http_sendCli(csc_http_t *msg, csc_ioAnyWrite_t* out)
 // Send the request URI.
 	pcEnc = csc_str_new(reqUri);
 	csc_http_pcentEnc(reqUri, pcEnc, csc_TRUE);
-	csc_ioAnyWrite_puts(out, "/");
+	// csc_ioAnyWrite_puts(out, "/");
 	csc_ioAnyWrite_puts(out, csc_str_charr(pcEnc));
  
 // Send all the args bundled into the request URI.

@@ -34,6 +34,7 @@ int main(int argc, char **argv)
         fclose(tcpIn);
     }
  
+// Free resources.
     csc_srv_free(ntp);
     exit(0);
 }

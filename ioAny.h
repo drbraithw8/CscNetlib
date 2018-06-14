@@ -17,7 +17,7 @@
 typedef int (*csc_ioAny_readFunc_t)(void *context);
 
 // A function to write a string to --something--.
-typedef void (*csc_ioAny_writeFunc_t)(void *context, const char *str);
+typedef int (*csc_ioAny_writeFunc_t)(void *context, const char *str);
 
 
 
@@ -32,6 +32,9 @@ csc_ioAnyRead_t *csc_ioAnyRead_new(csc_ioAny_readFunc_t readChar, void *context)
 
 // Destructor.
 void csc_ioAnyRead_free(csc_ioAnyRead_t *rca);
+
+// Is there a problem?  Will become FALSE after read fails due to EOF etc.
+csc_bool_t csc_ioAnyRead_isOK(csc_ioAnyRead_t *rca);
 
 // Get one character.
 int csc_ioAnyRead_getc(csc_ioAnyRead_t *rca);
@@ -54,8 +57,11 @@ csc_ioAnyWrite_t *csc_ioAnyWrite_new(csc_ioAny_writeFunc_t writeStr, void *conte
 // Destructor.
 void csc_ioAnyWrite_free(csc_ioAnyWrite_t *rca);
 
+// Is there a problem?  Will become FALSE after write fails.
+csc_bool_t csc_ioAnyWrite_isOK(csc_ioAnyWrite_t *rca);
+
 // Write a string.
-void csc_ioAnyWrite_puts(csc_ioAnyWrite_t *rca, const char *str);
+int csc_ioAnyWrite_puts(csc_ioAnyWrite_t *rca, const char *str);
 
 
 
@@ -83,13 +89,13 @@ int csc_ioAny_readChStr_getc(csc_ioAny_readChStr_t *rcs);
 //======================================================
 
 // Write char* string to a FILE*.
-void csc_ioAny_writeFILE(void *context, const char *str);
+int csc_ioAny_writeFILE(void *context, const char *str);
 
 // Read char from a FILE*.
 int csc_ioAny_readCharFILE(void *context);
 
 // Write char* string to a Cstr.
-void csc_ioAny_writeCstr(void *context, const char *str);
+int csc_ioAny_writeCstr(void *context, const char *str);
 
 // Reading char from a char* string.
 int csc_ioAny_readCharStr(void *context);
