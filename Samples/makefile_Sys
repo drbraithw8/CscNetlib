@@ -3,8 +3,10 @@
 
 LIBS :=  -L /usr/local/lib -lCscNet -lpthread
 
-all: netCliDemo netSrvDemo servBaseDemo filePropertiesDemo httpDemo \
+ALL := netCliDemo netSrvDemo servBaseDemo filePropertiesDemo httpDemo \
 	 parseWordsOnLines iniDemo logDemo jsonDemo udpCliDemo udpSrvDemo
+
+all: $(ALL)
 
 netCliDemo: netCliDemo.o
 	gcc $< $(LIBS) -o $@
@@ -46,7 +48,5 @@ httpDemo: httpDemo.o
 	gcc $< $(LIBS) -o $@
 
 clean:
-	rm netSrvDemo servBaseDemo parseWordsOnLines filePropertiesDemo httpDemo \
-        netCliDemo iniDemo logDemo jsonDemo udpCliDemo udpSrvDemo *.o test.log \
-		2>/dev/null ; true
+	rm $(ALL) *.o test.log 2>/dev/null ; true
 
