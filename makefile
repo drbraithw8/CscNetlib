@@ -1,14 +1,14 @@
 
 CscNetLib := libCscNet.a
 
-CscNetLibObj := iniFile.o logger.o netCli.o netSrv.o udp.o servBase.o \
-					ioAny.o cstr.o signal.o isvalid.o fileProperties.o \
-					std.o alloc.o hash.o list.o memcheck.o json.o http.o
+CscNetLibObj := iniFile.o logger.o netCli.o netSrv.o servBase.o http.o \
+					cstr.o signal.o isvalid.o fileProperties.o ioAny.o \
+					std.o alloc.o hash.o list.o memcheck.o json.o udp.o
 
 LIBS= 
 
 .c.o :
-	gcc -c -std=gnu11 $<
+	gcc -c -std=gnu99 $<
 
 all: $(CscNetLib)
 
@@ -16,4 +16,4 @@ $(CscNetLib) :  $(CscNetLibObj)
 	ar rcs $(CscNetLib) $(CscNetLibObj) 
 
 clean:  
-	rm $(CscNetLibObj) $(CscNetLib) tags 2>/dev/null ; true
+	rm $(CscNetLibObj) $(CscNetLib) 2>/dev/null ; true

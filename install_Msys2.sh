@@ -26,9 +26,8 @@
 		rm $INCDIR/*
 	fi
 
-cp ioAny.h std.h isvalid.h iniFile.h logger.h netCli.h netSrv.h \
-	servBase.h http.h fileProperties.h cstr.h alloc.h list.h \
-	signal.h json.h $INCDIR
+cp std.h isvalid.h iniFile.h logger.h netCli.h netSrv.h \
+   ioAny.h servBase.h fileProperties.h cstr.h alloc.h list.h \
+   http.h hash.h signal.h dynArray.h json.h udp.h $INCDIR
 cp libCscNet.a $LIBDIR
-
 

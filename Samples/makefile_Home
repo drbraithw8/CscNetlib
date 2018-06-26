@@ -3,34 +3,49 @@
 
 LIBS :=  -L $(HOME)/lib -lCscNet -lpthread
 
-all: netCliDemo netSrvDemo servBaseDemo filePropertiesDemo \
-	 parseWordsOnLines iniDemo logDemo jsonDemo
+all: netCliDemo netSrvDemo servBaseDemo filePropertiesDemo httpDemo \
+	 parseWordsOnLines iniDemo logDemo jsonDemo udpCliDemo udpSrvDemo
 
 netCliDemo: netCliDemo.o
-	gcc netCliDemo.o $(LIBS) -o netCliDemo
+	gcc $< $(LIBS) -o $@
 
 netSrvDemo: netSrvDemo.o
-	gcc netSrvDemo.o $(LIBS) -o netSrvDemo
+	gcc $< $(LIBS) -o $@
+
+netCliUdpDemo: netCliUdpDemo.o
+	gcc $< $(LIBS) -o $@
+
+netSrvUdpDemo: netSrvUdpDemo.o
+	gcc $< $(LIBS) -o $@
 
 servBaseDemo: servBaseDemo.o
-	gcc servBaseDemo.o $(LIBS) -o servBaseDemo
+	gcc $< $(LIBS) -o $@
 
 filePropertiesDemo: filePropertiesDemo.o
-	gcc filePropertiesDemo.o $(LIBS) -o filePropertiesDemo
+	gcc $< $(LIBS) -o $@
 
 parseWordsOnLines: parseWordsOnLines.o
-	gcc parseWordsOnLines.o $(LIBS) -o parseWordsOnLines
+	gcc $< $(LIBS) -o $@
 
 logDemo: logDemo.o
-	gcc logDemo.o $(LIBS) -o logDemo
+	gcc $< $(LIBS) -o $@
 
 iniDemo: iniDemo.o
-	gcc iniDemo.o $(LIBS) -o iniDemo
+	gcc $< $(LIBS) -o $@
 
 jsonDemo: jsonDemo.o
-	gcc jsonDemo.o $(LIBS) -o jsonDemo
+	gcc $< $(LIBS) -o $@
+
+udpCliDemo: udpCliDemo.o
+	gcc $< $(LIBS) -o $@
+
+udpSrvDemo: udpSrvDemo.o
+	gcc $< $(LIBS) -o $@
+
+httpDemo: httpDemo.o
+	gcc $< $(LIBS) -o $@
 
 clean:
-	rm netSrvDemo servBaseDemo parseWordsOnLines filePropertiesDemo \
-        netCliDemo iniDemo logDemo jsonDemo *.o test.log
-
+	rm netSrvDemo servBaseDemo parseWordsOnLines filePropertiesDemo httpDemo \
+        netCliDemo iniDemo logDemo jsonDemo udpCliDemo udpSrvDemo *.o test.log \
+		2>/dev/null ; true
