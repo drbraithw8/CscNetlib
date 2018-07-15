@@ -535,14 +535,50 @@ csc_httpErr_t csc_http_addUrlVal(csc_http_t *msg, const char *name, const char *
 }
 
 
-// Gets a name/value pair from URL encoded requestUrl part of a HTTP
-// request line.  Returns NULL if there is no entry for that name.  The
-// value element will be NULL if there is no value associated with the
-// entry.  The value element will be "" if the value part is empty.
-const csc_nameVal_t *csc_http_getUrlVal(csc_http_t *msg, const char *name)
-{	
-	const csc_nameVal_t *nv = csc_mapSS_get(msg->uriArgs, name);
-	return nv;
+// Gets the value associated with a name, 'name' from URL encoded
+// requestUrl part of a HTTP request line.
+// 
+// If the name, 'name' is not present then this function will return NULL,
+// and *'whatsThere' will be set to 1 if 'whatsThere' is not null.
+// 
+// If the name, 'name' is present, and the value is NULL then this function
+// will return NULL, and *'whatsThere' will be set to 2 if 'whatsThere' is
+// not null.
+// 
+// If the name, 'name' is present, and the value is the empty string ""
+// then this function will return the empty string "", and *'whatsThere'
+// will be set to 3 if 'whatsThere' is not null.
+// 
+// If the name, 'name' is present, and has a value then this function will
+// return the value and *'whatsThere' will be set to 4 if 'whatsThere' is
+// not null.
+const char *csc_http_getUrlVal(csc_http_t *msg, const char *name, int *whatsThere)
+{	const csc_nameVal_t *nv = csc_mapSS_get(msg->uriArgs, name);
+	const char *result = NULL;
+	int what = 0;
+
+// What is there?
+	if (nv == NULL)
+	{	result = NULL;
+		what = 1;
+	}
+	else if (nv->val == NULL)
+	{	result = NULL;
+		what = 2;
+	}
+	else if (csc_streq(nv->val,""))
+	{	result = nv->val;
+		what = 3;
+	}
+	else
+	{	result = nv->val;
+		what = 4;
+	}
+		
+// Bye.
+	if (whatsThere != NULL)
+		*whatsThere = what;
+	return result;
 }
 
 

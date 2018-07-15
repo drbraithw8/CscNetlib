@@ -21,11 +21,13 @@
 #include "servBase.h"
 
 #define ConfSection "ServerBase"
-#define ConfIdentIp "IP"
-#define ConfIdentPort "PortNum"
-#define ConfIdentMaxThreads "MaxThreads"
-#define ConfIdentBacklog "Backlog"
-#define ConfIdentLogLevel "LogLevel"
+#define configId_Ip "IP"
+#define configId_Port "PortNum"
+#define configId_MaxThreads "MaxThreads"
+#define configId_ReadTimeout "ReadTimeout"
+#define configId_WriteTimeout "WriteTimeout"
+#define configId_Backlog "Backlog"
+#define configId_LogLevel "LogLevel"
 
 #define srvModelStr_OneByOne "OneByOne"
 #define srvModel_OneByOne 1
@@ -50,6 +52,8 @@ static void sigHandler(int sigNum, void *context)
 
 
 static int serv_OneByOne( csc_srv_t *srv
+                        , int readTimeoutSecs
+                        , int writeTimeoutSecs
                         , csc_ini_t *conf
                         , csc_log_t *log
                         , void *local
@@ -74,20 +78,28 @@ static int serv_OneByOne( csc_srv_t *srv
 // Call accept.
     while (!servSig.isQuit)
     {   rwSock = csc_srv_accept(srv);
-        if (rwSock==-2 && servSig.isQuit)
-        {   retVal = 1;
+        if (rwSock==-2 && servSig.isQuit)   // Interrupted.
+        {	retVal = 1;
             csc_log_str(log, csc_log_NOTICE
                         , "Server terminating due to caught signal");
         }
-        else if (rwSock < 0)
-        {   csc_log_str(log, csc_log_FATAL, csc_srv_getErrMsg(srv)); 
+        else if (rwSock < 0)   // Some sort of error.
+        {	csc_log_str(log, csc_log_FATAL, csc_srv_getErrMsg(srv)); 
             servSig.isQuit = csc_TRUE;
             retVal = 0;
         }
-        else
-        {   cliAddr = csc_srv_acceptAddr(srv);
+        else  // The socket is OK.
+        {
+		// Accept the connection.
+			cliAddr = csc_srv_acceptAddr(srv);
             csc_log_printf(log, csc_log_NOTICE,
                         "Accepted connection from %s", cliAddr);
+ 
+		// Impose read/write timeouts.
+			csc_sock_setTimeout(rwSock, "r", readTimeoutSecs);
+			csc_sock_setTimeout(rwSock, "w", writeTimeoutSecs);
+ 
+ 		// Handle the connection.
             doConn(rwSock, cliAddr, conf, log, local);
         }
     }
@@ -101,6 +113,8 @@ static int serv_OneByOne( csc_srv_t *srv
 
 
 static int serv_Forking( csc_srv_t *srv
+                       , int readTimeoutSecs
+                       , int writeTimeoutSecs
                        , int maxThreads
                        , csc_ini_t *conf
                        , csc_log_t *log
@@ -130,19 +144,19 @@ static int serv_Forking( csc_srv_t *srv
 // Call accept.
     while (!servSig.isQuit)
     {   rwSock = csc_srv_accept(srv);
-        if (rwSock==-2 && servSig.isQuit)
-        {   retVal = 1;
+        if (rwSock==-2 && servSig.isQuit) // Interrupted.
+        {	retVal = 1;
             csc_log_str(log, csc_log_NOTICE
                         , "Server terminating due to caught signal");
         }
-        else if (rwSock < 0)
-        {   csc_log_str(log, csc_log_FATAL, csc_srv_getErrMsg(srv)); 
+        else if (rwSock < 0)  // Some sort of error.
+        {	csc_log_str(log, csc_log_FATAL, csc_srv_getErrMsg(srv)); 
             servSig.isQuit = csc_TRUE;
             retVal = 0;
         }
         else
         { // Successful accept.
-        // Forking.
+        // Do the forking.
             newChildProcId = fork();  // One process splits into two.
             if (newChildProcId < 0)  // Error.  Fork failed.
             {   csc_log_printf(log, csc_log_ERROR,
@@ -160,6 +174,10 @@ static int serv_Forking( csc_srv_t *srv
                 cliAddr = csc_srv_acceptAddr(srv);
                 csc_log_printf(log, csc_log_NOTICE,
                         "Accepted connection from %s", cliAddr);
+
+			// Impose read/write timeouts.
+				csc_sock_setTimeout(rwSock, "r", readTimeoutSecs);
+				csc_sock_setTimeout(rwSock, "w", writeTimeoutSecs);
  
             // Handle the connection.
                 doConn(rwSock, cliAddr, conf, log, local);
@@ -234,7 +252,9 @@ int csc_servBase_server( char *srvModelStr
                        )
 {   int retVal = csc_TRUE;
     const char *logLevelStr, *portNumStr, *backlogStr, *ipStr, *maxThreadsStr;
+	const char *readTimeoutSecsStr, *writeTimeoutSecsStr;
     int iniFileLineNum, portNum, srvModel, backlog, maxThreads, result;
+	int readTimeoutSecs, writeTimeoutSecs;
  
 // Resources to free (should match Free resources in cleanup).
     csc_log_t *log = NULL;
@@ -289,13 +309,13 @@ int csc_servBase_server( char *srvModelStr
     }
  
 // Get and set logging level
-    logLevelStr = csc_ini_getStr(ini, ConfSection, ConfIdentLogLevel);
+    logLevelStr = csc_ini_getStr(ini, ConfSection, configId_LogLevel);
     if (logLevelStr != NULL)
     {   if (!csc_isValid_int(logLevelStr) || !csc_log_setLogLevel(log, atoi(logLevelStr)))
         {   csc_log_printf( log
                          , csc_log_FATAL
                          , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
-                         , ConfIdentLogLevel
+                         , configId_LogLevel
                          , ConfSection
                          , configPath
                          );
@@ -305,12 +325,12 @@ int csc_servBase_server( char *srvModelStr
     }
  
 // Get the port number.
-    portNumStr = csc_ini_getStr(ini, ConfSection, ConfIdentPort);
+    portNumStr = csc_ini_getStr(ini, ConfSection, configId_Port);
     if (portNumStr==NULL || !csc_isValid_int(portNumStr))
     {   csc_log_printf( log
                      , csc_log_FATAL
                      , "Invalid or missing \"%s\" in section \"%s\" configuration file \"%s\""
-                     , ConfIdentPort
+                     , configId_Port
                      , ConfSection
                      , configPath
                      );
@@ -320,18 +340,18 @@ int csc_servBase_server( char *srvModelStr
     portNum = atoi(portNumStr);;
  
 // Get the IP.
-    ipStr = csc_ini_getStr(ini, ConfSection, ConfIdentIp);
+    ipStr = csc_ini_getStr(ini, ConfSection, configId_Ip);
     // Error handling for this is performed already in csc_srv_setAddr().
  
 // Get the backlog.
-    backlogStr = csc_ini_getStr(ini, ConfSection, ConfIdentBacklog);
+    backlogStr = csc_ini_getStr(ini, ConfSection, configId_Backlog);
     if (backlogStr == NULL)
         backlogStr = "10";
     if (!csc_isValid_int(backlogStr))
     {   csc_log_printf( log
                      , csc_log_FATAL
                      , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
-                     , ConfIdentBacklog
+                     , configId_Backlog
                      , ConfSection
                      , configPath
                      );
@@ -341,14 +361,14 @@ int csc_servBase_server( char *srvModelStr
     backlog = atoi(backlogStr);
  
 // Get the max number of connections.
-    maxThreadsStr = csc_ini_getStr(ini, ConfSection, ConfIdentMaxThreads);
+    maxThreadsStr = csc_ini_getStr(ini, ConfSection, configId_MaxThreads);
     if (maxThreadsStr == NULL)
         maxThreadsStr = "4";
     else if (!csc_isValid_int(maxThreadsStr))
     {   csc_log_printf( log
                      , csc_log_FATAL
                      , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
-                     , ConfIdentMaxThreads
+                     , configId_MaxThreads
                      , ConfSection
                      , configPath
                      );
@@ -356,6 +376,38 @@ int csc_servBase_server( char *srvModelStr
         goto cleanup;
     }
     maxThreads = atoi(maxThreadsStr);
+ 
+// Get the read timeout value.
+	readTimeoutSecsStr = csc_ini_getStr(ini, ConfSection, configId_ReadTimeout);
+    if (readTimeoutSecsStr == NULL)
+        readTimeoutSecsStr = "20";
+	if (!csc_isValidRange_int(readTimeoutSecsStr, 0, 1000, &readTimeoutSecs))
+    {   csc_log_printf( log
+                     , csc_log_FATAL
+                     , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
+                     , configId_ReadTimeout
+                     , ConfSection
+                     , configPath
+                     );
+        retVal = csc_FALSE; 
+        goto cleanup;
+    }
+ 
+// Get the write timeout value.
+	writeTimeoutSecsStr = csc_ini_getStr(ini, ConfSection, configId_WriteTimeout);
+    if (writeTimeoutSecsStr == NULL)
+        writeTimeoutSecsStr = "20";
+	if (!csc_isValidRange_int(writeTimeoutSecsStr, 0, 1000, &writeTimeoutSecs))
+    {   csc_log_printf( log
+                     , csc_log_FATAL
+                     , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
+                     , configId_WriteTimeout
+                     , ConfSection
+                     , configPath
+                     );
+        retVal = csc_FALSE; 
+        goto cleanup;
+    }
  
 // Create netSrv object.
     srv = csc_srv_new();
@@ -390,9 +442,11 @@ int csc_servBase_server( char *srvModelStr
  
 // Do each successful connection.
     if (srvModel == srvModel_OneByOne)
-        serv_OneByOne(srv, ini, log, local, doConn);
+        serv_OneByOne( srv, readTimeoutSecs, writeTimeoutSecs
+					 , ini, log, local, doConn);
     else
-        serv_Forking(srv, maxThreads, ini, log, local, doConn);
+        serv_Forking( srv, readTimeoutSecs, writeTimeoutSecs
+					, maxThreads, ini, log, local, doConn);
  
 cleanup:  // Free resources.
     if (ini != NULL)

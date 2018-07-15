@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include "ioAny.h"
 #include "cstr.h"
-#include "hash.h"
 #include "std.h"
 
 
@@ -74,11 +73,24 @@ const char *csc_http_getHdr(csc_http_t *msg, const char *hdrName);
 csc_httpErr_t csc_http_addUrlVal(csc_http_t *msg, const char *name, const char *val);
 
 
-// Gets the value of a name/value pair from URL encoded requestUrl part of a HTTP
-// request line.  Returns NULL if there is no entry for that name.  The
-// value element will be NULL if there is no value associated with the
-// entry.  The value element will be "" if the value part is empty.
-const csc_nameVal_t *csc_http_getUrlVal(csc_http_t *msg, const char *name);
+// Gets the value associated with a name, 'name' from URL encoded
+// requestUrl part of a HTTP request line.
+// 
+// If the name, 'name' is not present then this function will return NULL,
+// and *'whatsThere' will be set to 1 if 'whatsThere' is not null.
+// 
+// If the name, 'name' is present, and the value is NULL then this function
+// will return NULL, and *'whatsThere' will be set to 2 if 'whatsThere' is
+// not null.
+// 
+// If the name, 'name' is present, and the value is the empty string ""
+// then this function will return the empty string "", and *'whatsThere'
+// will be set to 3 if 'whatsThere' is not null.
+// 
+// If the name, 'name' is present, and has a non null non empty value then
+// this function will return the value and *'whatsThere' will be set to 4
+// if 'whatsThere' is not null.
+const char *csc_http_getUrlVal(csc_http_t *msg, const char *name, int *whatsThere);
 
 
 // Receive a HTTP message from whatever as a client.

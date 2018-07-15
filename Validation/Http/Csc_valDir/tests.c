@@ -111,8 +111,7 @@ void testAddGet(FILE *fout)
 
 
 void testCliRcv1()
-{	const csc_nameVal_t *nv;
-	const char *tempFname = "csc_temp_CliRcv1.txt";
+{	const char *tempFname = "csc_temp_CliRcv1.txt";
 	csc_httpErr_t errCode;
 	csc_http_t *msg;
 	FILE *fout, *fin;
@@ -156,8 +155,7 @@ void testCliRcv1()
 
 
 void testCliRcv2()
-{	const csc_nameVal_t *nv;
-	const char *tempFname = "csc_temp_CliRcv2.txt";
+{	const char *tempFname = "csc_temp_CliRcv2.txt";
 	csc_httpErr_t errCode;
 	csc_http_t *msg;
 	FILE *fout, *fin;
@@ -228,11 +226,12 @@ void testCliRcv2()
 
 
 void testSrvRcv4()
-{	const csc_nameVal_t *nv;
+{	const char *urlVal;
 	const char *tempFname = "csc_temp_SrvRcv4.txt";
 	csc_httpErr_t errCode;
 	csc_http_t *msg;
 	FILE *fout, *fin;
+	int whatsThere;
  
 	const char *testRcv4 =
 		"GET /hello%20world.php?name=Fred%20Bloggs&rate=12%25%2B1 HTTP/1.1\n"
@@ -267,14 +266,14 @@ void testSrvRcv4()
 					csc_http_getSF(msg, csc_httpSF_reqUri));
  
 // Check URL encoded values.
-	nv = csc_http_getUrlVal(msg,"name"); assert(nv);
-	testReport_sVal(stdout, "http_sRcv4_reqValName", "Fred Bloggs", nv->val);
+	urlVal = csc_http_getUrlVal(msg,"name", &whatsThere); assert(urlVal);
+	testReport_sVal(stdout, "http_sRcv4_reqValName", "Fred Bloggs", urlVal);
  
-	nv = csc_http_getUrlVal(msg,"rate"); assert(nv);
-	testReport_sVal(stdout, "http_sRcv4_reqValWeight", "12%+1", nv->val);
+	urlVal = csc_http_getUrlVal(msg,"rate", &whatsThere); assert(urlVal);
+	testReport_sVal(stdout, "http_sRcv4_reqValWeight", "12%+1", urlVal);
  
-	nv = csc_http_getUrlVal(msg,"notThere");
-	testReport_sVal(stdout, "http_sRcv4_reqValNotThere", NULL, (const char*)nv);
+	urlVal = csc_http_getUrlVal(msg,"notThere", &whatsThere);
+	testReport_sVal(stdout, "http_sRcv4_reqValNotThere", NULL, (const char*)urlVal);
  
 // Check the headers.
 	testReport_sVal(stdout, "http_sRcv4_accept", "*/*",
@@ -288,11 +287,12 @@ void testSrvRcv4()
 
 
 void testSrvRcv3()
-{	const csc_nameVal_t *nv;
+{	const char *urlVal;
 	const char *tempFname = "csc_temp_SrvRcv3.txt";
 	csc_httpErr_t errCode;
 	csc_http_t *msg;
 	FILE *fout, *fin;
+	int whatsThere;
  
 	const char *testRcv3 =
 		"GET /helloWorld.php?name=fred&male&middle=&weight=25 HTTP/1.1\n"
@@ -334,20 +334,20 @@ void testSrvRcv3()
 
  
 // Check URL encoded values.
-	nv = csc_http_getUrlVal(msg,"name"); assert(nv);
-	testReport_sVal(stdout, "http_sRcv3_reqValName", "fred", nv->val);
+	urlVal = csc_http_getUrlVal(msg,"name", &whatsThere); assert(urlVal);
+	testReport_sVal(stdout, "http_sRcv3_reqValName", "fred", urlVal);
  
-	nv = csc_http_getUrlVal(msg,"middle"); assert(nv);
-	testReport_sVal(stdout, "http_sRcv3_reqEmptyVal", "", nv->val);
+	urlVal = csc_http_getUrlVal(msg,"middle", &whatsThere); assert(urlVal);
+	testReport_sVal(stdout, "http_sRcv3_reqEmptyVal", "", urlVal);
  
-	nv = csc_http_getUrlVal(msg,"male"); assert(nv);
-	testReport_sVal(stdout, "http_sRcv3_reqNoVal", NULL, nv->val);
+	urlVal = csc_http_getUrlVal(msg,"male", &whatsThere);
+	testReport_sVal(stdout, "http_sRcv3_reqNoVal", NULL, urlVal);
  
-	nv = csc_http_getUrlVal(msg,"weight"); assert(nv);
-	testReport_sVal(stdout, "http_sRcv3_reqValWeight", "25", nv->val);
+	urlVal = csc_http_getUrlVal(msg,"weight", &whatsThere); assert(urlVal);
+	testReport_sVal(stdout, "http_sRcv3_reqValWeight", "25", urlVal);
  
-	nv = csc_http_getUrlVal(msg,"notThere");
-	testReport_sVal(stdout, "http_sRcv3_reqValNotThere", NULL, (const char*)nv);
+	urlVal = csc_http_getUrlVal(msg,"notThere", &whatsThere);
+	testReport_sVal(stdout, "http_sRcv3_reqValNotThere", NULL, (const char*)urlVal);
  
 // Check the headers.
 	testReport_sVal(stdout, "http_sRcv3_accept", "*/*",

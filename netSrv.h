@@ -69,5 +69,10 @@ const char *csc_srv_getErrMsg(const csc_srv_t *srv);
 // Disconnect the process from the current session.
 void csc_srv_daemonise(csc_log_t *log);
 
+// Set read and/or write timeout for socket 'sockfd'.
+// if 'rw' is "r" then set only the read timeout to 'seconds' seconds.
+// if 'rw' is "w" then set only the write timeout to 'seconds' seconds.
+// if 'rw' is "rw" then set both the read and the write timeout to 'seconds' seconds.
+csc_bool_t csc_sock_setTimeout(int sockfd, const char *rw, int seconds);
 
 #endif
