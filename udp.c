@@ -180,12 +180,13 @@ typedef enum udpState { udpStateNone=0, udpStateCli, udpStateSrv} udpState_t;
 
 
 typedef struct csc_udp_t
-{	int flags;
-	int portRcv;
-	char *ipRcv;
-	int sock;
-	char *errMsg;
-	udpState_t state;
+{	int rcvFlags;     // Flags for recvFrom().
+	int portRcv;     // What port for a server to receive packets from.
+	char *ipRcv;     // What address for a server to receive packets from.
+	int sock;       // The underlying socket.
+	char *errMsg;   // Error messages.
+	udpState_t state;  // Is this a server, a client, or not specified.
+	csc_bool_t isConnect;
 } csc_udp_t;
 
 
@@ -213,9 +214,10 @@ csc_udp_t *csc_udp_new()
 	udp->portRcv = -1;
 	udp->ipRcv = NULL;
 	udp->errMsg = NULL;
-	udp->flags = 0;
+	udp->rcvFlags = 0;
 	udp->sock = -1;
 	udp->state = udpStateNone;
+	udp->isConnect = csc_TRUE;
 }
 
 
@@ -324,6 +326,11 @@ csc_bool_t csc_udp_setCli(csc_udp_t *udp, int ipType)
 }
 
 
+void csc_udp_cliNoConnect(csc_udp_t *udp)
+{	udp->isConnect = csc_FALSE;
+}
+
+
 csc_bool_t csc_udp_snd( csc_udp_t *udp          // UDP object.
 					  , char *buf, int msgLen   // Buffer to read into.
 					  , csc_udpAddr_t *addr  // Address.
@@ -340,6 +347,15 @@ csc_bool_t csc_udp_snd( csc_udp_t *udp          // UDP object.
 	if (addr==NULL || !addr->isSet)
     {   udp_setErrMsg(udp, "csc_udp_snd(): address not set", NULL);
 		return csc_FALSE;
+	}
+
+// Connect the client.
+	if (udp->state==udpStateCli && udp->isConnect)
+	{	udp->isConnect = csc_FALSE;
+		if (connect(udp->sock, (struct sockaddr *)&addr->sockAddr, addrLen))
+		{   udp_setErrMsg(udp, "csc_udp_snd(): connect() failed", strerror(errno));
+			return csc_FALSE;
+		}
 	}
  
 // Send the packet.
@@ -375,7 +391,7 @@ int csc_udp_rcv( csc_udp_t *udp          // UDP object.
 	socklen_t addrLen = sizeof(caller);
 	numRead = recvfrom( udp->sock
 					  , buf, bufSiz
-					  , udp->flags
+					  , udp->rcvFlags
 					  , (struct sockaddr *)&caller, &addrLen
 					  );
 	if (numRead == -1)

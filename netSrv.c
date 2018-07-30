@@ -80,7 +80,7 @@ int csc_srv_setAddr(csc_srv_t *this, const char *addr, int portNo, int backlog)
  
 // Check the address.
     if (addr!=NULL && !csc_isValid_ipV4(addr) && !csc_isValid_ipV6(addr))
-    {   setErrMsg(this, csc_alloc_str("Srvcli: Invalid IP address"));
+    {   setErrMsg(this, csc_alloc_str("netSrv: Invalid IP address"));
         return 0;
     }
  
