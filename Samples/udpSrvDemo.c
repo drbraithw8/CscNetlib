@@ -52,9 +52,12 @@ int main(int argc, char **argv)
 
 // Free resources.
 freeAll:
-	free(ipStr);
-	csc_udpAddr_free(addr);
-	csc_udp_free(udp);
+	if (ipStr)
+		free(ipStr);
+	if (addr)
+		csc_udpAddr_free(addr);
+	if (udp)
+		csc_udp_free(udp);
 	exit(0);
 }
 
