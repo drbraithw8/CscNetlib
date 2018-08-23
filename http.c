@@ -25,6 +25,9 @@ typedef struct csc_http_t
  
 // URI args: Name value string string pairs.
 	csc_mapSS_t *uriArgs;
+
+// A limit on the number of chars to read in.
+	int maxInputChars;
  
 } csc_http_t;
 
@@ -47,9 +50,17 @@ csc_http_t *csc_http_new()
  
 // URI args.
 	msg->uriArgs = csc_mapSS_new();
+
+// A limit on the number of chars to read in.
+	msg->maxInputChars = 3000;
  
 // Home with the bacon.
 	return msg;
+}
+
+
+void csc_http_setMaxInputChars(csc_http_t *msg, int maxChars)
+{	msg->maxInputChars = maxChars;
 }
 
 
@@ -177,18 +188,32 @@ typedef struct httpIn_t
 	int nextCh;
 	int lastCh;
 	csc_bool_t isNextCh;
+ 
+// Count and limit.
+	int maxChars;
+	int countChars;
 } httpIn_t;
  
 const int httpIn_bufLen = 255;
 
-static httpIn_t *httpIn_new(csc_ioAnyRead_t *rca)
-{	httpIn_t *hin = csc_allocOne(httpIn_t);
+
+static httpIn_t *httpIn_new(csc_ioAnyRead_t *rca, int maxChars)
+{
+// Allocate the structure.
+	httpIn_t *hin = csc_allocOne(httpIn_t);
 	hin->rca = rca;
 	hin->nextCh = 0;
 	hin->lastCh = 0;
 	hin->isNextCh = csc_FALSE;
+ 
+// Count and limit.
+	hin->maxChars = maxChars;
+	hin->countChars = 0;
+ 
+// Bye.
 	return hin;
 }
+
 
 static void httpIn_free(httpIn_t *hin)
 {	free(hin);
@@ -197,9 +222,13 @@ static void httpIn_free(httpIn_t *hin)
 
 static int httpIn_getc(httpIn_t *hin)
 {	int ch;
-	ch = csc_ioAnyRead_getc(hin->rca);
-	if (ch == '\r')
-		ch = csc_ioAnyRead_getc(hin->rca);
+	if (hin->countChars++ >= hin->maxChars)
+		ch = EOF;
+	else
+	{	ch = csc_ioAnyRead_getc(hin->rca);
+		if (ch == '\r')
+			ch = csc_ioAnyRead_getc(hin->rca);
+	}
 	return ch;
 }
 
@@ -672,7 +701,7 @@ csc_httpErr_t csc_http_rcvSrv(csc_http_t *msg, csc_ioAnyRead_t *rca)
 	httpIn_t *hin = NULL;
  
 // Input processing.
-	hin = httpIn_new(rca);
+	hin = httpIn_new(rca, msg->maxInputChars);
  
 // Get the method.
 	word = csc_str_new(NULL);
@@ -774,7 +803,7 @@ csc_httpErr_t csc_http_rcvCli(csc_http_t *msg, csc_ioAnyRead_t *rca)
 	httpIn_t *hin = NULL;
  
 // Input processing.
-	hin = httpIn_new(rca);
+	hin = httpIn_new(rca, msg->maxInputChars);
  
 // Get the protocol.
 	word = csc_str_new(NULL);

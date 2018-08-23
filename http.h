@@ -92,6 +92,10 @@ csc_httpErr_t csc_http_addUrlVal(csc_http_t *msg, const char *name, const char *
 // if 'whatsThere' is not null.
 const char *csc_http_getUrlVal(csc_http_t *msg, const char *name, int *whatsThere);
 
+// In order to prevent crashing, the number of chars to read for a HTTP
+// header is deliberately limited.  This function allows you to set that
+// limit.
+void csc_http_setMaxInputChars(csc_http_t *msg, int maxChars);
 
 // Receive a HTTP message from whatever as a client.
 csc_httpErr_t csc_http_rcvCliFILE(csc_http_t *msg, FILE *fin);
