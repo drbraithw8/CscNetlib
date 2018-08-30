@@ -28,6 +28,7 @@
 #define configId_WriteTimeout "WriteTimeout"
 #define configId_Backlog "Backlog"
 #define configId_LogLevel "LogLevel"
+#define configId_errPath "StdErrPath"
 
 #define srvModelStr_OneByOne "OneByOne"
 #define srvModel_OneByOne 1
@@ -54,12 +55,12 @@ static void sigHandler(int sigNum, void *context)
 static int serv_OneByOne( csc_srv_t *srv
                         , int readTimeoutSecs
                         , int writeTimeoutSecs
-                        , csc_ini_t *conf
+                        , csc_ini_t *ini
                         , csc_log_t *log
                         , void *local
                         , int (*doConn)( int fd            // client file descriptor
                                        , const char *clientIp   // IP of client, or NULL
-                                       , csc_ini_t *conf // Configuration object.
+                                       , csc_ini_t *ini // Configuration object.
                                        , csc_log_t *log  // Logging object.
                                        , void *local
                                        )
@@ -100,7 +101,7 @@ static int serv_OneByOne( csc_srv_t *srv
 			csc_sock_setTimeout(rwSock, "w", writeTimeoutSecs);
  
  		// Handle the connection.
-            doConn(rwSock, cliAddr, conf, log, local);
+            doConn(rwSock, cliAddr, ini, log, local);
         }
     }
  
@@ -116,12 +117,12 @@ static int serv_Forking( csc_srv_t *srv
                        , int readTimeoutSecs
                        , int writeTimeoutSecs
                        , int maxThreads
-                       , csc_ini_t *conf
+                       , csc_ini_t *ini
                        , csc_log_t *log
                        , void *local
                        , int (*doConn)( int fd            // client file descriptor
                                       , const char *clientIp   // IP of client, or NULL
-                                      , csc_ini_t *conf // Configuration object.
+                                      , csc_ini_t *ini // Configuration object.
                                       , csc_log_t *log  // Logging object.
                                       , void *local
                                       )
@@ -174,13 +175,13 @@ static int serv_Forking( csc_srv_t *srv
                 cliAddr = csc_srv_acceptAddr(srv);
                 csc_log_printf(log, csc_log_NOTICE,
                         "Accepted connection from %s", cliAddr);
-
+ 
 			// Impose read/write timeouts.
 				csc_sock_setTimeout(rwSock, "r", readTimeoutSecs);
 				csc_sock_setTimeout(rwSock, "w", writeTimeoutSecs);
  
             // Handle the connection.
-                doConn(rwSock, cliAddr, conf, log, local);
+                doConn(rwSock, cliAddr, ini, log, local);
  
             // Child finished therefore child dies.
                 exit(0);
@@ -192,7 +193,7 @@ static int serv_Forking( csc_srv_t *srv
             // If we are up to the maximum number of threads, then block until a child dies.
                 if (numThreads == maxThreads)
                 {   deadChildProcId = wait(NULL);
-                    // fprintf(stderr, "full up child buried\n");
+					// fprintf(csc_stderr, "Full up child buried.\n");
                     numThreads--;  // One thread died.
                 }
  
@@ -202,11 +203,11 @@ static int serv_Forking( csc_srv_t *srv
                 {   deadChildProcId = waitpid(-1,NULL,WNOHANG);
                     if (deadChildProcId == 0)
                     {   isMoreDeadChildren = csc_FALSE;  // Failed.  No more dead.  Terminate loop.
-                        // fprintf(stderr, "no more dead children\n");
+						// fprintf(csc_stderr, "No more dead children.\n");
                     }
                     else
                     {   numThreads --;  // One child died.
-                        // fprintf(stderr, "child buried\n");
+						// fprintf(csc_stderr, "Child buried.\n");
                     }
                 }
             } // Parent process.
@@ -219,11 +220,11 @@ static int serv_Forking( csc_srv_t *srv
     {   deadChildProcId = waitpid(-1,NULL,WNOHANG);
         if (deadChildProcId == 0)
         {   isMoreDeadChildren = csc_FALSE;  // Failed.  No more dead.  Terminate loop.
-            // fprintf(stderr, "no more dead children\n");
+			// fprintf(csc_stderr, "No more dead children.\n");
         }
         else
         {   numThreads --;  // One child died.
-            // fprintf(stderr, "child buried\n");
+			// fprintf(csc_stderr, "Child buried.\n");
         }
     }
  
@@ -240,14 +241,14 @@ int csc_servBase_server( char *srvModelStr
                        , char *configPath
                        , int (*doConn)( int fd            // client file descriptor
                                       , const char *clientIp   // IP of client, or NULL
-                                      , csc_ini_t *conf // Configuration object.
+                                      , csc_ini_t *ini // Configuration object.
                                       , csc_log_t *log  // Logging object.
                                       , void *local
                                       )
-                       , int (*doInit)( csc_ini_t *conf // Configuration object.
-                             , csc_log_t *log  // Logging object.
-                             , void *local
-                             )
+                       , int (*doInit)( csc_ini_t *ini // Configuration object.
+									  , csc_log_t *log  // Logging object.
+									  , void *local
+									  )
                        , void *local      // Values to pass to doConn() and to doInit().
                        )
 {   int retVal = csc_TRUE;
@@ -264,7 +265,7 @@ int csc_servBase_server( char *srvModelStr
 // Initialise the logging.
     log = csc_log_new(logPath, initialLogLevel);
     if (log == NULL)
-    {   fprintf(stderr, "Failed to initialise logging!\n");
+	{	fprintf(csc_stderr, "Failed to initialise the logging.\n");
         retVal = csc_FALSE; 
         goto cleanup;
     }
@@ -323,6 +324,23 @@ int csc_servBase_server( char *srvModelStr
             goto cleanup;
         }
     }
+
+// Set the error output.
+	const char *stderrPath = csc_ini_getStr(ini, ConfSection, configId_errPath);
+	if (stderrPath != NULL)
+	{	if (!csc_isValid_decentAbsPath(stderrPath))
+		{   csc_log_printf( log
+						 , csc_log_FATAL
+						 , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
+						 , configId_errPath
+						 , ConfSection
+						 , configPath
+						 );
+			retVal = csc_FALSE; 
+			goto cleanup;
+		}
+		csc_setErrOut(stderrPath);
+	}
  
 // Get the port number.
     portNumStr = csc_ini_getStr(ini, ConfSection, configId_Port);
@@ -439,6 +457,13 @@ int csc_servBase_server( char *srvModelStr
                  , srvModelStr
                  , portNum
                  );
+	if (stderrPath != NULL)
+	{	fprintf( csc_stderr
+			   , "AllGood.  %s server now serving on port %d\n"
+               , srvModelStr
+               , portNum
+               );
+	}
  
 // Do each successful connection.
     if (srvModel == srvModel_OneByOne)

@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
@@ -63,7 +62,7 @@ const char *csc_udpAddr_resetErrMsg(csc_udpAddr_t *this)
 
 
 csc_udpAddr_t *csc_udpAddr_new()
-{	csc_udpAddr_t *addr = csc_allocOne(csc_udpAddr_t);  assert(addr);
+{	csc_udpAddr_t *addr = csc_allocOne(csc_udpAddr_t);  csc_assert(addr);
 	addr->errMsg = NULL;
 	addr->flags = 0;
 	addr->isSet = csc_FALSE;
@@ -146,7 +145,7 @@ char *csc_udpAddr_getAllocIpStr(csc_udpAddr_t *addr)
 		ipStr[INET6_ADDRSTRLEN] = '\0';
 	}
 	else
-		assert(csc_FALSE);
+		csc_assert(csc_FALSE);
  
 	return csc_allocStr(ipStr);
 }
@@ -210,7 +209,7 @@ const char *csc_udp_getErrMsg(const csc_udp_t *this)
 
 
 csc_udp_t *csc_udp_new()
-{	csc_udp_t *udp = csc_allocOne(csc_udp_t);  assert(udp);
+{	csc_udp_t *udp = csc_allocOne(csc_udp_t);  csc_assert(udp);
 	udp->portRcv = -1;
 	udp->ipRcv = NULL;
 	udp->errMsg = NULL;
@@ -427,7 +426,7 @@ csc_bool_t csc_udp_setRcvTimeout(csc_udp_t *udp, int secs)
     {   udp_setErrMsg( udp, "csc_udp_setRcvTimeout(): udp object not initialised", NULL);
 		return csc_FALSE;
 	}
-	assert(udp->sock != -1);
+	csc_assert(udp->sock != -1);
 
 // Attempt to set the socket timeout.
 	struct timeval tv;

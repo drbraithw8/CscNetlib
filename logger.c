@@ -9,7 +9,6 @@
 #include <string.h>
 #include <time.h>
 #include <stdarg.h>
-#include <assert.h>
 
 #include "std.h"
 #include "alloc.h"
@@ -39,12 +38,12 @@ csc_log_t *csc_log_new(const char *path, csc_log_level_t logLevel)
     lgr->path = csc_alloc_str(path);
     lgr->level = logLevel;
     lgr->idStr = NULL;
-    retVal = sem_init(&lgr->sem, 1, 1); assert(retVal==0);
+    retVal = sem_init(&lgr->sem, 1, 1); csc_assert(retVal==0);
  
 // Test the logger with an initial entry.
     lgr->isShowProcessId = csc_TRUE;
     if (!csc_log_str(lgr, csc_log_NOTICE, "Logging commenced"))
-    {   fprintf( stderr
+	{	fprintf(csc_stderr
                , "Error: Logger failed to write intial entry to log file:"
                        "\n\"%s\"!\n" , path);
         csc_log_free(lgr);
@@ -84,7 +83,7 @@ void csc_log_free(csc_log_t *log)
     free(log->path);
     if (log->idStr != NULL)
         free(log->idStr);
-    retVal = sem_destroy(&log->sem); assert(retVal==0);
+    retVal = sem_destroy(&log->sem); csc_assert(retVal==0);
     free(log);
 }
 

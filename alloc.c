@@ -1,6 +1,7 @@
 // Author: Dr Stephen Braithwaite.
 // This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
@@ -9,7 +10,7 @@
 
 
 static void csc_ck_defaultErrorHandler(void *context)
-{   fprintf(stderr, "Error: Out of Memory!\n");
+{	fprintf(csc_stderr, "Error in allocation: Out of memory!\n");
     exit(1);
 }
 
