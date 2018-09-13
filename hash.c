@@ -6,7 +6,6 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
 #include "std.h"
 #include "alloc.h"
@@ -62,11 +61,11 @@ csc_hash_t *csc_hash_new(int offset, int (*cmp)(void*,void*),
     h->maxcount = h->tblsize * 5;
     h->table = (csc_hash_node_t**)csc_ck_calloc(h->tblsize * sizeof(csc_hash_node_t*));
     h->offset = offset;
-    assert(cmp!=NULL);
+    csc_assert(cmp!=NULL);
     h->cmp = cmp;
-    assert(hval!=NULL);
+    csc_assert(hval!=NULL);
     h->hval = hval;
-    assert(free_rec!=NULL);
+    csc_assert(free_rec!=NULL);
     h->free_rec = free_rec;
     return h;
 }

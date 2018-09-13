@@ -12,9 +12,13 @@
 
 #define csc_TRUE 1
 #define csc_FALSE 0
-#define affirm(ex) (ex?0:(fprintf(stderr, \
-            "Memcheck: Internal error (%s): file %s, line %d\n", \
-            "ex", __FILE__, __LINE__),exit(1),1))
+
+extern FILE *csc_errOut;
+void csc_assertFail(const char *fname, int lineNo, const char *expr);
+#define csc_stderr (csc_errOut?csc_errOut:stderr)
+#define csc_assert(a)  ( !(a) ? ( \
+   csc_assertFail(__FILE__, __LINE__, #a) , 0) : 0)  
+
 
 typedef unsigned int csc_uint;
 typedef unsigned long csc_ulong;
@@ -64,18 +68,18 @@ char *csc_mck_malloc(csc_uint size, int line, char *file)
         return NULL;
     if ((header=(memchk_type*)malloc((csc_uint)(size+EXTRA_SIZE))) == NULL)
         return NULL;
-    affirm(!align_err(header));
+    csc_assert(!align_err(header));
  
 /* Set upper and lower boundaries. */
     hi = (memchk_type*)((char*)header + size + EXTRA_SIZE);
     if (lo_adr == NULL)     /* 1st time called for prog. */
     {   lo_adr = header;
         hi_adr = hi;
-        affirm(sizeof(memchk_type) % sizeof(double) == 0);
+        csc_assert(sizeof(memchk_type) % sizeof(double) == 0);
         /* If this turns out to be false, the padding in memchk_type
          *  must be adjusted.  The size affects alignment of allocated chunks.
          */
-        affirm(BNDY_MSK+1 == sizeof(double));
+        csc_assert(BNDY_MSK+1 == sizeof(double));
         /* If this turns out to be false, the align_err() macro may
          * need to be re written.
          */
@@ -191,8 +195,8 @@ char *csc_mck_realloc(char *block, csc_uint size, int line, char *file)
 
 void csc_mck_sexit(int status, int line, char *file)
 {   if (nmlc != 0)
-    {   fprintf(stderr, "memcheck: line %d file \"%s\" :-\n", line, file);
-        fprintf(stderr, "\t%ld memory chunks not released.\n", nmlc);
+    {   fprintf(csc_stderr, "memcheck: line %d file \"%s\" :-\n", line, file);
+        fprintf(csc_stderr, "\t%ld memory chunks not released.\n", nmlc);
     }
     exit(status);
 }
@@ -200,11 +204,11 @@ void csc_mck_sexit(int status, int line, char *file)
 
 void csc_mck_exit(int status, int line, char *file)
 {   if (nmlc != 0)
-    {   fprintf(stderr, "memcheck: line %d file \"%s\" :-\n", line, file);
-        fprintf(stderr, "\t%ld memory chunks not released.\n", nmlc);
+    {   fprintf(csc_stderr, "memcheck: line %d file \"%s\" :-\n", line, file);
+        fprintf(csc_stderr, "\t%ld memory chunks not released.\n", nmlc);
     }
     else
-        fprintf(stderr, "memcheck: All allocated memory chunks released.\n");
+        fprintf(csc_stderr, "memcheck: All allocated memory chunks released.\n");
     exit(status);
 }
 
@@ -243,8 +247,8 @@ static void freecheck(memchk_type *header, int line, char *file)
      || (header->next)->prev!=header
      ||  align_err(header->prev) && header->prev!=&anchor
      || (header->prev)->next!=header )
-    {   fprintf(stderr, "memcheck: Non allocated memory overwritten");
-        fprintf(stderr, "  or  free'd memory not allocated\n\n");
+    {   fprintf(csc_stderr, "memcheck: Non allocated memory overwritten");
+        fprintf(csc_stderr, "  or  free'd memory not allocated\n\n");
     }
     else if (  (memchk_type*)(header->end) < header
           ||   (memchk_type*)(header->end) > hi_adr 
@@ -255,7 +259,7 @@ static void freecheck(memchk_type *header, int line, char *file)
         return;
  
 /* Diagnostics. */
-    fprintf(stderr, "Performing diagnostic to determine which one ...\n\n");
+    fprintf(csc_stderr, "Performing diagnostic to determine which one ...\n\n");
     for (pt=anchor.next; pt!=&anchor; pt=pt->next)
     {   if (  ((pt->next<lo_adr || pt->next>hi_adr) && pt->next!=&anchor)
                 || align_err(pt->next) && pt->next!=&anchor
@@ -267,7 +271,7 @@ static void freecheck(memchk_type *header, int line, char *file)
 
 
 static void msg_quit(char *msg, char *file, int line)
-{   fprintf(stderr, "memcheck: line %d file \"%s\" :-\n\t%s!\n",line,file,msg);
+{   fprintf(csc_stderr, "memcheck: line %d file \"%s\" :-\n\t%s!\n",line,file,msg);
     exit(1);
 }
 

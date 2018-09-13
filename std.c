@@ -9,6 +9,23 @@
 #include "std.h"
 
 
+FILE *csc_errOut = NULL;
+
+void csc_setErrOut(const char *pathErrOut)
+{	csc_errOut = fopen(pathErrOut, "a"); csc_assert(csc_errOut);
+	int ret = setvbuf(csc_errOut, NULL, _IONBF, 0); csc_assert(ret==0);
+}
+
+void csc_assertFail(const char *fname, int lineNo, const char *expr)
+{   fprintf(csc_stderr
+		   , "csc_assert failure (%s) in file \"%s\" at line %d\n" 
+		   , expr, fname, lineNo
+		   );
+    exit(1);
+}
+	
+
+
 int csc_fgetwd(FILE *fp, char *wd, int wdmax)
 {	int len=0;
 	int ch = getc(fp);

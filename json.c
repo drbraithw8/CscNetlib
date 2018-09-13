@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <assert.h>
 
 #include "std.h"
 #include "alloc.h"
@@ -648,7 +647,7 @@ static csc_bool_t jsonParse_readNum(jsonParse_t *jsp, elem_t *el)
 
 // Assumes that we are looking at the first digit of a number.
     int ch = jsp->ch;
-    assert(ch=='-' || isdigit(ch));
+    csc_assert(ch=='-' || isdigit(ch));
  
 // Are we looking at a minus sign?
 	if (ch == '-')
@@ -702,7 +701,7 @@ static csc_bool_t jsonParse_readPlainWord(jsonParse_t *jsp, elem_t *el)
  
 // Assumes that we are looking at the first character of a word.
     int ch = jsp->ch;
-    assert(islower(ch));
+    csc_assert(islower(ch));
  
 // Read in a word.
     while (islower(ch))
@@ -744,7 +743,7 @@ static int jsonParse_readHexStr(jsonParse_t *jsp, char *hexStr, int hexStrMaxLen
     int n;
  
 // Assumes that first hex digit has been read in.
-    assert(isxdigit(ch));
+    csc_assert(isxdigit(ch));
  
 // Read in the string.
     n = 0;
@@ -772,7 +771,7 @@ static csc_bool_t jsonParse_readString(jsonParse_t *jsp, csc_str_t *str)
  
 // Assumes we have the initial quote of a string.
     int ch = jsp->ch;
-    assert(ch == '\"');
+    csc_assert(ch == '\"');
     ch = jsonParse_nextChar(jsp);
  
 // Read in the string.
@@ -921,7 +920,7 @@ static csc_bool_t jsonParse_readElem(jsonParse_t *jsp, elem_t *el)
     else if (ch == '{')
     {
         csc_json_t *obj = jsonParse_readObj(jsp);
-		assert(obj != NULL);
+		csc_assert(obj != NULL);
         if (csc_json_getErrStr(obj)==NULL)
         {
             el->type = csc_jsonType_Obj; 
@@ -938,7 +937,7 @@ static csc_bool_t jsonParse_readElem(jsonParse_t *jsp, elem_t *el)
     else if (ch == '[')
     {
         csc_jsonArr_t *arr = jsonParse_readArr(jsp);
-		assert(arr != NULL);
+		csc_assert(arr != NULL);
         if (csc_json_getErrStr((csc_json_t*)arr) == NULL)
         {
             el->type = csc_jsonType_Arr; 
@@ -968,7 +967,7 @@ static csc_jsonArr_t *jsonParse_readArr(jsonParse_t *jsp)
  
 // Assumes that we are looking at the opening brace of an object.
     int ch = jsp->ch;
-    assert(ch == '[');
+    csc_assert(ch == '[');
  
 // Look at next character.
     jsonParse_nextChar(jsp);

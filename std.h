@@ -23,7 +23,7 @@
 
 typedef enum csc_bool_e { csc_FALSE=0, csc_TRUE=1 } csc_bool_t;
 
-#define csc_CKCK fprintf(stderr, \
+#define csc_CKCK fprintf(csc_stderr, \
                 "Got to line %d in file %s !\n", __LINE__, __FILE__)
 
 typedef unsigned int csc_uint;
@@ -35,6 +35,14 @@ typedef unsigned short csc_ushort;
 #define csc_dim(array)      (sizeof(array) / sizeof(array[0]))
 #define csc_fdim(typ,arr) (sizeof(((typ*)NULL)->arr)/sizeof(((typ*)NULL)->arr[0]))
 #define csc_fsizeof(type,field)     (sizeof(((type *)NULL)->field))
+
+
+extern FILE *csc_errOut;
+void csc_setErrOut(const char *pathErrOut);
+void csc_assertFail(const char *fname, int lineNo, const char *expr);
+#define csc_stderr (csc_errOut?csc_errOut:stderr)
+#define csc_assert(a)  ( !(a) ? ( \
+   csc_assertFail(__FILE__, __LINE__, #a) , 0) : 0)  
 
 
 // Reads a line from the stream 'fp' into the array 'line'.  The

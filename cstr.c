@@ -19,7 +19,7 @@ typedef struct csc_str_t
 
 static void error_handle(const char *errmsg)
 // Default memory allocator for cstr.
-{   fprintf(stderr, "Error in cstr: %s\n", errmsg);
+{	fprintf(csc_stderr, "Error in cstr: %s\n", errmsg);
     exit(1);
 }
 
