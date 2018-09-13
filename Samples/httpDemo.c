@@ -14,15 +14,15 @@ int main(int argc, char **argv)
 
 // Create HTTP message.
 	sendMsg = csc_http_new();			assert(sendMsg!=NULL);
-	csc_http_addSF(sendMsg, csc_httpSF_method, "GET");
-	csc_http_addSF(sendMsg, csc_httpSF_reqUri, "/index.html");
-	csc_http_addSF(sendMsg, csc_httpSF_protocol, "HTTP/1.1");
-	csc_http_addHdr(sendMsg, "Host", "example.com");
-	csc_http_addHdr(sendMsg, "Connection", "close");
+	errCode = csc_http_addSF(sendMsg, csc_httpSF_method, "GET");           assert(errCode==csc_httpErr_Ok);
+	errCode = csc_http_addSF(sendMsg, csc_httpSF_reqUri, "/index.html");   assert(errCode==csc_httpErr_Ok);
+	errCode = csc_http_addSF(sendMsg, csc_httpSF_protocol, "HTTP/1.1");    assert(errCode==csc_httpErr_Ok);
+	errCode = csc_http_addHdr(sendMsg, "Host", "example.com");             assert(errCode==csc_httpErr_Ok);
+	errCode = csc_http_addHdr(sendMsg, "Connection", "close");             assert(errCode==csc_httpErr_Ok);
 
 // Add GET arguments.
-	csc_http_addUrlVal(sendMsg, "name", "Fred Blogs");
-	csc_http_addUrlVal(sendMsg, "age", "23");
+	errCode = csc_http_addUrlVal(sendMsg, "name", "Fred Blogs");           assert(errCode==csc_httpErr_Ok);
+	errCode = csc_http_addUrlVal(sendMsg, "age", "23");                    assert(errCode==csc_httpErr_Ok);
 
 // Send HTTP message.
 	printf("%s", "------------- Begin send message ----------------\n");
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 		"Content-Length: 94\n"
 		"Connection: close\n"
 		"\n" ;
-	errCode = csc_http_rcvCliStr(rcvMsg, responseStr);    assert(errCode==csc_httpErr_Ok);
+	errCode = csc_http_rcvCliStr(rcvMsg, responseStr);                     assert(errCode==csc_httpErr_Ok);
 	printf("Protocol: %s\n", csc_http_getSF(rcvMsg, csc_httpSF_protocol));
 	const char *statCode = csc_http_getSF(rcvMsg, csc_httpSF_statCode);
 	printf("StatCode: %s\n", statCode);
