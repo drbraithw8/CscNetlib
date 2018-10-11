@@ -26,6 +26,8 @@
 #define configId_MaxThreads "MaxThreads"
 #define configId_ReadTimeout "ReadTimeout"
 #define configId_WriteTimeout "WriteTimeout"
+#define configId_BlacklistMax "BlacklistMax"
+#define configId_BlacklistExpire "BlacklistExpire"
 #define configId_Backlog "Backlog"
 #define configId_LogLevel "LogLevel"
 #define configId_errPath "StdErrPath"
@@ -252,10 +254,11 @@ int csc_servBase_server( char *srvModelStr
                        , void *local      // Values to pass to doConn() and to doInit().
                        )
 {   int retVal = csc_TRUE;
-    const char *logLevelStr, *portNumStr, *backlogStr, *ipStr, *maxThreadsStr;
-	const char *readTimeoutSecsStr, *writeTimeoutSecsStr;
+	const char *str;
+    const char *ipStr;
     int iniFileLineNum, portNum, srvModel, backlog, maxThreads, result;
 	int readTimeoutSecs, writeTimeoutSecs;
+	int blacklistMax, blacklistExpire;
  
 // Resources to free (should match Free resources in cleanup).
     csc_log_t *log = NULL;
@@ -310,9 +313,9 @@ int csc_servBase_server( char *srvModelStr
     }
  
 // Get and set logging level
-    logLevelStr = csc_ini_getStr(ini, ConfSection, configId_LogLevel);
-    if (logLevelStr != NULL)
-    {   if (!csc_isValid_int(logLevelStr) || !csc_log_setLogLevel(log, atoi(logLevelStr)))
+    str = csc_ini_getStr(ini, ConfSection, configId_LogLevel);
+    if (str != NULL)
+    {   if (!csc_isValid_int(str) || !csc_log_setLogLevel(log, atoi(str)))
         {   csc_log_printf( log
                          , csc_log_FATAL
                          , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
@@ -324,7 +327,7 @@ int csc_servBase_server( char *srvModelStr
             goto cleanup;
         }
     }
-
+ 
 // Set the error output.
 	const char *stderrPath = csc_ini_getStr(ini, ConfSection, configId_errPath);
 	if (stderrPath != NULL)
@@ -343,8 +346,8 @@ int csc_servBase_server( char *srvModelStr
 	}
  
 // Get the port number.
-    portNumStr = csc_ini_getStr(ini, ConfSection, configId_Port);
-    if (portNumStr==NULL || !csc_isValid_int(portNumStr))
+    str = csc_ini_getStr(ini, ConfSection, configId_Port);
+    if (str==NULL || !csc_isValid_int(str))
     {   csc_log_printf( log
                      , csc_log_FATAL
                      , "Invalid or missing \"%s\" in section \"%s\" configuration file \"%s\""
@@ -355,17 +358,17 @@ int csc_servBase_server( char *srvModelStr
         retVal = csc_FALSE; 
         goto cleanup;
     }
-    portNum = atoi(portNumStr);;
+    portNum = atoi(str);
  
 // Get the IP.
     ipStr = csc_ini_getStr(ini, ConfSection, configId_Ip);
     // Error handling for this is performed already in csc_srv_setAddr().
  
 // Get the backlog.
-    backlogStr = csc_ini_getStr(ini, ConfSection, configId_Backlog);
-    if (backlogStr == NULL)
-        backlogStr = "10";
-    if (!csc_isValid_int(backlogStr))
+    str = csc_ini_getStr(ini, ConfSection, configId_Backlog);
+    if (str == NULL)
+        str = "10";
+    if (!csc_isValid_int(str))
     {   csc_log_printf( log
                      , csc_log_FATAL
                      , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
@@ -376,13 +379,13 @@ int csc_servBase_server( char *srvModelStr
         retVal = csc_FALSE; 
         goto cleanup;
     }
-    backlog = atoi(backlogStr);
+    backlog = atoi(str);
  
 // Get the max number of connections.
-    maxThreadsStr = csc_ini_getStr(ini, ConfSection, configId_MaxThreads);
-    if (maxThreadsStr == NULL)
-        maxThreadsStr = "4";
-    else if (!csc_isValid_int(maxThreadsStr))
+    str = csc_ini_getStr(ini, ConfSection, configId_MaxThreads);
+    if (str == NULL)
+        str = "4";
+    else if (!csc_isValid_int(str))
     {   csc_log_printf( log
                      , csc_log_FATAL
                      , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
@@ -393,13 +396,13 @@ int csc_servBase_server( char *srvModelStr
         retVal = csc_FALSE; 
         goto cleanup;
     }
-    maxThreads = atoi(maxThreadsStr);
+    maxThreads = atoi(str);
  
 // Get the read timeout value.
-	readTimeoutSecsStr = csc_ini_getStr(ini, ConfSection, configId_ReadTimeout);
-    if (readTimeoutSecsStr == NULL)
-        readTimeoutSecsStr = "20";
-	if (!csc_isValidRange_int(readTimeoutSecsStr, 0, 1000, &readTimeoutSecs))
+	str = csc_ini_getStr(ini, ConfSection, configId_ReadTimeout);
+    if (str == NULL)
+        str = "20";
+	if (!csc_isValidRange_int(str, 0, 1000, &readTimeoutSecs))
     {   csc_log_printf( log
                      , csc_log_FATAL
                      , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
@@ -412,14 +415,46 @@ int csc_servBase_server( char *srvModelStr
     }
  
 // Get the write timeout value.
-	writeTimeoutSecsStr = csc_ini_getStr(ini, ConfSection, configId_WriteTimeout);
-    if (writeTimeoutSecsStr == NULL)
-        writeTimeoutSecsStr = "20";
-	if (!csc_isValidRange_int(writeTimeoutSecsStr, 0, 1000, &writeTimeoutSecs))
+	str = csc_ini_getStr(ini, ConfSection, configId_WriteTimeout);
+    if (str == NULL)
+        str = "20";
+	if (!csc_isValidRange_int(str, 0, 1000, &writeTimeoutSecs))
     {   csc_log_printf( log
                      , csc_log_FATAL
                      , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
                      , configId_WriteTimeout
+                     , ConfSection
+                     , configPath
+                     );
+        retVal = csc_FALSE; 
+        goto cleanup;
+    }
+ 
+// Get blacklistMax.
+	str = csc_ini_getStr(ini, ConfSection, configId_BlacklistMax);
+    if (str == NULL)
+        str = "0";
+	if (!csc_isValidRange_int(str, 0, 1000, &blacklistMax))
+    {   csc_log_printf( log
+                     , csc_log_FATAL
+                     , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
+                     , configId_BlacklistMax
+                     , ConfSection
+                     , configPath
+                     );
+        retVal = csc_FALSE; 
+        goto cleanup;
+    }
+ 
+// Get blacklistExpire.
+	str = csc_ini_getStr(ini, ConfSection, configId_BlacklistExpire);
+    if (str == NULL)
+        str = "20";
+	if (!csc_isValidRange_int(str, 0, 1000, &blacklistExpire))
+    {   csc_log_printf( log
+                     , csc_log_FATAL
+                     , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
+                     , configId_BlacklistExpire
                      , ConfSection
                      , configPath
                      );
