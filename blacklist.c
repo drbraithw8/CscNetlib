@@ -151,29 +151,3 @@ void csc_blacklist_setFakeTime(csc_blacklist_t *bl, time_t fakeNow)
 {	bl->fakeNow = fakeNow;
 }
 
-
-
-
-// int main(int argc, char **argv)
-// {	
-// 	const int LineMax = 99;
-// 	char line[LineMax+1];
-//  
-// 	csc_blacklist_t *bl = csc_blacklist_new(3); assert(bl);
-//  
-// 	while (csc_fgetline(stdin,line,LineMax) > 0)
-// 	{	if (csc_streq(line, "clean"))
-// 		{
-// 			csc_blacklist_clean(bl);
-// 		}
-// 		else
-// 		{
-// 			printf("%d ", csc_blacklist_blackness(bl, line));
-// 			printf("%d %d\n", csc_blacklist_accessCount(bl), csc_hash_count(bl->hash));
-// 		}
-// 	}
-//  
-// 	csc_blacklist_free(bl);
-// 	exit(0);
-// }
-
