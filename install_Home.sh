@@ -12,7 +12,8 @@ else
 fi
 cp std.h isvalid.h iniFile.h logger.h netCli.h netSrv.h \
    ioAny.h servBase.h fileProperties.h cstr.h alloc.h list.h \
-   http.h hash.h signal.h dynArray.h json.h udp.h $INCDIR
+   http.h hash.h signal.h dynArray.h json.h udp.h blacklist.h \
+   $INCDIR
 
 if [ ! -d $LIBDIR ]
 then

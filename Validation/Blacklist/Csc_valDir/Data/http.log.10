@@ -1,0 +1,340 @@
+2[20181008.021824]4255 Logging commenced
+2[20181008.021824]Daemonisation successful
+2[20181008.021824]OneByOne server accepting connections on port 80
+2[20181008.021841]Accepted connection from 61.68.160.181
+2[20181008.021841]Sent requested file "/privateTimetable.html"
+2[20181008.021841]Accepted connection from 61.68.160.181
+2[20181008.021841]No such file "/favicon.ico"
+2[20181008.022025]Accepted connection from 93.90.215.126
+2[20181008.022025]HTTP header has bad path "/"
+2[20181008.022942]Accepted connection from 61.68.160.181
+2[20181008.022942]Sent requested file "/privateTimetable.html"
+2[20181008.022942]Accepted connection from 61.68.160.181
+2[20181008.022945]No such file "/favicon.ico"
+2[20181008.022945]Accepted connection from 61.68.160.181
+2[20181008.022945]No such file "/favicon.ico"
+2[20181008.022946]Accepted connection from 61.68.160.181
+3[20181008.022951]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.025902]Accepted connection from 152.250.255.201
+2[20181008.025902]HTTP header has bad path "/"
+2[20181008.030021]Accepted connection from 110.143.158.99
+2[20181008.030021]userName="U12345678" givenPwd="ka8ejdf93n" configPwd="NULL"
+2[20181008.030021]IP get/set authorisation failure: 401
+2[20181008.032240]Accepted connection from 139.162.106.181
+2[20181008.032240]HTTP header has bad path "/"
+2[20181008.034646]Accepted connection from 66.102.6.202
+2[20181008.034646]userName="U1062855" givenPwd="NULL" configPwd="Ae66rHWGxkMM"
+2[20181008.034646]IP get/set authorisation failure: 401
+2[20181008.043016]Accepted connection from 60.191.38.77
+2[20181008.043016]HTTP header has bad path "/"
+2[20181008.044822]Accepted connection from 61.68.160.181
+2[20181008.044822]Sent requested file "/myHomePage.html"
+2[20181008.044823]Accepted connection from 61.68.160.181
+2[20181008.044823]No such file "/favicon.ico"
+2[20181008.051417]Accepted connection from 178.93.27.238
+2[20181008.051417]HTTP header has bad path "/"
+2[20181008.051602]Accepted connection from 139.216.146.251
+1[20181008.051602]myip=127.0.0.2
+2[20181008.051618]Accepted connection from 139.216.146.251
+1[20181008.051618]myip=127.0.0.2
+2[20181008.051803]Accepted connection from 61.68.160.181
+2[20181008.051803]Sent requested file "/privateTimetable.html"
+2[20181008.051822]Accepted connection from 61.68.160.181
+2[20181008.051823]Sent requested file "/myHomePage.html"
+2[20181008.051931]Accepted connection from 139.216.146.251
+2[20181008.051938]Accepted connection from 139.216.146.251
+2[20181008.051939]No such file "/favicon.ico"
+2[20181008.052532]Accepted connection from 139.216.146.251
+2[20181008.052539]Accepted connection from 139.216.146.251
+1[20181008.052539]myip=139.216.146.251
+2[20181008.052548]Accepted connection from 139.216.146.251
+2[20181008.052604]Accepted connection from 139.216.146.251
+2[20181008.052919]Accepted connection from 123.200.22.134
+2[20181008.052919]HTTP header has bad path "/"
+2[20181008.053014]Accepted connection from 139.216.146.251
+2[20181008.053030]Accepted connection from 139.216.146.251
+2[20181008.053344]Accepted connection from 186.219.247.94
+2[20181008.053344]HTTP header has bad path "/"
+2[20181008.053517]Accepted connection from 139.216.146.251
+2[20181008.053533]Accepted connection from 139.216.146.251
+2[20181008.054415]Accepted connection from 139.216.146.251
+1[20181008.054415]myip=139.216.146.251
+2[20181008.055347]Accepted connection from 205.147.218.234
+2[20181008.055347]HTTP header request method "HEAD"
+2[20181008.055530]Accepted connection from 139.216.146.251
+1[20181008.055530]myip=139.216.146.251
+2[20181008.055619]Accepted connection from 139.216.146.251
+1[20181008.055619]myip=139.216.146.251
+2[20181008.060005]Accepted connection from 139.216.146.251
+2[20181008.061835]Accepted connection from 83.201.103.194
+2[20181008.061835]HTTP header has bad path "/"
+2[20181008.062346]Accepted connection from 185.222.211.218
+2[20181008.062346]No such file "/CHANGELOG.txt"
+2[20181008.062346]Accepted connection from 185.222.211.218
+2[20181008.062346]No such file "/core/CHANGELOG.txt"
+2[20181008.062346]Accepted connection from 185.222.211.218
+2[20181008.062346]No such file "/includes/bootstrap.inc"
+2[20181008.062347]Accepted connection from 185.222.211.218
+2[20181008.062347]No such file "/core/includes/bootstrap.inc"
+2[20181008.062347]Accepted connection from 185.222.211.218
+2[20181008.062347]No such file "/includes/database.inc"
+2[20181008.062348]Accepted connection from 185.222.211.218
+2[20181008.062348]HTTP header has bad path "/"
+2[20181008.063040]Accepted connection from 109.101.139.106
+2[20181008.063040]HTTP header has bad path "/"
+2[20181008.065143]Accepted connection from 139.216.146.251
+3[20181008.065151]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.065207]Accepted connection from 139.216.146.251
+3[20181008.065211]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.070422]Accepted connection from 139.216.146.251
+1[20181008.070422]myip=139.216.146.251
+2[20181008.072011]Accepted connection from 49.197.190.135
+2[20181008.072011]No such file "/me.jpg"
+2[20181008.072135]Accepted connection from 49.197.190.135
+2[20181008.072135]No such file "/me.jpg"
+2[20181008.072335]Accepted connection from 49.197.190.135
+2[20181008.072335]No such file "/me.jpg"
+2[20181008.072801]Accepted connection from 177.185.221.239
+2[20181008.072801]HTTP header has bad path "/"
+2[20181008.072808]Accepted connection from 49.197.193.202
+2[20181008.072808]userName="U12345678" givenPwd="ka8ejdf93n" configPwd="NULL"
+2[20181008.072808]IP get/set authorisation failure: 401
+2[20181008.072850]Accepted connection from 139.86.69.43
+2[20181008.072850]No such file "/me.jpg"
+2[20181008.073302]Accepted connection from 139.86.69.43
+2[20181008.073302]No such file "/me.jpg"
+2[20181008.075205]Accepted connection from 201.76.122.236
+2[20181008.075205]HTTP header has bad path "/"
+2[20181008.080812]Accepted connection from 84.23.52.204
+2[20181008.080812]HTTP header has bad path "/"
+2[20181008.082605]Accepted connection from 61.68.160.181
+2[20181008.082605]Sent requested file "/myHomePage.html"
+2[20181008.101246]Accepted connection from 34.222.128.32
+2[20181008.101247]HTTP header has bad path "/"
+2[20181008.112649]Accepted connection from 46.238.200.61
+2[20181008.112649]HTTP header has bad path "/"
+2[20181008.121213]Accepted connection from 201.68.55.163
+2[20181008.121213]HTTP header has bad path "/"
+2[20181008.123551]Accepted connection from 144.138.216.93
+2[20181008.123644]Accepted connection from 144.138.216.93
+2[20181008.125220]Accepted connection from 144.138.216.93
+3[20181008.125221]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.125226]Accepted connection from 144.138.216.93
+3[20181008.125226]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.125311]Accepted connection from 144.138.216.93
+3[20181008.125311]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.125341]Accepted connection from 144.138.216.93
+3[20181008.125341]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.125418]Accepted connection from 144.138.216.93
+3[20181008.125418]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.125427]Accepted connection from 144.138.216.93
+3[20181008.125427]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.125508]Accepted connection from 144.138.216.93
+3[20181008.125516]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.125548]Accepted connection from 144.138.216.93
+3[20181008.125554]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.125715]Accepted connection from 144.138.216.93
+2[20181008.130148]Accepted connection from 144.138.216.93
+2[20181008.130205]Accepted connection from 144.138.216.93
+2[20181008.130335]Accepted connection from 52.53.201.78
+2[20181008.130335]HTTP header has bad path "/"
+2[20181008.130514]Accepted connection from 144.138.216.93
+2[20181008.130653]Accepted connection from 144.138.216.93
+3[20181008.130653]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.130701]Accepted connection from 144.138.216.93
+3[20181008.130701]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.130734]Accepted connection from 144.138.216.93
+2[20181008.130743]Accepted connection from 144.138.216.93
+2[20181008.132811]Accepted connection from 46.148.26.2
+2[20181008.132811]HTTP header has bad path "/"
+2[20181008.132918]Accepted connection from 139.216.146.251
+2[20181008.132918]HTTP header has bad path "/"
+2[20181008.132918]Accepted connection from 139.216.146.251
+2[20181008.132918]No such file "/favicon.ico"
+2[20181008.133756]Accepted connection from 144.138.216.93
+2[20181008.134051]Accepted connection from 144.138.216.93
+2[20181008.134103]Accepted connection from 41.211.107.34
+2[20181008.134103]HTTP header has bad path "/"
+2[20181008.134326]Accepted connection from 144.138.216.93
+2[20181008.135140]Accepted connection from 144.138.216.93
+2[20181008.135226]Accepted connection from 144.138.216.93
+2[20181008.135248]Accepted connection from 144.138.216.93
+2[20181008.135512]Accepted connection from 144.138.216.93
+2[20181008.135707]Accepted connection from 144.138.216.93
+2[20181008.135747]Accepted connection from 144.138.216.93
+2[20181008.135904]Accepted connection from 144.138.216.93
+2[20181008.144433]Accepted connection from 144.138.216.93
+2[20181008.144653]Accepted connection from 144.138.216.93
+2[20181008.144735]Accepted connection from 144.138.216.93
+2[20181008.144808]Accepted connection from 144.138.216.93
+2[20181008.144908]Accepted connection from 144.138.216.93
+1[20181008.144908]myip=144.138.216.93
+2[20181008.144957]Accepted connection from 144.138.216.93
+1[20181008.144957]myip=144.138.216.93
+2[20181008.145440]Accepted connection from 111.231.115.138
+2[20181008.145441]No such file "/status"
+2[20181008.145441]Accepted connection from 111.231.115.138
+2[20181008.145442]No such file "/phpMyAdmin/scripts/setup.php"
+2[20181008.145442]Accepted connection from 111.231.115.138
+3[20181008.145450]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.145451]Accepted connection from 111.231.115.138
+2[20181008.145451]No such file "/_phpMyAdmin/scripts/setup.php"
+2[20181008.145452]Accepted connection from 111.231.115.138
+2[20181008.145452]No such file "/admin/scripts/setup.php"
+2[20181008.145453]Accepted connection from 111.231.115.138
+2[20181008.145453]No such file "/scripts/setup.php"
+2[20181008.145453]Accepted connection from 111.231.115.138
+2[20181008.145453]No such file "/pma/scripts/setup.php"
+2[20181008.145921]Accepted connection from 103.217.166.65
+2[20181008.145921]userName="U12345678" givenPwd="ka8ejdf93n" configPwd="NULL"
+2[20181008.145921]IP get/set authorisation failure: 401
+2[20181008.145921]Accepted connection from 103.217.166.65
+2[20181008.145921]No such file "/favicon.ico"
+2[20181008.145922]Accepted connection from 103.217.166.65
+2[20181008.145922]No such file "/favicon.ico"
+2[20181008.150025]Accepted connection from 103.217.166.65
+2[20181008.150025]userName="U1084025" givenPwd="NT03f8ZYuTEE5" configPwd="NT03f8ZYuTEE"
+2[20181008.150025]IP get/set authorisation failure: 401
+2[20181008.150038]Accepted connection from 103.217.166.65
+2[20181008.150038]userName="U1084025" givenPwd="NT03f8ZYuTEE5" configPwd="NT03f8ZYuTEE"
+2[20181008.150038]IP get/set authorisation failure: 401
+2[20181008.150110]Accepted connection from 103.217.166.65
+2[20181008.150110]userName="U1084025" givenPwd="NT03f8ZYuTEE5" configPwd="NT03f8ZYuTEE"
+2[20181008.150110]IP get/set authorisation failure: 401
+2[20181008.150252]Accepted connection from 103.217.166.65
+2[20181008.150252]userName="U1084025" givenPwd="NT03f8ZYuTEE5" configPwd="NT03f8ZYuTEE"
+2[20181008.150252]IP get/set authorisation failure: 401
+2[20181008.150303]Accepted connection from 103.217.166.65
+2[20181008.150303]userName="U1084025" givenPwd="NT03f8ZYuTEE5" configPwd="NT03f8ZYuTEE"
+2[20181008.150303]IP get/set authorisation failure: 401
+2[20181008.150412]Accepted connection from 103.217.166.65
+2[20181008.150412]userName="U1084025" givenPwd="NT03f8ZYuTEE5" configPwd="NT03f8ZYuTEE"
+2[20181008.150412]IP get/set authorisation failure: 401
+2[20181008.150532]Accepted connection from 103.217.166.65
+2[20181008.150532]userName="u1084025" givenPwd="NT03f8ZYuTEE5" configPwd="NULL"
+2[20181008.150532]IP get/set authorisation failure: 401
+2[20181008.150547]Accepted connection from 103.217.166.65
+2[20181008.150547]userName="U12345678" givenPwd="ka8ejdf93n" configPwd="NULL"
+2[20181008.150547]IP get/set authorisation failure: 401
+2[20181008.150557]Accepted connection from 103.217.166.65
+2[20181008.150557]userName="U12345678" givenPwd="ka8ejdf93n" configPwd="NULL"
+2[20181008.150557]IP get/set authorisation failure: 401
+2[20181008.150557]Accepted connection from 103.217.166.65
+3[20181008.150603]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.150716]Accepted connection from 144.138.216.93
+1[20181008.150716]myip=144.138.216.93
+2[20181008.151019]Accepted connection from 144.138.216.93
+2[20181008.151019]Accepted connection from 144.138.216.93
+2[20181008.151019]No such file "/favicon.ico"
+2[20181008.151045]Accepted connection from 144.138.216.93
+1[20181008.151045]myip=144.138.216.94
+2[20181008.151045]Accepted connection from 144.138.216.93
+2[20181008.151048]Accepted connection from 144.138.216.93
+3[20181008.151056]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.151058]Accepted connection from 144.138.216.93
+1[20181008.151058]myip=144.138.216.93
+2[20181008.151102]Accepted connection from 144.138.216.93
+2[20181008.151102]Accepted connection from 144.138.216.93
+3[20181008.151110]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.151410]Accepted connection from 144.138.216.93
+1[20181008.151410]myip=144.138.216.93
+2[20181008.151504]Accepted connection from 144.138.216.93
+1[20181008.151504]myip=144.138.216.93
+2[20181008.151604]Accepted connection from 144.138.216.93
+1[20181008.151604]myip=144.138.216.93
+2[20181008.151705]Accepted connection from 144.138.216.93
+1[20181008.151705]myip=144.138.216.93
+2[20181008.151745]Accepted connection from 176.40.123.44
+2[20181008.151745]HTTP header has bad path "/"
+2[20181008.151806]Accepted connection from 144.138.216.93
+1[20181008.151806]myip=144.138.216.93
+2[20181008.152108]Accepted connection from 144.138.216.93
+1[20181008.152108]myip=144.138.216.93
+2[20181008.152518]Accepted connection from 144.138.216.93
+1[20181008.152518]myip=144.138.216.93
+2[20181008.152836]Accepted connection from 144.138.216.93
+1[20181008.152836]myip=144.138.216.93
+2[20181008.152937]Accepted connection from 144.138.216.93
+1[20181008.152937]myip=144.138.216.93
+2[20181008.152943]Accepted connection from 144.138.216.93
+1[20181008.152943]myip=144.138.216.93
+2[20181008.153040]Accepted connection from 144.138.216.93
+1[20181008.153040]myip=144.138.216.93
+2[20181008.153117]Accepted connection from 144.138.216.93
+1[20181008.153117]myip=144.138.216.93
+2[20181008.153501]Accepted connection from 144.138.216.93
+2[20181008.153501]Accepted connection from 144.138.216.93
+1[20181008.153506]myip=144.138.216.94
+2[20181008.153507]Accepted connection from 144.138.216.93
+3[20181008.153515]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.153519]Accepted connection from 103.217.166.65
+3[20181008.153527]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.153808]Accepted connection from 103.217.166.65
+3[20181008.153818]Error reading HTTP header: Bad method in request line
+2[20181008.153941]Accepted connection from 103.217.166.65
+3[20181008.153945]Error reading HTTP header: Bad method in request line
+2[20181008.153955]Accepted connection from 103.217.166.65
+2[20181008.153955]Requested IP for U1084025 not found
+2[20181008.153955]Accepted connection from 103.217.166.65
+2[20181008.153955]No such file "/favicon.ico"
+2[20181008.153955]Accepted connection from 103.217.166.65
+3[20181008.153955]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.154028]Accepted connection from 103.217.166.65
+1[20181008.154028]myip=103.217.166.65
+2[20181008.154028]Accepted connection from 103.217.166.65
+3[20181008.154034]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.154103]Accepted connection from 103.217.166.65
+2[20181008.154147]Accepted connection from 103.217.166.65
+3[20181008.154151]Error reading HTTP header: Bad method in request line
+2[20181008.154151]Accepted connection from 78.2.126.254
+2[20181008.154151]HTTP header has bad path "/"
+2[20181008.154318]Accepted connection from 103.217.166.65
+2[20181008.154603]Accepted connection from 137.74.30.57
+2[20181008.154603]HTTP header has bad path "/"
+2[20181008.154639]Accepted connection from 103.217.166.65
+3[20181008.154645]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.154645]Accepted connection from 103.217.166.65
+3[20181008.154645]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.154649]Accepted connection from 103.217.166.65
+2[20181008.155924]Accepted connection from 144.138.216.93
+1[20181008.155924]myip=120.22.227.159
+2[20181008.155943]Accepted connection from 144.138.216.93
+2[20181008.155943]Accepted connection from 144.138.216.93
+3[20181008.155951]Error reading HTTP header: Unexpected EOF reading method of request line
+2[20181008.160006]Accepted connection from 144.138.216.93
+1[20181008.160006]myip=120.22.227.159
+2[20181008.161052]Accepted connection from 144.138.216.93
+1[20181008.161052]myip=144.138.216.93
+2[20181008.161118]Accepted connection from 144.138.216.93
+1[20181008.161118]myip=120.22.227.159
+2[20181008.162146]Accepted connection from 144.138.216.93
+1[20181008.162146]myip=144.138.216.93
+2[20181008.162310]Accepted connection from 144.138.216.93
+2[20181008.162310]userName="U1062855" givenPwd="Ae66rHWGxkMM1" configPwd="Ae66rHWGxkMM"
+2[20181008.162310]IP get/set authorisation failure: 401
+2[20181008.162443]Accepted connection from 144.138.216.93
+1[20181008.162443]myip=144.138.216.93
+2[20181008.162524]Accepted connection from 144.138.216.93
+1[20181008.162524]myip=144.138.216.93
+2[20181008.162827]Accepted connection from 144.138.216.93
+1[20181008.162827]myip=144.138.216.93
+2[20181008.162948]Accepted connection from 144.138.216.93
+1[20181008.162948]myip=144.138.216.93
+2[20181008.163117]Accepted connection from 144.138.216.93
+2[20181008.163117]userName="U1062855" givenPwd="Ae66rHWGxkMM1" configPwd="Ae66rHWGxkMM"
+2[20181008.163117]IP get/set authorisation failure: 401
+2[20181008.163228]Accepted connection from 144.138.216.93
+1[20181008.163228]myip=144.138.216.93
+2[20181008.163314]Accepted connection from 144.138.216.93
+1[20181008.163314]myip=144.138.216.93
+2[20181008.163743]Accepted connection from 144.138.216.93
+1[20181008.163743]myip=144.138.216.93
+2[20181008.163808]Accepted connection from 144.138.216.93
+2[20181008.163808]userName="U1062855" givenPwd="Ae66rHWGxkMM1" configPwd="Ae66rHWGxkMM"
+2[20181008.163808]IP get/set authorisation failure: 401
+2[20181008.164039]Accepted connection from 144.138.216.93
+2[20181008.164039]userName="U1062855" givenPwd="Ae66rHWGxkMM1" configPwd="Ae66rHWGxkMM"
+2[20181008.164039]IP get/set authorisation failure: 401
+2[20181008.164156]Accepted connection from 103.217.166.65
+2[20181008.164729]Accepted connection from 139.162.170.143
+3[20181008.164731]Error reading HTTP header: Unexpected EOF reading method of request line

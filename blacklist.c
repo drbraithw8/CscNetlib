@@ -14,6 +14,8 @@ typedef struct csc_blacklist_t
 {	csc_hash_t *hash;
 	int expireTime;
 	int accessCount;
+	csc_bool_t isTimeFaked;
+	time_t fakeNow;
 } csc_blacklist_t;
 
 
@@ -48,6 +50,8 @@ csc_blacklist_t *csc_blacklist_new(int expireTime)
 						   );
 	bl->expireTime = expireTime;
 	bl->accessCount = 0;
+	bl->isTimeFaked = csc_FALSE;
+	bl->fakeNow = 0;
 	return bl;
 }
 
@@ -62,18 +66,26 @@ int csc_blacklist_blackness(csc_blacklist_t *bl, const char *idStr)
 {	int ret;
 	blEntry_t *be;
 	long blackness;
-	time_t now = time(NULL);
+	time_t now = 0 ;
+
+// Get the current time.
+	if (bl->isTimeFaked)
+		now = bl->fakeNow;
+	else
+		now = time(NULL);
  
 	bl->accessCount++;
 	be = csc_hash_get(bl->hash, &idStr);
 	if (be == NULL)
 	{
+// fprintf(stdout, "new %s\n", idStr);
 		be = blEntry_new(idStr);
 		blackness = 1;
 		ret = csc_hash_addex(bl->hash, be); assert(ret);
 	}
 	else
 	{
+// fprintf(stdout, "%ld %ld %ld\n", be->blackness, now, be->lastEval);
 		blackness = be->blackness - (now - be->lastEval)/bl->expireTime;
 		if (blackness <= 0)
 			blackness = 1;
@@ -88,8 +100,14 @@ void csc_blacklist_clean(csc_blacklist_t *bl)
 {	int ret;
 	blEntry_t *be;
 	csc_list_t *lstDelIds = NULL;
-	time_t now = time(NULL);
+	time_t now = 0 ;
 	long blackness;
+
+// Get the current time.
+	if (bl->isTimeFaked)
+		now = bl->fakeNow;
+	else
+		now = time(NULL);
  
 // Gather the ID strings of all with negative blackness.
 	csc_hash_iter_t *iter = csc_hash_iter_new(bl->hash, NULL);
@@ -122,6 +140,18 @@ void csc_blacklist_clean(csc_blacklist_t *bl)
 int csc_blacklist_accessCount(csc_blacklist_t *bl)
 {	return bl->accessCount;
 }
+
+
+void csc_blacklist_setTimeFaked(csc_blacklist_t *bl, csc_bool_t isFaked)
+{	bl->isTimeFaked = isFaked;
+}
+
+
+void csc_blacklist_setFakeTime(csc_blacklist_t *bl, time_t fakeNow)
+{	bl->fakeNow = fakeNow;
+}
+
+
 
 
 // int main(int argc, char **argv)
