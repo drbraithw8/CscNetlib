@@ -127,6 +127,9 @@ void csc_mck_exit(int status, int line, char *file);
 long csc_mck_nchunks(void);
 int csc_mck_checkmem(int flag, int line, char *file);
 void csc_mck_print(FILE *fout);
+void csc_mck_changeMark(long oldMarkVal, long newMarkVal);
+void csc_mck_printMarkEq(FILE *fout, long markVal);
+void csc_mck_setMark(long newMarkVal);
 #else
 char *csc_mck_malloc();
 char *csc_mck_calloc();
