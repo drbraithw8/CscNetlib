@@ -31,6 +31,14 @@ typedef unsigned long csc_ulong;
 typedef unsigned char csc_uchar;
 typedef unsigned short csc_ushort;
 
+// Bit manipulations on array of bits
+// implemented as array of csc_uchar, a.
+#define  csc_bm_set(a,i) ((a)[(i)>>3] |= 1<<((i)&7))
+#define  csc_bm_clr(a,i) ((a)[(i)>>3] &= ~(1<<((i)&7)))
+#define  csc_bm_isSet(a,i)  ((a)[(i)>>3] & (1<<((i)&7)))
+#define  csc_bm_isClr(a,i)  (((a)[(i)>>3] & (1<<((i)&7))) == 0)
+#define  csc_bm_nBytes(n)  ((n+7)>>3)
+
 
 #define csc_dim(array)      (sizeof(array) / sizeof(array[0]))
 #define csc_fdim(typ,arr) (sizeof(((typ*)NULL)->arr)/sizeof(((typ*)NULL)->arr[0]))
