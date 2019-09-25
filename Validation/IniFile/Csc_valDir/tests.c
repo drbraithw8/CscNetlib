@@ -10,34 +10,34 @@
 
 void testReport_sVal(const char *testName, const char *required, const char *got)
 {
-// 	printf("req=\"%s\"  got=\"%s\"\n", required, got);
-	if (required==NULL || got==NULL)
-	{	if (required == got)
-			fprintf(stdout, "pass (%s)\n", testName);
-		else
-			fprintf(stdout, "FAIL (%s)\n", testName);
-	}
-	else
-	{	if (csc_streq(got,required))	
-			fprintf(stdout, "pass (%s)\n", testName);
-		else
-			fprintf(stdout, "FAIL (%s)\n", testName);
-	}
+//  printf("req=\"%s\"  got=\"%s\"\n", required, got);
+    if (required==NULL || got==NULL)
+    {   if (required == got)
+            fprintf(stdout, "pass (%s)\n", testName);
+        else
+            fprintf(stdout, "FAIL (%s)\n", testName);
+    }
+    else
+    {   if (csc_streq(got,required))    
+            fprintf(stdout, "pass (%s)\n", testName);
+        else
+            fprintf(stdout, "FAIL (%s)\n", testName);
+    }
 }
 
 void testReport_iVal(const char *testName, int required, int got)
-{	if (got == required)	
-		fprintf(stdout, "pass (%s)\n", testName);
-	else
-		fprintf(stdout, "FAIL (%s)\n", testName);
+{   if (got == required)    
+        fprintf(stdout, "pass (%s)\n", testName);
+    else
+        fprintf(stdout, "FAIL (%s)\n", testName);
 }
 
 
 void testLookup(csc_ini_t *ini, char *section, const char *key, const char *required) 
 {   const char *value = csc_ini_getStr(ini, section, key);
-	char *testName = csc_alloc_str7("ini", "_", section, "_", key, NULL, NULL);
-	testReport_sVal(testName, required, value);
-	free(testName);
+    char *testName = csc_alloc_str7("ini", "_", section, "_", key, NULL, NULL);
+    testReport_sVal(testName, required, value);
+    free(testName);
 }
 
 
@@ -73,9 +73,9 @@ int main()
         
     csc_ini_free(ini);
 
-	if (csc_mck_nchunks() == 0)
-		fprintf(stdout, "pass (%s)\n", "ini_memory");
-	else
-		fprintf(stdout, "FAIL (%s)\n", "ini_memory");
-	csc_mck_print(stdout);
+    if (csc_mck_nchunks() == 0)
+        fprintf(stdout, "pass (%s)\n", "ini_memory");
+    else
+        fprintf(stdout, "FAIL (%s)\n", "ini_memory");
+    csc_mck_print(stdout);
 }

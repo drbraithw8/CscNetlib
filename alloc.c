@@ -10,7 +10,7 @@
 
 
 static void csc_ck_defaultErrorHandler(void *context)
-{	fprintf(csc_stderr, "Error in allocation: Out of memory!\n");
+{   fprintf(csc_stderr, "Error in allocation: Out of memory!\n");
     exit(1);
 }
 

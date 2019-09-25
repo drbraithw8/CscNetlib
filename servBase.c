@@ -48,11 +48,11 @@ typedef struct
 
 
 typedef struct
-{	int readTimeoutSecs, writeTimeoutSecs;
-	int blacklistMax, blacklistExpire;
-	int backlog, maxThreads;
-	int portNum;
-	const char *ipStr;
+{   int readTimeoutSecs, writeTimeoutSecs;
+    int blacklistMax, blacklistExpire;
+    int backlog, maxThreads;
+    int portNum;
+    const char *ipStr;
 } config_t;
 
 static void sigHandler(int sigNum, void *context)
@@ -64,27 +64,27 @@ static void sigHandler(int sigNum, void *context)
 
 
 static int serv_OneByOne( csc_log_t *log
-					    , csc_ini_t *ini
-					    , csc_srv_t *srv
-					    , config_t *conf
+                        , csc_ini_t *ini
+                        , csc_srv_t *srv
+                        , config_t *conf
                         , int (*doConn)( int fd            // client file descriptor
                                        , const char *clientIp   // IP of client, or NULL
                                        , csc_ini_t *ini // Configuration object.
                                        , csc_log_t *log  // Logging object.
                                        , void *local
                                        )
-					    , void *local
+                        , void *local
                         )
 {   int rwSock = -1;
     const char *cliAddr = NULL;
     int retVal = -2;
  
 // Resources.
-	csc_blacklist_t *blacklist = NULL;
+    csc_blacklist_t *blacklist = NULL;
     
 // Set up blacklisting.
-	if (conf->blacklistMax > 0)
-		blacklist = csc_blacklist_new(conf->blacklistExpire);
+    if (conf->blacklistMax > 0)
+        blacklist = csc_blacklist_new(conf->blacklistExpire);
  
 // Set up the signal handling.
     servSig_t servSig;
@@ -97,43 +97,43 @@ static int serv_OneByOne( csc_log_t *log
     while (!servSig.isQuit)
     {   rwSock = csc_srv_accept(srv);
         if (rwSock==-2 && servSig.isQuit)   // Interrupted.
-        {	retVal = 1;
+        {   retVal = 1;
             csc_log_str(log, csc_log_NOTICE
                         , "Server terminating due to caught signal");
         }
         else if (rwSock < 0)   // Some sort of error.
-        {	csc_log_str(log, csc_log_FATAL, csc_srv_getErrMsg(srv)); 
+        {   csc_log_str(log, csc_log_FATAL, csc_srv_getErrMsg(srv)); 
             servSig.isQuit = csc_TRUE;
             retVal = 0;
         }
         else  // The socket is OK.
         {
-		// Accept the connection.
-			cliAddr = csc_srv_acceptAddr(srv);
+        // Accept the connection.
+            cliAddr = csc_srv_acceptAddr(srv);
  
-		// Blacklisting.
-			if (blacklist && csc_blacklist_blackness(blacklist,cliAddr) > conf->blacklistMax)
-			{ // That IP has been blacklisted. Reject the connection.
-				close(rwSock);
-				csc_log_printf(log, csc_log_NOTICE, "Connection blacklisted %s", cliAddr);
-			}
-			else
-			{
-			// Clean blacklist.
-				if (blacklist && csc_blacklist_accessCount(blacklist) > 200)
-					csc_blacklist_clean(blacklist);
+        // Blacklisting.
+            if (blacklist && csc_blacklist_blackness(blacklist,cliAddr) > conf->blacklistMax)
+            { // That IP has been blacklisted. Reject the connection.
+                close(rwSock);
+                csc_log_printf(log, csc_log_NOTICE, "Connection blacklisted %s", cliAddr);
+            }
+            else
+            {
+            // Clean blacklist.
+                if (blacklist && csc_blacklist_accessCount(blacklist) > 200)
+                    csc_blacklist_clean(blacklist);
  
-			// Logging.
-				csc_log_printf(log, csc_log_NOTICE,
-							"Accepted connection from %s", cliAddr);
+            // Logging.
+                csc_log_printf(log, csc_log_NOTICE,
+                            "Accepted connection from %s", cliAddr);
  
-			// Impose read/write timeouts.
-				csc_sock_setTimeout(rwSock, "r", conf->readTimeoutSecs);
-				csc_sock_setTimeout(rwSock, "w", conf->writeTimeoutSecs);
-	 
-			// Handle the connection.
-				doConn(rwSock, cliAddr, ini, log, local);
-			}
+            // Impose read/write timeouts.
+                csc_sock_setTimeout(rwSock, "r", conf->readTimeoutSecs);
+                csc_sock_setTimeout(rwSock, "w", conf->writeTimeoutSecs);
+     
+            // Handle the connection.
+                doConn(rwSock, cliAddr, ini, log, local);
+            }
         }
     }
  
@@ -142,16 +142,16 @@ static int serv_OneByOne( csc_log_t *log
     csc_signal_delHndl(SIGTERM, &servSig);
  
 // Free resources.
-	if (blacklist)
-		csc_blacklist_free(blacklist);
+    if (blacklist)
+        csc_blacklist_free(blacklist);
  
     return retVal;
 }
 
 
 static int serv_Forking( csc_log_t *log
-					   , csc_ini_t *ini
-					   , csc_srv_t *srv
+                       , csc_ini_t *ini
+                       , csc_srv_t *srv
                        , config_t *conf
                        , int (*doConn)( int fd            // client file descriptor
                                       , const char *clientIp   // IP of client, or NULL
@@ -159,7 +159,7 @@ static int serv_Forking( csc_log_t *log
                                       , csc_log_t *log  // Logging object.
                                       , void *local
                                       )
-					   , void *local
+                       , void *local
                        )
 {   int rwSock = -1;
     const char *cliAddr = NULL;
@@ -170,11 +170,11 @@ static int serv_Forking( csc_log_t *log
     pid_t deadChildProcId = 0;
     
 // Resources.
-	csc_blacklist_t *blacklist = NULL;
+    csc_blacklist_t *blacklist = NULL;
     
 // Set up blacklisting.
-	if (conf->blacklistMax > 0)
-		blacklist = csc_blacklist_new(conf->blacklistExpire);
+    if (conf->blacklistMax > 0)
+        blacklist = csc_blacklist_new(conf->blacklistExpire);
  
 // Set up the signal handling.
     servSig_t servSig;
@@ -187,87 +187,87 @@ static int serv_Forking( csc_log_t *log
     while (!servSig.isQuit)
     {   rwSock = csc_srv_accept(srv);
         if (rwSock==-2 && servSig.isQuit) // Interrupted.
-        {	retVal = 1;
+        {   retVal = 1;
             csc_log_str(log, csc_log_NOTICE
                         , "Server terminating due to caught signal");
         }
         else if (rwSock < 0)  // Some sort of error.
-        {	csc_log_str(log, csc_log_FATAL, csc_srv_getErrMsg(srv)); 
+        {   csc_log_str(log, csc_log_FATAL, csc_srv_getErrMsg(srv)); 
             servSig.isQuit = csc_TRUE;
             retVal = 0;
         }
         else
         { // Successful accept.
  
-		// Log the start of the processing.
-			cliAddr = csc_srv_acceptAddr(srv);
+        // Log the start of the processing.
+            cliAddr = csc_srv_acceptAddr(srv);
  
-		// Blacklisting.
-			if (blacklist && csc_blacklist_blackness(blacklist, cliAddr) > conf->blacklistMax)
-			{ // That IP has been blacklisted. Reject the connection.
-				close(rwSock);
-				csc_log_printf(log, csc_log_NOTICE, "Connection blacklisted %s", cliAddr);
-			}
-			else
-			{
-			// Clean blacklist.
-				if (blacklist && csc_blacklist_accessCount(blacklist) > 200)
-					csc_blacklist_clean(blacklist);
+        // Blacklisting.
+            if (blacklist && csc_blacklist_blackness(blacklist, cliAddr) > conf->blacklistMax)
+            { // That IP has been blacklisted. Reject the connection.
+                close(rwSock);
+                csc_log_printf(log, csc_log_NOTICE, "Connection blacklisted %s", cliAddr);
+            }
+            else
+            {
+            // Clean blacklist.
+                if (blacklist && csc_blacklist_accessCount(blacklist) > 200)
+                    csc_blacklist_clean(blacklist);
  
-			// Logging.
-				csc_log_printf(log, csc_log_NOTICE,
-						"Accepted connection from %s", cliAddr);
+            // Logging.
+                csc_log_printf(log, csc_log_NOTICE,
+                        "Accepted connection from %s", cliAddr);
  
-			// Do the forking.
-				newChildProcId = fork();  // One process splits into two.
-				if (newChildProcId < 0)  // Error.  Fork failed.
-				{   csc_log_printf(log, csc_log_ERROR,
-									"fork: %s", strerror(errno)); 
-					servSig.isQuit = csc_TRUE;
-					retVal = 0;
-				}
-				else if (newChildProcId == 0)  // This is the child process.
-				{   
-				// Only parent accepts connections.  Remove signal handling for accept.
-					csc_signal_delHndl(SIGINT, &servSig);
-					csc_signal_delHndl(SIGTERM, &servSig);
-	 
-				// Impose read/write timeouts.
-					csc_sock_setTimeout(rwSock, "r", conf->readTimeoutSecs);
-					csc_sock_setTimeout(rwSock, "w", conf->writeTimeoutSecs);
-	 
-				// Handle the connection.
-					doConn(rwSock, cliAddr, ini, log, local);
-	 
-				// Child finished therefore child dies.
-					exit(0);
-				}
-				else  // This is the parent process.
-				{   numThreads++;  // The parent has created another thread.
-					close(rwSock);  // Must close or else have socket for every child started.
-	 
-				// If we are up to the maximum number of threads, then block until a child dies.
-					if (numThreads == conf->maxThreads)
-					{   deadChildProcId = wait(NULL);
-						// fprintf(csc_stderr, "Full up child buried.\n");
-						numThreads--;  // One thread died.
-					}
-	 
-				// Collect all available dead children without blocking.
-					isMoreDeadChildren = csc_TRUE;
-					while (isMoreDeadChildren && numThreads>0)
-					{   deadChildProcId = waitpid(-1,NULL,WNOHANG);
-						if (deadChildProcId == 0)
-						{   isMoreDeadChildren = csc_FALSE;  // Failed.  No more dead.  Terminate loop.
-							// fprintf(csc_stderr, "No more dead children.\n");
-						}
-						else
-						{   numThreads --;  // One child died.
-							// fprintf(csc_stderr, "Child buried.\n");
-						}
-					}
-				} // Parent process.
-			} // Not blacklisted.
+            // Do the forking.
+                newChildProcId = fork();  // One process splits into two.
+                if (newChildProcId < 0)  // Error.  Fork failed.
+                {   csc_log_printf(log, csc_log_ERROR,
+                                    "fork: %s", strerror(errno)); 
+                    servSig.isQuit = csc_TRUE;
+                    retVal = 0;
+                }
+                else if (newChildProcId == 0)  // This is the child process.
+                {   
+                // Only parent accepts connections.  Remove signal handling for accept.
+                    csc_signal_delHndl(SIGINT, &servSig);
+                    csc_signal_delHndl(SIGTERM, &servSig);
+     
+                // Impose read/write timeouts.
+                    csc_sock_setTimeout(rwSock, "r", conf->readTimeoutSecs);
+                    csc_sock_setTimeout(rwSock, "w", conf->writeTimeoutSecs);
+     
+                // Handle the connection.
+                    doConn(rwSock, cliAddr, ini, log, local);
+     
+                // Child finished therefore child dies.
+                    exit(0);
+                }
+                else  // This is the parent process.
+                {   numThreads++;  // The parent has created another thread.
+                    close(rwSock);  // Must close or else have socket for every child started.
+     
+                // If we are up to the maximum number of threads, then block until a child dies.
+                    if (numThreads == conf->maxThreads)
+                    {   deadChildProcId = wait(NULL);
+                        // fprintf(csc_stderr, "Full up child buried.\n");
+                        numThreads--;  // One thread died.
+                    }
+     
+                // Collect all available dead children without blocking.
+                    isMoreDeadChildren = csc_TRUE;
+                    while (isMoreDeadChildren && numThreads>0)
+                    {   deadChildProcId = waitpid(-1,NULL,WNOHANG);
+                        if (deadChildProcId == 0)
+                        {   isMoreDeadChildren = csc_FALSE;  // Failed.  No more dead.  Terminate loop.
+                            // fprintf(csc_stderr, "No more dead children.\n");
+                        }
+                        else
+                        {   numThreads --;  // One child died.
+                            // fprintf(csc_stderr, "Child buried.\n");
+                        }
+                    }
+                } // Parent process.
+            } // Not blacklisted.
         } // Successful accept.
     } // While we are not quitting.
  
@@ -277,11 +277,11 @@ static int serv_Forking( csc_log_t *log
     {   deadChildProcId = waitpid(-1,NULL,WNOHANG);
         if (deadChildProcId == 0)
         {   isMoreDeadChildren = csc_FALSE;  // Failed.  No more dead.  Terminate loop.
-			// fprintf(csc_stderr, "No more dead children.\n");
+            // fprintf(csc_stderr, "No more dead children.\n");
         }
         else
         {   numThreads --;  // One child died.
-			// fprintf(csc_stderr, "Child buried.\n");
+            // fprintf(csc_stderr, "Child buried.\n");
         }
     }
  
@@ -290,26 +290,26 @@ static int serv_Forking( csc_log_t *log
     csc_signal_delHndl(SIGTERM, &servSig);
  
 // Free resources.
-	if (blacklist)
-		csc_blacklist_free(blacklist);
+    if (blacklist)
+        csc_blacklist_free(blacklist);
  
     return retVal;
 }
 
 
 csc_bool_t readConfig(csc_log_t *log, csc_ini_t **ini, config_t *conf, char *configPath)
-{	int iniFileLineNum;
-	const char *str;
+{   int iniFileLineNum;
+    const char *str;
 
 // Initialise each element of the configuration to invalid values.
-	conf->portNum = 0;
-	conf->ipStr = NULL;
-	conf->backlog = -1;
-	conf->maxThreads = -1;
-	conf->readTimeoutSecs = -1;
-  	conf->writeTimeoutSecs = -1;
-  	conf->blacklistMax = -1;
-	conf->blacklistExpire = -1;
+    conf->portNum = 0;
+    conf->ipStr = NULL;
+    conf->backlog = -1;
+    conf->maxThreads = -1;
+    conf->readTimeoutSecs = -1;
+    conf->writeTimeoutSecs = -1;
+    conf->blacklistMax = -1;
+    conf->blacklistExpire = -1;
  
 // Get configuration object.
     *ini = csc_ini_new();
@@ -345,25 +345,25 @@ csc_bool_t readConfig(csc_log_t *log, csc_ini_t **ini, config_t *conf, char *con
                          , ConfSection
                          , configPath
                          );
-			return csc_FALSE;
+            return csc_FALSE;
         }
     }
  
 // Set the error output.
-	const char *stderrPath = csc_ini_getStr(*ini, ConfSection, configId_errPath);
-	if (stderrPath != NULL)
-	{	if (!csc_isValid_decentAbsPath(stderrPath))
-		{   csc_log_printf( log
-						 , csc_log_FATAL
-						 , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
-						 , configId_errPath
-						 , ConfSection
-						 , configPath
-						 );
-			return csc_FALSE;
-		}
-		csc_setErrOut(stderrPath);
-	}
+    const char *stderrPath = csc_ini_getStr(*ini, ConfSection, configId_errPath);
+    if (stderrPath != NULL)
+    {   if (!csc_isValid_decentAbsPath(stderrPath))
+        {   csc_log_printf( log
+                         , csc_log_FATAL
+                         , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
+                         , configId_errPath
+                         , ConfSection
+                         , configPath
+                         );
+            return csc_FALSE;
+        }
+        csc_setErrOut(stderrPath);
+    }
  
 // Get the port number.
 // Some error handling for this is performed already in csc_srv_setAddr().
@@ -417,10 +417,10 @@ csc_bool_t readConfig(csc_log_t *log, csc_ini_t **ini, config_t *conf, char *con
     conf->maxThreads = atoi(str);
  
 // Get the read timeout value.
-	str = csc_ini_getStr(*ini, ConfSection, configId_ReadTimeout);
+    str = csc_ini_getStr(*ini, ConfSection, configId_ReadTimeout);
     if (str == NULL)
         str = "20";
-	if (!csc_isValidRange_int(str, 0, 1000, &conf->readTimeoutSecs))
+    if (!csc_isValidRange_int(str, 0, 1000, &conf->readTimeoutSecs))
     {   csc_log_printf( log
                      , csc_log_FATAL
                      , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
@@ -432,10 +432,10 @@ csc_bool_t readConfig(csc_log_t *log, csc_ini_t **ini, config_t *conf, char *con
     }
  
 // Get the write timeout value.
-	str = csc_ini_getStr(*ini, ConfSection, configId_WriteTimeout);
+    str = csc_ini_getStr(*ini, ConfSection, configId_WriteTimeout);
     if (str == NULL)
         str = "20";
-	if (!csc_isValidRange_int(str, 0, 1000, &conf->writeTimeoutSecs))
+    if (!csc_isValidRange_int(str, 0, 1000, &conf->writeTimeoutSecs))
     {   csc_log_printf( log
                      , csc_log_FATAL
                      , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
@@ -447,10 +447,10 @@ csc_bool_t readConfig(csc_log_t *log, csc_ini_t **ini, config_t *conf, char *con
     }
  
 // Get blacklistMax.
-	str = csc_ini_getStr(*ini, ConfSection, configId_BlacklistMax);
+    str = csc_ini_getStr(*ini, ConfSection, configId_BlacklistMax);
     if (str == NULL)
         str = "0";
-	if (!csc_isValidRange_int(str, 0, 1000, &conf->blacklistMax))
+    if (!csc_isValidRange_int(str, 0, 1000, &conf->blacklistMax))
     {   csc_log_printf( log
                      , csc_log_FATAL
                      , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
@@ -462,10 +462,10 @@ csc_bool_t readConfig(csc_log_t *log, csc_ini_t **ini, config_t *conf, char *con
     }
  
 // Get blacklistExpire.
-	str = csc_ini_getStr(*ini, ConfSection, configId_BlacklistExpire);
+    str = csc_ini_getStr(*ini, ConfSection, configId_BlacklistExpire);
     if (str == NULL)
         str = "20";
-	if (!csc_isValidRange_int(str, 1, 1000, &conf->blacklistExpire))
+    if (!csc_isValidRange_int(str, 1, 1000, &conf->blacklistExpire))
     {   csc_log_printf( log
                      , csc_log_FATAL
                      , "Invalid \"%s\" in section \"%s\" configuration file \"%s\""
@@ -477,7 +477,7 @@ csc_bool_t readConfig(csc_log_t *log, csc_ini_t **ini, config_t *conf, char *con
     }
  
 // If we got to here, its all good.
-	return csc_TRUE;
+    return csc_TRUE;
 }
 
 
@@ -491,24 +491,24 @@ int csc_servBase_server( char *srvModelStr
                                       , void *local
                                       )
                        , int (*doInit)( csc_ini_t *ini // Configuration object.
-									  , csc_log_t *log  // Logging object.
-									  , void *local
-									  )
+                                      , csc_log_t *log  // Logging object.
+                                      , void *local
+                                      )
                        , void *local      // Values to pass to doConn() and to doInit().
                        )
 {   int retVal = csc_TRUE;
     int srvModel, result;
-	config_t config;
+    config_t config;
  
 // Resources.
-	csc_ini_t *ini = NULL;
-	csc_log_t *log = NULL;
+    csc_ini_t *ini = NULL;
+    csc_log_t *log = NULL;
     csc_srv_t *srv = NULL;
  
 // Initialise the logging.
     log = csc_log_new(logPath, initialLogLevel);
     if (log == NULL)
-	{	fprintf(csc_stderr, "Failed to initialise the logging.\n");
+    {   fprintf(csc_stderr, "Failed to initialise the logging.\n");
         retVal = csc_FALSE; 
         goto cleanup;
     }
@@ -527,9 +527,9 @@ int csc_servBase_server( char *srvModelStr
     }
  
 // Read in the configuration.
-	retVal = readConfig(log, &ini, &config, configPath);
-	if (!retVal)
-		goto cleanup;
+    retVal = readConfig(log, &ini, &config, configPath);
+    if (!retVal)
+        goto cleanup;
  
 // Create netSrv object.
     srv = csc_srv_new();
@@ -561,13 +561,13 @@ int csc_servBase_server( char *srvModelStr
                   , srvModelStr
                   , config.portNum
                   );
-	if (csc_errOut)
-	{	fprintf( csc_errOut
-			   , "AllGood.  %s server now serving on port %d\n"
+    if (csc_errOut)
+    {   fprintf( csc_errOut
+               , "AllGood.  %s server now serving on port %d\n"
                , srvModelStr
                , config.portNum
                );
-	}
+    }
  
 // Do each successful connection.
     if (srvModel == srvModel_OneByOne)

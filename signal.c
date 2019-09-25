@@ -132,7 +132,7 @@ typedef struct
 
 void handler(int sigNum, void *context)
 {   color_t *color = context;
-	fprintf(csc_stderr, "Got signal %d %s\n", signum, color->color);
+    fprintf(csc_stderr, "Got signal %d %s\n", signum, color->color);
 }
 
 

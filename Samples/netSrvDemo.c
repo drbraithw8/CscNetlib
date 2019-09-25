@@ -18,18 +18,18 @@ int main(int argc, char **argv)
     while ((fd0 = csc_srv_accept(ntp)) >= 0)
     {   fprintf(stdout, "Connection from %s\n", csc_srv_acceptAddr(ntp));
 
-	// Convert file descriptor to input and output streams.
-		int fd1 = dup(fd0);               assert(fd1!=-1);
+    // Convert file descriptor to input and output streams.
+        int fd1 = dup(fd0);               assert(fd1!=-1);
         FILE *tcpIn = fdopen(fd0, "r");   assert(tcpIn!=NULL);
         FILE *tcpOut = fdopen(fd1, "w");  assert(tcpOut!=NULL);
 
-	// Do input/output.
+    // Do input/output.
         csc_fgetline(tcpIn,line,MaxLineLen);
         fprintf(stdout, "Got line: \"%s\"\n", line);
         fprintf(tcpOut, "You said \"%s\"\n", line);
-		fflush(tcpOut);
+        fflush(tcpOut);
 
-	// Close the streams.
+    // Close the streams.
         fclose(tcpOut);
         fclose(tcpIn);
     }

@@ -29,7 +29,7 @@ typedef struct memchk       /* size must be integral no *sizeof(double) */
     char *end;
     char *fname;
     long line_no;
-	csc_ulong mark;  // value that helps with debugging.
+    csc_ulong mark;  // value that helps with debugging.
     csc_ulong ckval;
 } memchk_type;
 
@@ -109,7 +109,7 @@ char *csc_mck_malloc(csc_uint size, int line, char *file)
     (header->next)->prev = header;
 
 /* Initialise the mark to zero. */
-	header->mark = 0;
+    header->mark = 0;
  
 /* OK. */
     nmlc++;
@@ -156,7 +156,7 @@ void csc_mck_free(char *block, int line, char *file)
 char *csc_mck_realloc(char *block, csc_uint size, int line, char *file)
 {   memchk_type *header;
     memchk_type *hi;
-	long mark;
+    long mark;
 
 /* Is this a disguised call to malloc() or free(). */
     if (block == NULL)
@@ -172,7 +172,7 @@ char *csc_mck_realloc(char *block, csc_uint size, int line, char *file)
     freecheck(header, line,file);
  
 /* The mark. */
-	mark = header->mark;
+    mark = header->mark;
  
 /* Get the memory. */
     header = (memchk_type*)realloc((char*)header, (csc_uint)(size+EXTRA_SIZE));
@@ -197,7 +197,7 @@ char *csc_mck_realloc(char *block, csc_uint size, int line, char *file)
     (header->prev)->next = header;
 
 /* The mark. */
-	header->mark = mark;
+    header->mark = mark;
  
  
 /* OK. */
@@ -300,8 +300,8 @@ void csc_mck_printMarkEq(FILE *fout, long markVal)
 {   memchk_type *pt;
     for (pt=anchor.next; pt!=&anchor; pt=pt->next)
     {   if (pt->mark == markVal)
-		{   fprintf(fout, "%ld %s\n", pt->line_no, pt->fname);
-		}
+        {   fprintf(fout, "%ld %s\n", pt->line_no, pt->fname);
+        }
     }
 }
 
@@ -309,7 +309,7 @@ void csc_mck_printMarkEq(FILE *fout, long markVal)
 void csc_mck_setMark(long newMarkVal)
 {   memchk_type *pt;
     for (pt=anchor.next; pt!=&anchor; pt=pt->next)
-	{   pt->mark = newMarkVal;
+    {   pt->mark = newMarkVal;
     }
 }
 
@@ -318,8 +318,8 @@ void csc_mck_changeMark(long oldMarkVal, long newMarkVal)
 {   memchk_type *pt;
     for (pt=anchor.next; pt!=&anchor; pt=pt->next)
     {   if (pt->mark == oldMarkVal)
-		{   pt->mark = newMarkVal;
-		}
+        {   pt->mark = newMarkVal;
+        }
     }
 }
 

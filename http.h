@@ -8,12 +8,12 @@
 
 
 typedef enum csc_httpStartLineFields_e
-{	csc_httpSF_method = 0   // First field of a request line.
-,	csc_httpSF_reqUri       // 2nd field of a request line.
-,	csc_httpSF_protocol     // 3rd field of a request line AND also the 1st field of a status line.
-,	csc_httpSF_statCode     // 2nd field of a status line.
-,	csc_httpSF_reason       // 3rd field of a status line.
-,	csc_httpSF_numSF
+{   csc_httpSF_method = 0   // First field of a request line.
+,   csc_httpSF_reqUri       // 2nd field of a request line.
+,   csc_httpSF_protocol     // 3rd field of a request line AND also the 1st field of a status line.
+,   csc_httpSF_statCode     // 2nd field of a status line.
+,   csc_httpSF_reason       // 3rd field of a status line.
+,   csc_httpSF_numSF
 } csc_httpSF_t;
 
 

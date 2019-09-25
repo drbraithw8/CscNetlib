@@ -48,8 +48,8 @@ void  parent ## _add(parent ## _t *El, child ## _t *el)                        \
 void parent ## _free(parent ## _t *El)                                         \
 {   for (int i=0; i < El->nEls; i++)                                           \
         child ## _free(El->els[i]);                                            \
-	if (El->els)                                                               \
-		free(El->els);                                                         \
+    if (El->els)                                                               \
+        free(El->els);                                                         \
     free(El);                                                                  \
 }                                                                              \
 

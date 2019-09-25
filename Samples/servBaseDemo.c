@@ -87,7 +87,7 @@ int doConn( int fd0            // client file descriptor
     char line[MaxLineLen+1];
  
 // Convert the file descriptor into FILE streams.
-	int fd1 = dup(fd0);           csc_log_assert(log, fd1!=-1);
+    int fd1 = dup(fd0);           csc_log_assert(log, fd1!=-1);
     FILE *fin = fdopen(fd0,"r");  csc_log_assert(log, fin!=NULL);
     FILE *fout = fdopen(fd1,"w"); csc_log_assert(log, fout!=NULL);
  
@@ -97,7 +97,7 @@ int doConn( int fd0            // client file descriptor
  
 // Respond.
     fprintf(fout, "%f %f %f\n", boxDim->height, boxDim->width, boxDim->depth);
-	fflush(fout);
+    fflush(fout);
  
 // Close the TCP streams.
     fclose(fin);

@@ -36,7 +36,7 @@ void csc_ini_free(csc_ini_t *ini)
 
 const char *csc_ini_getStr(const csc_ini_t *ini, const char *section, const char *ident)
 {   char *key;
-	const csc_nameVal_t *nv;
+    const csc_nameVal_t *nv;
  
 // Look for the key in the map table.
     key = csc_alloc_str3(section, "%", ident);
@@ -44,10 +44,10 @@ const char *csc_ini_getStr(const csc_ini_t *ini, const char *section, const char
     free(key);
  
 // Return result.
-	if (nv == NULL)
-		return NULL;
-	else
-		return nv->val;
+    if (nv == NULL)
+        return NULL;
+    else
+        return nv->val;
 }
 
 
@@ -147,7 +147,7 @@ int csc_ini_read(csc_ini_t *ini, const char *iniFilePath)
         // Create the record and add it into the map table.
             char *key = csc_alloc_str3(section, "%", lineP);
             csc_mapSS_addex(ini->map, key, valueP);
-			free(key);
+            free(key);
  
         }  // if
     } // while

@@ -226,36 +226,36 @@ void csc_srv_daemonise(csc_log_t *log)
 
 
 csc_bool_t csc_sock_setTimeout(int sockfd, const char *rw, int seconds)
-{	
+{   
 // Set the time.
-	struct timeval tv;
-	tv.tv_sec = seconds;
-	tv.tv_usec = 0;
+    struct timeval tv;
+    tv.tv_sec = seconds;
+    tv.tv_usec = 0;
  
 // Have not yet set read or write.
-	csc_bool_t isReadSet = csc_FALSE;
-	csc_bool_t isWriteSet = csc_FALSE;
+    csc_bool_t isReadSet = csc_FALSE;
+    csc_bool_t isWriteSet = csc_FALSE;
  
 // The length of the read/write specify string.
-	int len = strlen(rw);
-	if (len > 2)
-		return csc_FALSE;
+    int len = strlen(rw);
+    if (len > 2)
+        return csc_FALSE;
  
 // Specify read and/or write.
-	for (int i=0; i<len; i++)
-	{	if (rw[i]=='r' && !isReadSet)
-		{	isReadSet = csc_TRUE;
-			setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
-		}
-		else if (rw[i]=='w' && !isWriteSet)
-		{	isWriteSet = csc_TRUE;
-			setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof tv);
-		}
-		else
-			return csc_FALSE;
-	}
+    for (int i=0; i<len; i++)
+    {   if (rw[i]=='r' && !isReadSet)
+        {   isReadSet = csc_TRUE;
+            setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+        }
+        else if (rw[i]=='w' && !isWriteSet)
+        {   isWriteSet = csc_TRUE;
+            setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof tv);
+        }
+        else
+            return csc_FALSE;
+    }
  
 // Bye.
-	return csc_TRUE;
+    return csc_TRUE;
 }
 

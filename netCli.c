@@ -126,10 +126,10 @@ int csc_cli_connect(csc_cli_t *this)
 
 
 int csc_cli_mkConn(csc_cli_t *cli, const char *addr, int portNo)
-{	if (!csc_cli_setServAddr(cli, addr, portNo))
-		return -1;
-	else
-		return csc_cli_connect(cli);
+{   if (!csc_cli_setServAddr(cli, addr, portNo))
+        return -1;
+    else
+        return csc_cli_connect(cli);
 }
 
 

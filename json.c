@@ -482,10 +482,10 @@ static void writeStr(writeStrAnyFunc_t writer, void *context, const char *val)
 {   char buf[2] = { '\0', '\0' };
     const char *p;
     char ch;
-	if (val == NULL)
-		p = "(null)";
-	else
-		p = val;
+    if (val == NULL)
+        p = "(null)";
+    else
+        p = val;
     writer(context, "\"");
     while ((ch=*p++) != '\0')
     {   switch(ch)
@@ -543,19 +543,19 @@ static void writeEl(writeStrAnyFunc_t writer, void *context, const elem_t *el)
 
 static void writeObj(writeStrAnyFunc_t writer, void *context, const csc_json_t *js)
 {
-	int nEls = js->nEls;
+    int nEls = js->nEls;
     elem_t *els = js->els;
     writer(context, "{");
     for (int i=0; i<nEls; i++)
     {   
-		writer(context, "\"");
+        writer(context, "\"");
         writer(context, els[i].name);
         writer(context, "\":");
         writeEl(writer, context, &els[i]);
         if (i < nEls-1)
-		{
+        {
             writer(context, ",");
-		}
+        }
     }
     writer(context, "}");
 }
@@ -579,7 +579,7 @@ static void writeFILE(void *context, const char *str)
 }
 void csc_json_writeFILE(const csc_json_t *js, FILE *fout)
 {  
-	writeObj(writeFILE, (void*)fout, js);
+    writeObj(writeFILE, (void*)fout, js);
     putc('\n', fout);
 }
 
@@ -650,10 +650,10 @@ static csc_bool_t jsonParse_readNum(jsonParse_t *jsp, elem_t *el)
     csc_assert(ch=='-' || isdigit(ch));
  
 // Are we looking at a minus sign?
-	if (ch == '-')
-	{	csc_str_append_ch(numStr, ch);
-		ch = jsonParse_nextChar(jsp);
-	}
+    if (ch == '-')
+    {   csc_str_append_ch(numStr, ch);
+        ch = jsonParse_nextChar(jsp);
+    }
  
 // Read in a number.
     while (isContinue)
@@ -920,7 +920,7 @@ static csc_bool_t jsonParse_readElem(jsonParse_t *jsp, elem_t *el)
     else if (ch == '{')
     {
         csc_json_t *obj = jsonParse_readObj(jsp);
-		csc_assert(obj != NULL);
+        csc_assert(obj != NULL);
         if (csc_json_getErrStr(obj)==NULL)
         {
             el->type = csc_jsonType_Obj; 
@@ -937,7 +937,7 @@ static csc_bool_t jsonParse_readElem(jsonParse_t *jsp, elem_t *el)
     else if (ch == '[')
     {
         csc_jsonArr_t *arr = jsonParse_readArr(jsp);
-		csc_assert(arr != NULL);
+        csc_assert(arr != NULL);
         if (csc_json_getErrStr((csc_json_t*)arr) == NULL)
         {
             el->type = csc_jsonType_Arr; 
@@ -1028,21 +1028,21 @@ static csc_json_t *jsonParse_readObj(jsonParse_t *jsp)
     int ch = jsp->ch;
  
 // Check for EOF.
-	if (ch == EOF)
-	{	return NULL;
-	}
+    if (ch == EOF)
+    {   return NULL;
+    }
  
 // Its not EOF, so we need to allocate.
     obj = csc_json_new();
     ident = csc_str_new(NULL);
  
 // Is it really an object.
-	if (ch != '{')
-	{	char errStr[99];
-		sprintf(errStr, "%s %d", "Expected Opening Brace.  Got char #", ch);
-		csc_json_setErr(obj, errStr, jsp->charPos, jsp->lineNo);
-		goto cleanup;
-	}
+    if (ch != '{')
+    {   char errStr[99];
+        sprintf(errStr, "%s %d", "Expected Opening Brace.  Got char #", ch);
+        csc_json_setErr(obj, errStr, jsp->charPos, jsp->lineNo);
+        goto cleanup;
+    }
  
  
 // Look at next character.
@@ -1122,8 +1122,8 @@ cleanup:
 csc_json_t *csc_json_newParseStr(const char *str)
 {
 // Allocate resources.
-	csc_ioAny_readChStr_t *rcs = csc_ioAny_readChStr_new(str);
-	csc_ioAnyRead_t *rca = csc_ioAnyRead_new(csc_ioAny_readCharStr, rcs);
+    csc_ioAny_readChStr_t *rcs = csc_ioAny_readChStr_new(str);
+    csc_ioAnyRead_t *rca = csc_ioAnyRead_new(csc_ioAny_readCharStr, rcs);
     jsonParse_t *jsp = jsonParse_new(rca);
  
 // Parse the object.
@@ -1143,7 +1143,7 @@ csc_json_t *csc_json_newParseStr(const char *str)
 csc_json_t *csc_json_newParseFILE(FILE *fin)
 {
 // Allocate resources.
-	csc_ioAnyRead_t *rca = csc_ioAnyRead_new(csc_ioAny_readCharFILE, (void*)fin);
+    csc_ioAnyRead_t *rca = csc_ioAnyRead_new(csc_ioAny_readCharFILE, (void*)fin);
     jsonParse_t *jsp = jsonParse_new(rca);
  
 // Parse the object.

@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     csc_cli_free(ntp);
 
 // Convert file descriptor to input and output streams.
-	int fdes1 = dup(fdes0);         assert(fdes1!=-1);
+    int fdes1 = dup(fdes0);         assert(fdes1!=-1);
     FILE *fin = fdopen(fdes0,"r");  assert(fin!=NULL);
     FILE *fout = fdopen(fdes1,"w"); assert(fout!=NULL);
 

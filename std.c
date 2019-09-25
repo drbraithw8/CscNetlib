@@ -12,47 +12,47 @@
 FILE *csc_errOut = NULL;
 
 void csc_setErrOut(const char *pathErrOut)
-{	csc_errOut = fopen(pathErrOut, "a"); csc_assert(csc_errOut);
-	int ret = setvbuf(csc_errOut, NULL, _IONBF, 0); csc_assert(ret==0);
+{   csc_errOut = fopen(pathErrOut, "a"); csc_assert(csc_errOut);
+    int ret = setvbuf(csc_errOut, NULL, _IONBF, 0); csc_assert(ret==0);
 }
 
 void csc_assertFail(const char *fname, int lineNo, const char *expr)
 {   fprintf(csc_stderr
-		   , "csc_assert failure (%s) in file \"%s\" at line %d\n" 
-		   , expr, fname, lineNo
-		   );
+           , "csc_assert failure (%s) in file \"%s\" at line %d\n" 
+           , expr, fname, lineNo
+           );
     exit(1);
 }
-	
+    
 
 
 int csc_fgetwd(FILE *fp, char *wd, int wdmax)
-{	int len=0;
-	int ch = getc(fp);
+{   int len=0;
+    int ch = getc(fp);
  
 /* Skip whitespace */
-	while(isspace(ch))
-		ch = getc(fp);
+    while(isspace(ch))
+        ch = getc(fp);
  
 /* Deal with a possible EOF */
-	if(ch==EOF)
-		return -1;
+    if(ch==EOF)
+        return -1;
  
 /* read in the word */
-	while(!isspace(ch) && ch!=EOF && len<wdmax)
-	{	wd[len++] = ch;
-		ch = getc(fp);
-	}
-	wd[len]='\0';
+    while(!isspace(ch) && ch!=EOF && len<wdmax)
+    {   wd[len++] = ch;
+        ch = getc(fp);
+    }
+    wd[len]='\0';
  
 /* Skip remainder of the word */
-	while(!isspace(ch) && ch != EOF)
-	{	len++;
-		ch = getc(fp);
-	}
-	if (ch != EOF)
-		ungetc(ch, fp);
-	return len;
+    while(!isspace(ch) && ch != EOF)
+    {   len++;
+        ch = getc(fp);
+    }
+    if (ch != EOF)
+        ungetc(ch, fp);
+    return len;
 }
 
 
@@ -148,14 +148,14 @@ int csc_param_quote(char *argv[], char *line, int n)
 int64_t csc_xferBytes(FILE *fin, FILE *fout)
 {   int ch;
     int64_t iByte = 0;
-	ch = getc(fin);
+    ch = getc(fin);
     while (ch != EOF)  // If we should still xfer bytes.
-	{   ch = putc(ch,fout);  // Write out the byte.
-		if (ch != EOF)
-		{	iByte++;  // Keep count of bytes successfully transferred.
-			ch = getc(fin);
-		}
-	}
+    {   ch = putc(ch,fout);  // Write out the byte.
+        if (ch != EOF)
+        {   iByte++;  // Keep count of bytes successfully transferred.
+            ch = getc(fin);
+        }
+    }
     return iByte;  // Return the numbers of bytes transferred. 
 }
 
@@ -169,10 +169,10 @@ int64_t csc_xferBytesN(FILE *fin, FILE *fout, int64_t nBytes)
             nBytes = -1; // Terminate the loop.
         else
         {   ch = putc(ch,fout);  // Write out the byte.
-			if (ch == EOF)
-				nBytes = -1;   // Terminate the loop.
-			else
-				iByte++;  	 // Keep count of bytes successfully transferred.
+            if (ch == EOF)
+                nBytes = -1;   // Terminate the loop.
+            else
+                iByte++;     // Keep count of bytes successfully transferred.
         }
     }
     return iByte;  // Return the numbers of bytes transferred. 
