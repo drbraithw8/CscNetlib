@@ -151,7 +151,7 @@ int csc_log_printf( csc_log_t *logger
 {   int retVal;
     va_list args;
  
-// Create initial par of entry, if the logging level is suitable.
+// Create initial part of entry, if the logging level is suitable.
     FILE *fp = logGuts(logger, logLevel, &retVal);
     if (fp == NULL)
         return retVal;

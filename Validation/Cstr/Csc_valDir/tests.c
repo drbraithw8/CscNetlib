@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 	printPassFail("cstr_AssignLong1", csc_streq(csc_str_charr(strA),longStr));
 
 	csc_str_free(strA);
-	printPassFail("cstr_SingleFree", csc_mck_nchunks()==0);
+	printPassFail("cstr_SingleFree1", csc_mck_nchunks()==0);
 
 	strA = csc_str_new(longStr);
 	printPassFail("cstr_LongNew", csc_streq(csc_str_charr(strA),longStr));
@@ -72,8 +72,19 @@ int main(int argc, char **argv)
 	csc_str_assign(strA, longStr);
 	printPassFail("AssignLong2", csc_streq(csc_str_charr(strA),longStr));
 
+	csc_str_t *strB = csc_str_new("Jacky");
+	csc_str_assign(strA, "");
+	csc_str_append_f(strA, "Here %c%d%% %X %7.3f %S %s"
+						 , '$', 23, 1023, 12.34567, strB, "there."); 
+	char *expected="Here $23% 3FF  12.346 Jacky there.";
+	// fprintf(stderr, "expected:\"%s\"\n", expected);
+	// fprintf(stderr, "strA    :\"%s\"\n", csc_str_charr(strA));
+	printPassFail("append_f", csc_streq(csc_str_charr(strA),expected));
+
+
 	csc_str_free(strA);
-	printPassFail("append1Free", csc_mck_nchunks()==0);
+	csc_str_free(strB);
+	printPassFail("cstr_Free2", csc_mck_nchunks()==0);
 
 	fclose(fout);
 }

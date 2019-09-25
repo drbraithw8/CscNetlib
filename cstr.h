@@ -36,8 +36,12 @@ typedef struct csc_str_t csc_str_t;
 
 /* Append. */
 
+    // Assigns 'ch' onto the end of 'this'.
+    void csc_str_append_ch(csc_str_t *this, char ch);
+
     // Assigns 'str' onto the end of 'this'.
     void csc_str_append(csc_str_t *this, const char *str);
+    void csc_str_append_str(csc_str_t *this, const csc_str_t *str);
 
     // Appends an arbitrary number of C style strings onto the end of 'this'.
     // An argument of NULL indicates no more strings, e.g. The following will
@@ -46,8 +50,21 @@ typedef struct csc_str_t csc_str_t;
     // csc_str_append_many(cstr,  "Jack",  " and ",  "Jill",  NULL);
     void csc_str_append_many(csc_str_t *this, ... );
 
-    // Assigns 'ch' onto the end of 'this'.
-    void csc_str_append_ch(csc_str_t *this, char ch);
+	// sprintf() for csc_str_t.
+	// 
+	// Conversion specifiers 'd','i','o','u','x','X','f','F','g','G','e','E','p'
+	// in combination with field width and precision are supported, providing
+	// that the output from a single field does not exceed 127 characters.
+	// Conversion specifiers 'a','A','n','m' are not supported.
+	// 
+	// The conversion specifier 's' is supported, but modifiers, width and
+	// precision are ignored (i.e. only the simple "%s").  The conversion
+	// specifier 'S' refers to a csc_str_t * and is supported without modifiers
+	// width and precision . 
+	// 
+	// Modifiers  'l' and 'll' are supported for ints.  Modifiers
+	// 't','Z','z','j','L','q','h', '*', '$', are not supported.
+	void csc_str_append_f(csc_str_t *this, char *fmt, ... );
 
 
 /* Converters to standard C string. */
@@ -73,5 +90,8 @@ typedef struct csc_str_t csc_str_t;
     // 'this', which will be zero for empty lines read in.  If there were
     // no lines encountered because an EOF was found, then -1 will be returned.
     int csc_str_getline(csc_str_t *this, FILE *fin);
+
+	// Output.  Can even output strings containing null characters.
+	size_t csc_str_out(csc_str_t *this, FILE *fout); 
 
 #endif

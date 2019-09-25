@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "std.h"
 #include "cstr.h"
@@ -96,15 +97,50 @@ void csc_str_append_ch(csc_str_t *this, char ch)
 }
 
 
+void csc_str_append_str(csc_str_t *this, const csc_str_t *str)
+{   int new_len;
+    int str_len;
+ 
+// What if NULL?
+    if (str == NULL)
+        return;
+ 
+// Get new length of the string. 
+	str_len = str->nchars;
+    new_len = this->nchars + str_len;
+ 
+// Allocate chars for the string. 
+    if (this->mchars < new_len)
+    {   this->mchars = this->mchars * 2 + 10;
+        if (this->mchars < new_len)
+        {   this->mchars = new_len;
+        }
+        this->mchars |= 7;  // Round up - Use that which would be wasted. 
+        this->chars = (char*)realloc(this->chars, (this->mchars+1)*sizeof(char));
+        if (this->chars == NULL)
+        {   error_handle("Memory allocation failure");
+            exit(1);
+        }
+    }
+ 
+// Copy the string. 
+    if (str_len > 0)
+    {   memcpy(&this->chars[this->nchars], str->chars, str_len);
+        this->nchars = new_len;
+    }
+}	
+
+
 void csc_str_append(csc_str_t *this, const char *str)
 {   int new_len;
     int str_len;
  
-// Get new length of the string. 
+// What if NULL?
     if (str == NULL)
-        str_len = 0;
-    else
-        str_len = strlen(str);
+        return;
+ 
+// Get new length of the string. 
+	str_len = strlen(str);
     new_len = this->nchars + str_len;
  
 // Allocate chars for the string. 
@@ -210,5 +246,137 @@ void csc_str_append_many(csc_str_t *this, ... )
         csc_str_append(this, str);
     }
     va_end(ap);
+}
+
+#define csc_str_BufLen 127
+
+static csc_str_t *readFspec(char *fmt, int *lenP, char *specChar)
+{	int len = 1;
+	int longness = 0;
+	int ch;
+	csc_str_t *spec = csc_str_new("%");
+	while ((ch = *fmt++)) switch(ch)
+	{	case 'd': case 'i': case 'c': case 'o':
+		case 'u': case 'x': case 'X':
+			csc_str_append_ch(spec, ch);
+			*lenP = len;
+			if (longness == 0)
+				*specChar = 'd';
+			else if (longness == 1)
+				*specChar = 'l';
+			else if (longness == 2)
+				*specChar = 'L';
+			else
+			{	csc_str_assign(spec, "longness in format not supported");
+				*specChar = '\0';
+			}
+			return spec;
+		case 's':
+			csc_str_append_ch(spec, ch);
+			*specChar = 's';
+			*lenP = len;
+			return spec;
+		case 'S':
+			csc_str_append_ch(spec, ch);
+			*specChar = 'S';
+			*lenP = len;
+			return spec;
+		case 'f': case 'F': case 'e': case 'E': case 'g': case 'G': 
+			csc_str_append_ch(spec, ch);
+			*specChar = 'f';
+			*lenP = len;
+			return spec;
+		case 'p':
+			csc_str_append_ch(spec, ch);
+			*specChar = 'p';
+			*lenP = len;
+			return spec;
+		case 'l':
+			csc_str_append_ch(spec, ch);
+			len++;
+			longness++;
+			break;
+		case '*': case '$': case 'a': case 'C':
+		case 'n': case 'm': case '%': 
+			csc_str_assign(spec, "format not supported");
+			*specChar = '\0';
+			*lenP = len;
+			return spec;
+		default:
+			csc_str_append_ch(spec, ch);
+			len++;
+	}
+	csc_str_assign(spec, "Unterminated format specifier");
+	*lenP = 0;
+	*specChar = '\0';
+	return spec;
+}
+
+
+void csc_str_append_f(csc_str_t *this, char *fmt, ... )
+{	char ch, specChar;
+	csc_str_t *fSpec;
+	char buf[csc_str_BufLen];
+	char *pf = fmt;
+	int len;
+	va_list ap;
+	va_start(ap, fmt);
+	while ((ch = *pf++))
+	{	if (ch == '%')
+		{	if (*pf == '%')
+			{	csc_str_append_ch(this, ch);
+				pf++;
+			}
+			else
+			{	fSpec = readFspec(pf, &len, &specChar);
+				switch(specChar)
+				{	case 's':
+						csc_str_append(this, va_arg(ap,char*));
+						break;
+					case 'S':
+						csc_str_append_str(this, va_arg(ap,csc_str_t*));
+						break;
+					case 'd':
+						sprintf(buf, csc_str_charr(fSpec), va_arg(ap,int));
+						csc_str_append(this, buf);
+						break;
+					case 'f':
+						sprintf(buf, csc_str_charr(fSpec), va_arg(ap,double));
+						csc_str_append(this, buf);
+						break;
+					case 'p':
+						sprintf(buf, csc_str_charr(fSpec), va_arg(ap,void*));
+						csc_str_append(this, buf);
+						break;
+					case 'l':
+						sprintf(buf, csc_str_charr(fSpec), va_arg(ap,long int));
+						csc_str_append(this, buf);
+						break;
+					case 'L':
+						sprintf(buf, csc_str_charr(fSpec), va_arg(ap,long long int));
+						csc_str_append(this, buf);
+						break;
+					case '\0':
+						csc_str_assign_str(this, fSpec);
+						fprintf(stderr, "%s", "Error: ");
+						csc_str_out(this, stderr);
+						fprintf(stderr, "\n");
+						// no break - deliberate fall through.
+					default:
+						assert(csc_FALSE);
+				}
+				csc_str_free(fSpec);
+				pf += len;
+			}
+		}
+		else
+			csc_str_append_ch(this, ch);
+	}
+	va_end(ap);
+}
+
+
+size_t csc_str_out(csc_str_t *this, FILE *fout)
+{	return fwrite(this->chars, 1, this->nchars, fout);
 }
 
