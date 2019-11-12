@@ -6,6 +6,8 @@
 #include "std.h"
 
 typedef struct csc_hash_t csc_hash_t;
+typedef struct csc_hash_node_t csc_hash_node_t;
+typedef struct csc_hash_iter_t csc_hash_iter_t;
 
 
 csc_hash_t *csc_hash_new(int offset, int (*cmp)(void*,void*),
@@ -104,7 +106,7 @@ void csc_hash_FreeBlk(void *blk);
 typedef struct csc_hash_iter_t csc_hash_iter_t;
 
 // Constructor
-csc_hash_iter_t *csc_hash_iter_new(csc_hash_t *hash);
+csc_hash_iter_t *csc_hash_iter_new(csc_hash_t *hash, void *key);
 
 // Destructor
 void csc_hash_iter_free(csc_hash_iter_t *iter);

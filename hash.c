@@ -4,179 +4,292 @@
 
 #include <stdlib.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
-#include "std.h"
-#include "alloc.h"
+#include <CscNetLib/std.h>
+#include <CscNetLib/alloc.h>
+#include <CscNetLib/list.h>
 #include "hash.h"
 
-#define MUL 293
-#define ADD 1
+#define HashBits 8
+#define TblSiz (1<<HashBits)
+#define MaxLevel 7
+#define MaxLevels (MaxLevel+1)
+#define MaxLstSiz 16
+#define MinLstSiz 4
+#define toNdx(hval,level) (((uint8_t*)(&(hval)))[level])
+// #define toNdx(hval,level) (((hval) >> (HashBits*level)) & (TblSiz-1))
 
-// Old way of iterating through a list.
-// It still works, but you can have only one.
-#define for_hash_key(h,i,key,dat,dat_type) \
-    for (csc_hash_key_init(h,&i,key); ((dat)=(dat_type)csc_hash_key_next(h,&i))!=NULL; )
+#define msb64_setBit(a)  { a |= ((uint64_t)1<<63); }
+#define msb64_clrBit(a)  { a &= (~((uint64_t)1<<63)); }
+#define msb64_isSet(a) (((a) & ((uint64_t)1<<63))!=0)
+#define msb64_count(a) ((a) & (~((uint64_t)1<<63)))
 
-#define for_hash_all(h,i,dat,dat_type) \
-    for (csc_hash_all_init(h,&i); ((dat)=(dat_type)csc_hash_all_next(h,&i))!=NULL; )
+#define bm_setbit(a,i)             ((a)[(i)/8] |= 1 << ((i) % 8))
+#define bm_clrbit(a,i)             ((a)[(i)/8] &= ~(1 << ((i) % 8)))
+#define bm_isset(a,i)              ((a)[(i)/8] & (1 << ((i) % 8)))
 
-
-typedef struct csc_hash_node_t
-{   struct csc_hash_node_t *next;
+typedef struct node_t
+{   struct node_t *next;
     void *data;
-    unsigned long hash_val;
-} csc_hash_node_t;
+    uint64_t hval;
+} node_t;
+
+
+typedef struct tbl_t tbl_t;
+
+typedef struct
+{   union
+    {   node_t *list;
+        tbl_t *hTbl;
+    };
+    uint64_t count;
+} tblEnt_t;
+
+
+typedef struct tbl_t
+{   tblEnt_t eTbl[TblSiz];
+    union
+    {   uint8_t useBytes[TblSiz/8];
+        uint32_t useWords[TblSiz/32];
+    };
+} tbl_t;
 
 
 typedef struct csc_hash_t
-{   csc_hash_node_t **table;
-    unsigned long tblsize;
-    unsigned long count;
-    unsigned long maxcount;
+{
+// First Level.
+    tblEnt_t ent;
+ 
+// All about the record type.
     int offset;
     int (*cmp)(void*,void*);
-    unsigned long (*hval)(void*);
-    void (*free_rec)(void*);
-} csc_hash_t;    
+    uint64_t (*hval)(void*);
+    void (*freeRec)(void*);
+} csc_hash_t;
 
 
-csc_hash_t *csc_hash_new(int offset, int (*cmp)(void*,void*),
-                        csc_ulong (*hval)(void*), void (*free_rec)(void*) )
-/*  This function allocates and initializes a hash table.  
- * Resolution is by chaining.  The table will have 'tblsize' elements.  
- * The key field of the record is at position 'offset' from the 
- * beginning of the record.  The function 'cmp'() must be able to 
- * compare two keys and return zero if they compare equal, non zero 
- * otherwise.  The function 'hval'() will generate a hash value from a 
- * key.  The value returned from 'hval'() will be subsequently 
- * subjected to MOD 'tblsize'.  The function 'free_rec'() is able to 
- * dispose of a record.
- */ 
+typedef struct
+{   tblEnt_t *eTbl;
+    int tNdx;
+} iterStkElem_t;
+
+
+typedef struct csc_hash_iter_t
+{   iterStkElem_t *stk;
+    int sNdx;
+    node_t *node;
+    csc_hash_t *hash;
+} csc_hash_iter_t;
+
+
+static void iter_deepNext(csc_hash_iter_t *it)
+{   iterStkElem_t *stk = it->stk;  // The stack with one less pointer.
+    int sNdx = it->sNdx;          // The stack with one less pointer.
+    int tNdx = stk[sNdx].tNdx;   // The index into the table.
+    tblEnt_t *eTbl = stk[sNdx].eTbl;  // The table.
+ 
+    for (;;)
+    {   if (++tNdx == TblSiz)   // Next index, then are we finished this table.
+        {   if (sNdx == 0)  // If we are finished the root table, then we are done.
+            {   it->node = NULL;  // Set result data to indicate we are done.
+                break;  // return finished. No need to pack coz we aint returning.
+            }
+            else  // Not the root table, then pop().
+            {   sNdx = --it->sNdx;
+                tNdx = stk[sNdx].tNdx;  // Unpack the table index.
+                eTbl = stk[sNdx].eTbl;  // Unpack the table.
+            }
+        }
+        else
+        {   tblEnt_t *ent = &eTbl[tNdx];  // Short hand for current table entry.
+            if (msb64_isSet(ent->count))  // Is the entry a table?, then push().
+            {   stk[sNdx].tNdx = tNdx;   // Pack the table index.
+                stk[sNdx].eTbl = eTbl;   // Pack the table.
+                it->sNdx = ++sNdx;       // New stack element.
+                eTbl = ent->hTbl->eTbl;  // New table entry.
+                tNdx = -1;    // Position new table index before first element.
+            }
+            else  // Not a table but a simple list.
+            {   it->node = ent->list;  // Set resulting data to the list.
+                if (it->node)      // If the list is not empty.
+                {   stk[sNdx].tNdx = tNdx;  // Pack the table index.
+                    stk[sNdx].eTbl = eTbl;  // Pack the table.
+                    break;       // .. coz we are returning with the list.
+                }
+            }
+        }
+    }
+}
+
+
+csc_hash_iter_t *csc_hash_iter_new(csc_hash_t *hash)
+{   csc_hash_iter_t *it = csc_allocOne(csc_hash_iter_t);
+    it->stk = NULL;
+    it->sNdx = -1;
+    it->node = NULL;
+    it->hash = hash;
+    if (msb64_isSet(hash->ent.count))  // If 'hash' has a table.
+    {   // Allocate the stack.
+        iterStkElem_t *stk = csc_allocMany(iterStkElem_t, MaxLevels);
+        it->stk = stk;
+ 
+        // Set stack prior to first entry in the root table.
+        stk[0].eTbl = hash->ent.hTbl->eTbl;  // Root table.
+        stk[0].tNdx = -1;  // Prior to first table entry.
+    }
+    return it;
+}
+
+
+void *csc_hash_iter_next(csc_hash_iter_t *it)
+{
+// Set it->node to be the one holding the data.
+    if (it->sNdx == -1)  // If first call of next() for 'it'.
+    {   it->sNdx = 0;   // Subsequent calls are not first call.
+        if (it->stk == NULL)  // if 'it' has no tables.
+            it->node = it->hash->ent.list;  // then 'it' has only this list.
+        else
+            iter_deepNext(it);  // otherwise, find the first list.
+    }
+    else  // Not first call.
+    {   if (it->node)   // If the current list is not finished.
+        {   it->node = it->node->next;  // Get the next node.
+            if (!it->node && it->stk!=NULL)  // If list exhausted and compound table.
+                iter_deepNext(it);  // Find the next list.
+        }
+    }
+ 
+// Return the data.
+    if (it->node)  // it->node has the result.
+        return it->node->data;
+    else
+        return NULL;
+}
+
+
+void csc_hash_iter_free(csc_hash_iter_t *it)
+{   if (it->stk)
+        free(it->stk);
+    free(it);
+}
+
+
+csc_hash_t *csc_hash_new( int offset
+                  , int (*cmp)(void*,void*)
+                  , ulong (*hval)(void*)
+                  , void (*freeRec)(void*)
+                )
 {   csc_hash_t *h;
     h = csc_allocOne(csc_hash_t);
-    h->tblsize = 40;
-    h->count = 0;
-    h->maxcount = h->tblsize * 5;
-    h->table = (csc_hash_node_t**)csc_ck_calloc(h->tblsize * sizeof(csc_hash_node_t*));
+    h->ent.count = 0;   // Count of zero. And it points to a list.
+    h->ent.list = NULL;
     h->offset = offset;
     csc_assert(cmp!=NULL);
     h->cmp = cmp;
     csc_assert(hval!=NULL);
     h->hval = hval;
-    csc_assert(free_rec!=NULL);
-    h->free_rec = free_rec;
+    csc_assert(freeRec!=NULL);
+    h->freeRec = freeRec;
     return h;
 }
 
 
-static void csc_hash_resize(csc_hash_t *h)
-{   csc_hash_node_t *pt, *next;
-    csc_ulong i_table;
-    csc_hash_node_t **new_table;
-    csc_ulong ndx, new_tblsize, old_tblsize;
- 
-/* Allocate new table (already zeroed) - on failure give up. */
-    old_tblsize = h->tblsize;
-    new_tblsize = h->maxcount * 2;
-    new_table = (csc_hash_node_t**) csc_ck_calloc(new_tblsize * sizeof(csc_hash_node_t*));
-    if (new_table == 0)
-        return;
- 
-/* Transfer all nodes from old table to new. */
-    for (i_table=0; i_table<old_tblsize; i_table++)
-    {   pt = h->table[i_table];
-        while (pt != 0)
-        {   next = pt->next;
-            ndx = pt->hash_val % new_tblsize;
-            pt->next = new_table[ndx];
-            new_table[ndx] = pt;
-            pt = next;
-        }
+static void cvtLstToTbl(tblEnt_t *ent, int level)
+{   node_t *list = ent->list;
+    tbl_t *hTbl = csc_ck_calloc(sizeof(tbl_t));
+    ent->hTbl = hTbl;
+    tblEnt_t *eTbl = hTbl->eTbl;
+    uint8_t *useBytes = hTbl->useBytes;
+    msb64_setBit(ent->count);
+    while (list != NULL)
+    {   int ndx = toNdx(list->hval,level);
+        ent = &eTbl[ndx];
+        node_t *next = list->next;
+        list->next = ent->list;
+        ent->list = list;
+        if (ent->count == 0)
+            bm_setbit(useBytes,ndx);
+        ent->count++;
+        list = next;
     }
- 
-/* Free old, Assign new. */
-    free(h->table);
-    h->table = new_table;
-    h->tblsize = new_tblsize;
-    h->maxcount = 5 * h->tblsize;
 }
 
 
-void csc_hash_add(csc_hash_t *h, void *rec)
-/*  This function will add 'rec' to 'h' regardless of whether 
- * there are matching keys.
- */ 
-{   csc_ulong ndx;
-    csc_ulong hash_val;
-    csc_hash_node_t *pt;
-    
-    hash_val = h->hval((void*)((char*)rec+h->offset));
-    ndx = hash_val % h->tblsize;
-    pt = csc_allocOne(csc_hash_node_t);
-    pt->next = h->table[ndx];
-    pt->data = rec;
-    pt->hash_val = hash_val;
-    h->table[ndx] = pt;
- 
-    if (h->count++ == h->maxcount)
-        csc_hash_resize(h);
-}
-
-
-csc_bool_t csc_hash_addex(csc_hash_t *h, void *rec)
-/*  If a key matching 'rec' already exists in 'h' then this 
- * function will return csc_FALSE.  Otherwise it will add 'rec' to 'hash' 
- * and return csc_TRUE.
- */
-{   csc_ulong ndx;
-    csc_ulong hash_val;
-    csc_hash_node_t *pt, **headp;
-    int (*cmp)(void*,void*) = h->cmp;
-    int offset = h->offset;
-    void *key = (char*)rec + offset;
- 
-    hash_val = h->hval(key);
-    ndx = hash_val % h->tblsize;
-    headp = &h->table[ndx];
-    for (pt=*headp; pt!=NULL; pt=pt->next)
-    {   if (pt->hash_val==hash_val && cmp(((char*)pt->data)+offset, key)==0)
-            break;
-    }
-    if (pt == NULL)
-    {   pt = csc_allocOne(csc_hash_node_t);
-        pt->next = h->table[ndx];
-        pt->data = rec;
-        pt->hash_val = hash_val;
-        h->table[ndx] = pt;
- 
-        if (h->count++ == h->maxcount)
-            csc_hash_resize(h);
-        return csc_TRUE;
-    }
-    else
-        return csc_FALSE;
-}
+// // -----------------------
+// // PROBLEM WITH HASH_ADD()
+// // -----------------------
+// // I convert a list to a table when it reaches a length of MaxLstSiz.  But
+// // if they are all duplicates, making another table just wont reduce the
+// // size of the linked list.  You Would end up with an 8 tier hash table
+// // with long linked list.  hash_add() made sense in the old design, but not
+// // in this design.
+// //
+// // Multiple keys with clashing hashes will degrade performance just a
+// // duplicate keys, so a very good hashing function is required.
+// //
+// // I am also wondering whether it is worth having csc_hash_out(), because this
+// // too came with an efficiency and memory overhead.
+// // --------------------------------
+// void hash_add(csc_hash_t *h, void *data)
+// {   int ndx;
+// 	int level = 0;
+// 	node_t *node;
+// 	tbl_t *hTbl = NULL;
+// 	int offset = h->offset;
+//     void *key = (char*)data + offset;
+//     uint64_t hval = h->hval(key);
+// 	tblEnt_t *ent = &h->ent;
+// 	int (*cmp)(void*,void*) = h->cmp;
+//
+// // Loop to outermost table.
+// 	while (msb64_isSet(ent->count))
+// 	{	ent->count++;
+// 		hTbl = ent->hTbl;
+// 		ndx = toNdx(hval,level);
+// 		ent = &(hTbl->eTbl[ndx]);
+// 		level++;
+// 	}
+//
+// // Add in the node.
+// 	node = csc_allocOne(node_t);
+// 	node->next = ent->list;
+// 	node->data = data;
+// 	node->hval = hval;
+// 	ent->list = node;
+// 	if (hTbl!=NULL && ent->count == 0)
+// 		bm_setbit(hTbl->useBytes,ndx);
+// 	ent->count++;
+// 	if (ent->count > MaxLstSiz)
+// 		cvtLstToTbl(ent, level);
+// }
 
 
 void *csc_hash_get(csc_hash_t *h, void *key)
-/*  If no record with a key of 'key' exists in 'h', this function will
- * return NULL.  Otherwise it will return a pointer to any record
- * with a key of 'key' (LIFO).
- */ 
-{   csc_ulong ndx;
-    csc_ulong hash_val;
-    csc_hash_node_t *pt;
+{   int level = 0;
+    node_t *pt;
     int offset = h->offset;
+    uint64_t hval = h->hval(key);
+    tblEnt_t *ent = &h->ent;
     int (*cmp)(void*,void*) = h->cmp;
  
-    hash_val = h->hval(key);
-    ndx = hash_val % h->tblsize;
-    for (pt=h->table[ndx]; pt!=NULL; pt=pt->next)
-    {   if (pt->hash_val==hash_val && cmp(((char*)pt->data)+offset, key)==0)
+// Loop to outermost table.
+    while (msb64_isSet(ent->count))
+    {   int ndx = toNdx(hval,level);
+        ent = &(ent->hTbl->eTbl[ndx]);
+        level++;
+    }
+ 
+// Loop through list elements.
+    for (pt=ent->list; pt!=NULL; pt=pt->next)
+    {   if (pt->hval==hval && cmp(((char*)pt->data)+offset, key)==0)
             break;
     }
+ 
+// Return the result.
     if (pt == NULL)
         return NULL;
     else
@@ -184,107 +297,208 @@ void *csc_hash_get(csc_hash_t *h, void *key)
 }
 
 
-void *csc_hash_out(csc_hash_t *h, void *key)
-/*  If no record with a key of 'key' exists in 'h', this function will
- * return NULL.  Otherwise it will return a pointer to any record
- * with a key of 'key' (LIFO).  This function removes the record from 'h'
- * but it does not free it.
- */   
-{   csc_hash_node_t *pt, **ppt;
-    csc_ulong ndx;
-    csc_ulong hash_val;
-    void *rec;
-    int offset = h->offset;
-    int (*cmp)(void*,void*) = h->cmp;
- 
-    hash_val = h->hval(key);
-    ndx = hash_val % h->tblsize;
-    ppt = &h->table[ndx];
-    for (pt=*ppt; pt!=NULL; pt=pt->next)
-    {   if (pt->hash_val==hash_val && cmp(((char*)pt->data)+offset, key)==0)
-            break;
-        ppt = &pt->next;
+static csc_bool_t addex( csc_hash_t *h
+                         , void *data
+                         , tblEnt_t *ent
+                         , uint64_t hval
+                         , int level
+                       )
+{   csc_bool_t retVal;
+    if (msb64_isSet(ent->count))
+    {   int ndx = toNdx(hval,level);
+        tblEnt_t *childEnt = &ent->hTbl->eTbl[ndx];
+        retVal = addex(h, data, childEnt, hval, level+1);
+        if (retVal)
+        {   if (msb64_count(childEnt->count) == 1)
+                bm_setbit(ent->hTbl->useBytes, ndx);
+            ent->count++;
+        }
     }
-    if (pt == NULL)
-        return NULL;
     else
-    {   rec = pt->data;
-        *ppt = pt->next;
-        free(pt);
-        h->count--;
-        return rec;
+    {   node_t *pt;
+        int offset = h->offset;
+        int (*cmp)(void*,void*) = h->cmp;
+        void *key = (char*)data + offset;
+        for (pt=ent->list; pt!=NULL; pt=pt->next)
+        {   if (pt->hval==hval && cmp(((char*)pt->data)+offset, key)==0)
+                break;
+        }
+        if (pt == NULL)
+        {   retVal = csc_TRUE;
+            pt = csc_allocOne(node_t);
+            pt->next = ent->list;
+            pt->data = data;
+            pt->hval = hval;
+            ent->list = pt;
+            ent->count++;
+            if (ent->count > MaxLstSiz && level<MaxLevel)
+                cvtLstToTbl(ent, level);
+        }
+        else
+        {   retVal = csc_FALSE;
+        }
     }
+    return retVal;
+}
+
+
+csc_bool_t csc_hash_addex(csc_hash_t *h, void *data)
+{   void *key = (char*)data + h->offset;
+    return addex(h, data, &h->ent, h->hval(key), 0);
+}
+
+
+static void cvtTblToLst(tblEnt_t *ent)
+{
+// For list handling.
+    node_t *list = NULL;
+    node_t *pt, *oldList;
+ 
+// For loop counting.
+    int ndx_end, ndx, ib32, ib8_end, ib8;
+ 
+// For data structure.
+    tbl_t *hTbl = ent->hTbl;
+    tblEnt_t *eTbl = hTbl->eTbl;
+    uint8_t *useBytes = hTbl->useBytes;
+    uint32_t *useWords = hTbl->useWords;
+ 
+// Gather the list pointers.
+    for (ib32=0; ib32<8; ib32++)
+    {   if (useWords[ib32])
+        {   ib8 = ib32 * 4;
+            ib8_end = ib8 + 4;
+            for (; ib8<ib8_end; ib8++)
+            {   if (useBytes[ib8])
+                {   ndx = ib8 * 8;
+                    ndx_end = ndx + 8;
+                    for (; ndx<ndx_end; ndx++)
+                    {   oldList = eTbl[ndx].list;
+                        while (oldList != NULL)
+                        {   pt = oldList;
+                            oldList = pt->next;
+                            pt->next = list;
+                            list = pt;
+                        }
+                    }
+                }
+            }
+        }
+    }
+ 
+// 	for (ndx=0; ndx<256; ndx++)
+// 	{	oldList = eTbl[ndx].list;
+// 		while (oldList != NULL)
+// 		{	pt = oldList;
+// 			oldList = pt->next;
+// 			pt->next = list;
+// 			list = pt;
+// 		}
+// 	}
+ 
+// Finish the conversion.
+    free(hTbl);
+    ent->list = list;
+    msb64_clrBit(ent->count);
+}
+
+
+static void *hOut( csc_hash_t *h
+                   , void *key
+                   , tblEnt_t *ent
+                   , uint64_t hval
+                   , int level
+                 )
+{   void *data = NULL;
+    if (msb64_isSet(ent->count))
+    {   int ndx = toNdx(hval,level);
+        tblEnt_t *childEnt = &ent->hTbl->eTbl[ndx];
+        data = hOut(h, key, childEnt, hval, level+1);
+        if (data != NULL)
+        {   if (childEnt->count == 0)
+                bm_clrbit(ent->hTbl->useBytes, ndx);
+            ent->count--;
+            if (msb64_count(ent->count) < MinLstSiz)
+            {   // fprintf(stderr, "cvtTblToLst() key=\"%s\"\n", (char*)key);
+                cvtTblToLst(ent);
+            }
+        }
+    }
+    else
+    {   int offset = h->offset;
+        int (*cmp)(void*,void*) = h->cmp;
+        node_t **prev = &ent->list;
+        node_t *lp = *prev;
+        while (lp != NULL)
+        {   if (lp->hval==hval && cmp(((char*)lp->data)+offset, key)==0)
+                break;
+            prev = &lp->next;
+            lp = *prev;
+        }
+        if (lp != NULL)
+        {   *prev = lp->next;
+            data = lp->data;
+            free(lp);
+            ent->count--;
+        }
+    }
+    return data;
+}
+
+
+void *csc_hash_out(csc_hash_t *h, void *key)
+{   return hOut(h, key, &h->ent, h->hval(key), 0);
 }
 
 
 csc_bool_t csc_hash_del(csc_hash_t *h, void *key)
-/*  If no record with a key of 'key' exists in 'h', this function 
- * will return csc_FALSE.  Otherwise it will remove any record 
+/*  If no record with a key of 'key' exists in 'h', this function
+ * will return csc_FALSE.  Otherwise it will remove any record
  * with a key of 'key', free it and return csc_TRUE.
- */   
+ */
 {   void *p;
     p = csc_hash_out(h, key);
     if (p == NULL)
         return csc_FALSE;
     else
-    {   h->free_rec(p);
+    {   h->freeRec(p);
         return csc_TRUE;
     }
 }
 
 
-void csc_hash_free(csc_hash_t *h)
-/*  This function will free any records remaining in 'h' and free the 
- * space associated with the table.
- */ 
-{   csc_ulong i;
-    csc_hash_node_t *pt, *next;
-    csc_ulong size = h->tblsize;
-    csc_hash_node_t **table = h->table;
-    void (*free_rec)(void*) = h->free_rec;
- 
-    for (i=0; i<size; i++)
-    {   pt = table[i];
-        while (pt != 0)
-        {   next = pt->next;
-            free_rec(pt->data);
-            free(pt);
-            pt = next;
-        }
-        table[i] = 0;
+static void hfree(tblEnt_t *ent, void (*freeRec)(void*))
+{   if (msb64_isSet(ent->count))
+    {   tblEnt_t *eTbl = ent->hTbl->eTbl;
+        for (int i=0; i<TblSiz; i++)
+            hfree(&(eTbl[i]), freeRec);
+        free(ent->hTbl);
     }
-    free(table);
+    else
+    {   node_t *pt=ent->list;
+        while (pt != NULL)
+        {   node_t *prev = pt;
+            freeRec(pt->data);
+            pt = pt->next;
+            free(prev);
+        }
+    }
+}
+
+
+void csc_hash_free(csc_hash_t *h)
+{   hfree(&h->ent, h->freeRec);
     free(h);
 }
 
 
 int csc_hash_count(csc_hash_t *h)
-/*  Returns the number of elements in the hash table.
- */ 
-{   return h->count; 
+{   return msb64_count(h->ent.count);
 }
 
 
-csc_ulong csc_hash_str(void *arg)
-/*  Creates a hash index from a null terminated string.  (case sensitive).
- */
-{   
-    char *str = arg;
-    csc_ulong sum;
-    int ch;
- 
-    sum=1;
-    while ((ch=*str++) != '\0')
-        sum = (sum+ch+ADD)*MUL;
-    return sum;
-}
 
-
-// --------------------------------------------------
-// --------- Miscellaneous useful -------------------
-// --------------------------------------------------
-
-csc_ulong csc_hash_StrPt(void *pt)
+uint64_t csc_hash_StrPt(void *pt)
 {   return csc_hash_str(*(char**)pt);
 }
 
@@ -294,16 +508,17 @@ int csc_hash_StrPtCmpr(void *pt1, void *pt2)
 }
 
 
-csc_ulong csc_hash_ptr(void *pt)
+uint64_t csc_hash_ptr(void *pt)
 /*  Creates a hash index from a pointer.
  */
-{   csc_ulong pt_val = (csc_ulong)pt;
-    int n_bytes = sizeof(csc_ulong);
-    csc_ulong hind = 0;
+{   uint64_t pt_val = (uint64_t)pt;
+    int n_bytes = sizeof(uint64_t);
+    uint64_t hind = 0;
     int i;
- 
+    const int MUL = 293;
+
     for (i=0; i<n_bytes; i++)
-    {   hind = hind * MUL + ADD + ((csc_ulong)255 & pt_val);
+    {   hind = hind * MUL + ((uint64_t)255 & pt_val);
         pt_val >>= 8;  /* Shift right 1 byte. */
     }
  
@@ -328,96 +543,114 @@ void csc_hash_FreeBlk(void *blk)
 }
 
 
-// --------------------------------------------------
-// --------- Iterator -------------------------------
-// --------------------------------------------------
-
-typedef struct csc_hash_iter_t
-{   csc_hash_t *hash;
-    csc_hash_node_t *pt;
-    void *key;
-    unsigned long ilst;
-    unsigned long hash_val;
-} csc_hash_iter_t;
-
-
-static void *csc_hash_key_next(csc_hash_iter_t *iter)
-{   csc_hash_t *hash = iter->hash;
-    int (*cmp)(void*,void*) = hash->cmp;
-    int offset = hash->offset;
-    void *key = iter->key;
-    unsigned long hash_val = iter->hash_val;
-    csc_hash_node_t *pt;
+//-----------------------------------------------------------------------------
+// csc_hash_str() is actually MurmurHash3 which was written by Austin Appleby,
+// and is placed in the public domain. The author hereby disclaims
+// copyright to this source code.
+//-----------------------------------------------------------------------------
+// int main(int argc, char **argv)
+// {	for (int i=1; i<argc; i++)
+// 		printf("%lu %s\n", csc_hash_str(argv[i]), argv[i]);
+// }
+#define ROTL64(x,r)	((x << r) | (x >> (64 - r)))
+#define BIG_CONSTANT(x) (x##LLU)
+#define fmix64(k)  \
+    k ^= k >> 33; \
+    k *= BIG_CONSTANT(0xff51afd7ed558ccd); \
+    k ^= k >> 33; \
+    k *= BIG_CONSTANT(0xc4ceb9fe1a85ec53); \
+    k ^= k >> 33;
+uint64_t csc_hash_str(void *key)
+{   int len = strlen((char*)key);
+    const uint32_t seed = 10457;
+    const uint8_t *data = (const uint8_t*)key;
+    const int nblocks = len / 16;
  
-    for (pt=iter->pt; pt!=NULL; pt=pt->next)
-    {   if (pt->hash_val==hash_val && cmp(((char*)pt->data)+offset, key)==0)
-            break;
-    }
-    if (pt == NULL)
-    {   iter->pt = NULL;
-        return NULL;
-    }
-    else
-    {   iter->pt = pt->next;
-        return pt->data;
-    }
-}
-
-
-static void *csc_hash_all_next(csc_hash_iter_t *iter)
-{   int ilst;
-    int nlst;
-    csc_hash_node_t **table;
-    csc_hash_node_t *pt = iter->pt;
+    uint64_t h1 = seed;
+    uint64_t h2 = seed;
  
-    if (pt == NULL)
-    {   csc_hash_t *hash = iter->hash;
-        ilst = iter->ilst;
-        nlst = hash->tblsize;
-        table = hash->table;
-        while (ilst<nlst && table[ilst]==NULL)
-            ilst++;
-        iter->ilst = ilst;
-        if (ilst == nlst)
-            return NULL;
-        else
-            pt = table[ilst];
+    const uint64_t c1 = BIG_CONSTANT(0x87c37b91114253d5);
+    const uint64_t c2 = BIG_CONSTANT(0x4cf5ad432745937f);
+    const uint64_t *blocks = (const uint64_t *)(data);
+ 
+    for(int i = 0; i < nblocks; i++)
+    {   uint64_t k1 = blocks[i*2+0];
+        uint64_t k2 = blocks[i*2+1];
+        k1 *= c1;
+        k1  = ROTL64(k1,31);
+        k1 *= c2;
+        h1 ^= k1;
+        h1 = ROTL64(h1,27);
+        h1 += h2;
+        h1 = h1*5+0x52dce729;
+        k2 *= c2;
+        k2  = ROTL64(k2,33);
+        k2 *= c1;
+        h2 ^= k2;
+        h2 = ROTL64(h2,31);
+        h2 += h1;
+        h2 = h2*5+0x38495ab5;
     }
  
-    iter->pt = pt->next;
-    if (iter->pt == NULL)
-        iter->ilst++;
-    return pt->data;
+    const uint8_t *tail = (const uint8_t*)(data + nblocks*16);
+ 
+    uint64_t k1 = 0;
+    uint64_t k2 = 0;
+ 
+    switch(len & 15)
+    {   case 15:
+            k2 ^= ((uint64_t)tail[14]) << 48;
+        case 14:
+            k2 ^= ((uint64_t)tail[13]) << 40;
+        case 13:
+            k2 ^= ((uint64_t)tail[12]) << 32;
+        case 12:
+            k2 ^= ((uint64_t)tail[11]) << 24;
+        case 11:
+            k2 ^= ((uint64_t)tail[10]) << 16;
+        case 10:
+            k2 ^= ((uint64_t)tail[ 9]) << 8;
+        case  9:
+            k2 ^= ((uint64_t)tail[ 8]) << 0;
+            k2 *= c2;
+            k2  = ROTL64(k2,33);
+            k2 *= c1;
+            h2 ^= k2;
+        case  8:
+            k1 ^= ((uint64_t)tail[ 7]) << 56;
+        case  7:
+            k1 ^= ((uint64_t)tail[ 6]) << 48;
+        case  6:
+            k1 ^= ((uint64_t)tail[ 5]) << 40;
+        case  5:
+            k1 ^= ((uint64_t)tail[ 4]) << 32;
+        case  4:
+            k1 ^= ((uint64_t)tail[ 3]) << 24;
+        case  3:
+            k1 ^= ((uint64_t)tail[ 2]) << 16;
+        case  2:
+            k1 ^= ((uint64_t)tail[ 1]) << 8;
+        case  1:
+            k1 ^= ((uint64_t)tail[ 0]) << 0;
+            k1 *= c1;
+            k1  = ROTL64(k1,31);
+            k1 *= c2;
+            h1 ^= k1;
+    };
+ 
+    h1 ^= len;
+    h2 ^= len;
+    h1 += h2;
+    h2 += h1;
+    fmix64(h1);
+    fmix64(h2);
+    h1 += h2;
+    // h2 += h1;
+ 
+    return h1;
 }
 
 
-csc_hash_iter_t *csc_hash_iter_new(csc_hash_t *hash, void *key)
-{   csc_hash_iter_t *iter = csc_allocOne(csc_hash_iter_t);
-    iter->hash = hash;
-    iter->key = key;
-    if (key == NULL)
-    {   iter->ilst = 0;
-        iter->pt = NULL;
-    }
-    else
-    {   iter->hash_val = hash->hval(key);
-        iter->pt = hash->table[iter->hash_val % hash->tblsize];
-    }
-    return iter;
-}
-
-
-void csc_hash_iter_free(csc_hash_iter_t *iter)
-{   free(iter);
-}
-
-
-void *csc_hash_iter_next(csc_hash_iter_t *iter)
-{   if (iter->key == NULL)
-        return csc_hash_all_next(iter);
-    else
-        return csc_hash_key_next(iter);
-}
 
 
 // --------------------------------------------------
@@ -471,11 +704,6 @@ void csc_mapSS_free(csc_mapSS_t *hss)
     free(hss);
 }
 
-// void csc_mapSS_add(csc_mapSS_t *hss, const char *name, const char *val)
-// {    csc_nameVal_t *nv = csc_nameVal_new(name, val);
-//  csc_hash_add(hss->hash, &nv);
-// }
-
 csc_bool_t csc_mapSS_addex(csc_mapSS_t *hss, const char *name, const char *val)
 {   csc_nameVal_t *nv = csc_nameVal_new(name, val);
     csc_bool_t ret = csc_hash_addex(hss->hash, nv);
@@ -515,7 +743,7 @@ typedef struct csc_mapSS_iter_t
 // Constructor
 csc_mapSS_iter_t *csc_mapSS_iter_new(csc_mapSS_t *hss)
 {   csc_mapSS_iter_t *iter = csc_allocOne(csc_mapSS_iter_t);
-    iter->iter = csc_hash_iter_new(hss->hash, NULL);
+    iter->iter = csc_hash_iter_new(hss->hash);
     return iter;
 }
 
@@ -529,8 +757,4 @@ void csc_mapSS_iter_free(csc_mapSS_iter_t *iter)
 const csc_nameVal_t *csc_mapSS_iter_next(csc_mapSS_iter_t *iter)
 {   return (csc_nameVal_t*)csc_hash_iter_next(iter->iter);
 }
-
-
-
-
 

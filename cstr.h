@@ -23,7 +23,7 @@ typedef struct csc_str_t csc_str_t;
 
 
 // Assign.
-#define csc_str_reset(this) csc_str_assign(this, NULL)
+#define csc_str_reset(this) csc_str_truncate(this, 0)
 
     // Set this to 'str'.
     void csc_str_assign(csc_str_t *this, const char *str);

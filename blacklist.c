@@ -110,7 +110,7 @@ void csc_blacklist_clean(csc_blacklist_t *bl)
         now = time(NULL);
  
 // Gather the ID strings of all with negative blackness.
-    csc_hash_iter_t *iter = csc_hash_iter_new(bl->hash, NULL);
+    csc_hash_iter_t *iter = csc_hash_iter_new(bl->hash);
     while ((be = csc_hash_iter_next(iter)) != NULL)
     {
         blackness = be->blackness - (now - be->lastEval)/bl->expireTime;
