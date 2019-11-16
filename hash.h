@@ -26,7 +26,7 @@ csc_bool_t csc_hash_addex(csc_hash_t *hash, void *rec);
  * and return csc_TRUE.
  */
 
-void csc_hash_add(csc_hash_t *hash, void *rec);
+// void csc_hash_add(csc_hash_t *hash, void *rec);
 /*  This function will add 'rec' to 'hash' regardless of whether 
  * there are matching keys.
  */ 
@@ -80,6 +80,17 @@ unsigned long csc_hash_StrPt(void *pt);
  * 'pt' points to the char* pointer which gives the string.  Handy if the
  * key feild is a POINTER to str.
  */
+
+int csc_hash_StrCmpr(void *pt1, void *pt2);
+// For comparison of string fields.  Both 'pt1' and 'pt2' point
+// to the beginning of the string.  Handy if the key field is an
+// embedded string or the entire record is just a char*.
+// 
+// Use this in preference to passing strcmp() becuase strcmp could be a
+// macro and because passing
+// (int (*)(void*,void*))strcmp(const char*,const char*) might be dangerous.
+// The validation suite casts strcmp like that, so it could potentially be
+// OK so long as the validation passes.  
 
 int csc_hash_StrPtCmpr(void *pt1, void *pt2);
 /* For comparison of string fields.  Both 'pt1' and 'pt2' point

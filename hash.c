@@ -503,6 +503,11 @@ uint64_t csc_hash_StrPt(void *pt)
 }
 
 
+int csc_hash_StrCmpr(void *pt1, void *pt2)
+{   return strcmp((char*)pt1, (char*)pt2);
+}
+
+
 int csc_hash_StrPtCmpr(void *pt1, void *pt2)
 {   return strcmp(*(char**)pt1, *(char**)pt2);
 }

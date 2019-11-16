@@ -94,4 +94,7 @@ typedef struct csc_str_t csc_str_t;
     // Output.  Can even output strings containing null characters.
     size_t csc_str_out(csc_str_t *this, FILE *fout); 
 
+// String comparisons.
+#define csc_str_eqL(cstr,str)  (strcmp(csc_str_charr(cstr),(str)) == 0)
+
 #endif
