@@ -21,15 +21,15 @@ typedef struct                                                                 \
     int mEls;                                                                  \
 } parent ## _t;                                                                \
                                                                                \
-parent ## _t * parent ## _new();                                               \
-void  parent ## _add(parent ## _t *El, child ## _t *el);                       \
-void parent ## _free(parent ## _t *El);                                        \
+staticKeyword parent ## _t * parent ## _new();                                 \
+staticKeyword void  parent ## _add(parent ## _t *El, child ## _t *el);         \
+staticKeyword void parent ## _free(parent ## _t *El);                          \
 
 
 
 #define csc_dynArray_code(parent, child)                                       \
                                                                                \
-parent ## _t * parent ## _new()                                                \
+staticKeyword parent ## _t * parent ## _new()                                  \
 {   parent ## _t *El = csc_allocOne(parent ## _t);                             \
     El->els = NULL;                                                            \
     El->nEls = 0;                                                              \
@@ -37,7 +37,7 @@ parent ## _t * parent ## _new()                                                \
     return El;                                                                 \
 }                                                                              \
                                                                                \
-void  parent ## _add(parent ## _t *El, child ## _t *el)                        \
+staticKeyword void  parent ## _add(parent ## _t *El, child ## _t *el)          \
 {   if (El->nEls == El->mEls)                                                  \
     {   El->mEls = El->mEls * 2 + 10;                                          \
         El->els = csc_ck_ralloc(El->els, El->mEls*sizeof(child ## _t*));       \
@@ -45,7 +45,7 @@ void  parent ## _add(parent ## _t *El, child ## _t *el)                        \
     El->els[El->nEls++] = el;                                                  \
 }                                                                              \
                                                                                \
-void parent ## _free(parent ## _t *El)                                         \
+staticKeyword void parent ## _free(parent ## _t *El)                           \
 {   for (int i=0; i < El->nEls; i++)                                           \
         child ## _free(El->els[i]);                                            \
     if (El->els)                                                               \

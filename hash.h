@@ -4,6 +4,7 @@
 #ifndef csc_HASH_H
 #define csc_HASH_H 1
 #include "std.h"
+#include "hashStr.h"
 
 typedef struct csc_hash_t csc_hash_t;
 
@@ -63,9 +64,6 @@ int csc_hash_count(csc_hash_t *h);
 // --------- Miscellaneous useful -------------------
 // --------------------------------------------------
 
-unsigned long csc_hash_str(void *str);
-/*  Creates a hash index from a null terminated string.  (case sensitive).
- */
 
 unsigned long csc_hash_ptr(void *pt);
 /*  Creates a hash index from a pointer and returns it.

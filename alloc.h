@@ -13,6 +13,7 @@
 
 // Allocate a objects of type t.
 #define csc_allocOne(t)  ((t*)csc_ck_malloc((size_t)sizeof(t)))
+#define csc_callocOne(t)  ((t*)csc_ck_calloc((size_t)sizeof(t)))
 #define csc_allocMany(t,n)  ((t*)csc_ck_malloc((size_t)((n)*sizeof(t))))
 
 
@@ -47,6 +48,7 @@ char *csc_alloc_str7(const char *str1, const char *str2, const char *str3,
 #else
 
 #define csc_allocOne(t)  ((t*)csc_ck_malloc_debug((size_t)sizeof(t), __LINE__, __FILE__))
+#define csc_callocOne(t)  ((t*)csc_ck_calloc_debug((size_t)sizeof(t), __LINE__, __FILE__))
 #define csc_allocMany(t,n)  ((t*)csc_ck_malloc_debug((size_t)((n)*sizeof(t)), __LINE__, __FILE__))
 
 #define csc_ck_malloc(size) csc_ck_malloc_debug(size, __LINE__, __FILE__)

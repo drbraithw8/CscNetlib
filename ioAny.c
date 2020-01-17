@@ -1,3 +1,6 @@
+// Author: Dr Stephen Braithwaite.
+// This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
+
 #include <ctype.h>
 #include "ioAny.h"
 #include "alloc.h"

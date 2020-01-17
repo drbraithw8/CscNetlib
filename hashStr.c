@@ -1,10 +1,11 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "hashStr.h"
 
 
 //-----------------------------------------------------------------------------
-// csc_hash_str() is actually MurmurHash3 which was written by Austin Appleby,
+// csc_hash_str128() is actually MurmurHash3 written by Austin Appleby,
 // and is placed in the public domain. The author hereby disclaims
 // copyright to this source code.
 //-----------------------------------------------------------------------------
@@ -20,8 +21,8 @@
     k ^= k >> 33; \
     k *= BIG_CONSTANT(0xc4ceb9fe1a85ec53); \
     k ^= k >> 33;
-uint64_t csc_hash_str(void *key)
-{   int len = strlen((char*)key);
+csc_hash_hval128_t csc_hash_str128(const char *key)
+{   int len = strlen(key);
     const uint32_t seed = 10457;
     const uint8_t *data = (const uint8_t*)key;
     const int nblocks = len / 16;
@@ -105,7 +106,18 @@ uint64_t csc_hash_str(void *key)
     fmix64(h1);
     fmix64(h2);
     h1 += h2;
-    // h2 += h1;
+    h2 += h1;
  
-    return h1;
+// Return the result.
+	csc_hash_hval128_t retVal;
+	retVal.h0 = h1;
+	retVal.h1 = h2;
+    return retVal;
 }
+
+
+unsigned long csc_hash_str(void *key)
+{	csc_hash_hval128_t hval = csc_hash_str128((const char*)key);
+	return (unsigned long)hval.h0;
+}
+

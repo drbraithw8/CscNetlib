@@ -1,3 +1,6 @@
+// Author: Dr Stephen Braithwaite.
+// This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
+
 #include <ctype.h>
 
 #include "http.h"
@@ -7,6 +10,7 @@
 #include "dynArray.h"
 
 
+#define staticKeyword static
 csc_dynArray_headers(nameValArr, csc_nameVal)
 csc_dynArray_code(nameValArr, csc_nameVal)
 

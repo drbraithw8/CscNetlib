@@ -8,7 +8,6 @@
 #include "std.h"
 #include "alloc.h"
 #include "isvalid.h"
-#include "dynArray.h"
 #include "ioAny.h"
 #include "json.h"
 

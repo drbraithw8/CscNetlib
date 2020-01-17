@@ -9,9 +9,9 @@
 #include <string.h>
 #include <assert.h>
 
-#include <CscNetLib/std.h>
-#include <CscNetLib/alloc.h>
-#include <CscNetLib/list.h>
+#include "std.h"
+#include "alloc.h"
+#include "list.h"
 #include "hash.h"
 
 #define HashBits 8
@@ -200,7 +200,7 @@ csc_hash_t *csc_hash_new( int offset
 
 static void cvtLstToTbl(tblEnt_t *ent, int level)
 {   node_t *list = ent->list;
-    tbl_t *hTbl = csc_ck_calloc(sizeof(tbl_t));
+    tbl_t *hTbl = csc_callocOne(tbl_t);
     ent->hTbl = hTbl;
     tblEnt_t *eTbl = hTbl->eTbl;
     uint8_t *useBytes = hTbl->useBytes;
@@ -498,7 +498,7 @@ int csc_hash_count(csc_hash_t *h)
 
 
 
-uint64_t csc_hash_StrPt(void *pt)
+unsigned long csc_hash_StrPt(void *pt)
 {   return csc_hash_str(*(char**)pt);
 }
 
@@ -513,7 +513,7 @@ int csc_hash_StrPtCmpr(void *pt1, void *pt2)
 }
 
 
-uint64_t csc_hash_ptr(void *pt)
+unsigned long csc_hash_ptr(void *pt)
 /*  Creates a hash index from a pointer.
  */
 {   uint64_t pt_val = (uint64_t)pt;

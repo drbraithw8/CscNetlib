@@ -1,3 +1,6 @@
+// Author: Dr Stephen Braithwaite.
+// This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>

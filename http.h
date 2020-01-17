@@ -1,3 +1,6 @@
+// Author: Dr Stephen Braithwaite.
+// This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
+
 #ifndef csc_HTTP_H
 #define csc_HTTP_H 1
 
@@ -135,7 +138,7 @@ csc_httpErr_t csc_http_getErrCode(csc_http_t *msg);
 char *csc_http_pcentDec(const char *enc);
 
 // Assigns percent encoded version of 'dec' to 'enc'.
-// Encodes slashes and colons only if 'isSlashOk'.
+// Encodes slashes and colons only if not 'isSlashOk'.
 void csc_http_pcentEnc(const char *dec, csc_str_t *enc, csc_bool_t isSlashOk);
 
 
