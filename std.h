@@ -9,14 +9,14 @@
 #include <string.h>
 #include <inttypes.h>
 
-#define csc_versionStr "1.10.3"
+#define csc_versionStr "1.10.4"
 
 #define MinPortNo 1
 #define MaxPortNo 65535
 #define MaxPortNoStrSize 5
 
 #define csc_streq(a,b)  (!strcmp((a),(b)))
-#define csc_strieq(a,b)  (!stricmp((a),(b)))
+#define csc_strieq(a,b)  (!strcasecmp((a),(b)))
 
 #define csc_isalu(ch) (isalpha(ch) || (ch)=='_')
 #define csc_ungetc(ch,fp)  ((ch)==EOF?(ch):ungetc(ch,fp))
