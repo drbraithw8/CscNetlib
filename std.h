@@ -106,7 +106,7 @@ int64_t csc_xferBytesN(FILE *fin, FILE *fout, int64_t nBytes);
 
 
 #define csc_mck_IS_ON 1
-#ifdef csc_mck_IS_ON 
+#if csc_mck_IS_ON 
 
 #define malloc(size)            csc_mck_malloc(size,__LINE__,__FILE__)
 #define calloc(nelem,elsize)    csc_mck_calloc(nelem,elsize,__LINE__,__FILE__)

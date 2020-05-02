@@ -45,7 +45,6 @@ static void freecheck(memchk_type *header, int line, char *file);
 static void msg_quit(char *msg, char *file, int line);
 int csc_mck_checkmem(int flag, int line, char *file);
 void csc_mck_exit(int status, int line, char *file);
-void csc_mck_sexit(int status, int line, char *file);
 char *csc_mck_realloc(char *block, csc_uint size, int line, char *file);
 void csc_mck_free(char *block, int line, char *file);
 char *csc_mck_strdup(char *str, int line, char *file);
@@ -206,10 +205,11 @@ char *csc_mck_realloc(char *block, csc_uint size, int line, char *file)
 
 
 void csc_mck_sexit(int status, int line, char *file)
-{   if (nmlc != 0)
-    {   fprintf(csc_stderr, "memcheck: line %d file \"%s\" :-\n", line, file);
-        fprintf(csc_stderr, "\t%ld memory chunks not released.\n", nmlc);
-    }
+{   
+// 	if (nmlc != 0)
+//     {   fprintf(csc_stderr, "memcheck: line %d file \"%s\" :-\n", line, file);
+//         fprintf(csc_stderr, "\t%ld memory chunks not released.\n", nmlc);
+//     }
     exit(status);
 }
 
