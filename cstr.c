@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <ctype.h>
 
 #include "std.h"
 #include "cstr.h"
@@ -210,6 +211,31 @@ char *csc_str_alloc_charr(const csc_str_t *this)
 
 int csc_str_length(const csc_str_t *this)
 {   return this->nchars;
+}
+
+
+int csc_str_getword(csc_str_t *this, FILE *fin)
+{	int len=0;
+	int ch = getc(fin);
+    csc_str_reset(this);
+ 
+/* Skip whitespace */
+	while(isspace(ch))
+		ch = getc(fin);
+ 
+/* Deal with a possible EOF */
+	if (ch == EOF)
+		len = -1;
+ 
+/* read in the word */
+	while(!isspace(ch) && ch!=EOF)
+	{	len++;
+		csc_str_append_ch(this, ch);
+		ch = getc(fin);
+	}
+ 
+// Return result. 
+	return len;
 }
 
 

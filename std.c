@@ -52,6 +52,8 @@ int csc_fgetwd(FILE *fp, char *wd, int wdmax)
     }
     if (ch != EOF)
         ungetc(ch, fp);
+
+/* Bye. */
     return len;
 }
 

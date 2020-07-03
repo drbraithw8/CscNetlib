@@ -91,6 +91,14 @@ typedef struct csc_str_t csc_str_t;
     // no lines encountered because an EOF was found, then -1 will be returned.
     int csc_str_getline(csc_str_t *this, FILE *fin);
 
+	// Skips leading whitespace and then reads a word from stream 'fin'
+	// into 'this'.  The word will consist of the next zero or more
+	// whitespace characters.  Consumes, but does not include, one
+	// terminating whitespace character (if not EOF).  Returns the length
+	// of the resulting string in 'this'.  If no words encountered because
+	// an EOF was found, then -1 will be returned.
+    int csc_str_getword(csc_str_t *this, FILE *fin);
+
     // Output.  Can even output strings containing null characters.
     size_t csc_str_out(csc_str_t *this, FILE *fout); 
 
