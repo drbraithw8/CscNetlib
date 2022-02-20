@@ -121,6 +121,9 @@ int64_t csc_xferBytes(FILE *fin, FILE *fout);
 // error.  Returns the number of bytes actually transferred.
 int64_t csc_xferBytesN(FILE *fin, FILE *fout, int64_t nBytes);
 
+// Returns a basic checksum CS4 of the string 'str'.
+// CS4 is not well known and is not a cryptographic checksom.
+uint64_t csc_cs4(char *str);
 
 #define csc_mck_IS_ON 1
 #if csc_mck_IS_ON 
