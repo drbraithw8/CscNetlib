@@ -186,3 +186,18 @@ void csc_dateTimeStr(char str[csc_timeStrSize+1])
     strftime(str, csc_timeStrSize+1, "%Y%m%d.%H%M%S", now);
 }
 
+
+uint64_t csc_cs4(char *str)
+{	const int MUL=293;
+	const int ADD=1;
+ 
+	register uint8_t *pnt = (uint8_t*)str;
+	register uint8_t *end = pnt + strlen(str);
+	register uint64_t sum = 1;
+	while (pnt<end)
+	{	sum = (sum+(*pnt++)+ADD)*MUL;
+	}
+ 
+	return sum;
+}
+
