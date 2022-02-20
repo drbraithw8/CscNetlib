@@ -23,7 +23,6 @@ void csc_assertFail(const char *fname, int lineNo, const char *expr)
            );
     exit(1);
 }
-    
 
 
 int csc_fgetwd(FILE *fp, char *wd, int wdmax)
@@ -52,7 +51,7 @@ int csc_fgetwd(FILE *fp, char *wd, int wdmax)
     }
     if (ch != EOF)
         ungetc(ch, fp);
-
+ 
 /* Bye. */
     return len;
 }

@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <assert.h>
 #include <ctype.h>
@@ -256,6 +257,41 @@ int csc_str_getline(csc_str_t *this, FILE *fin)
         return -1;
     else
         return csc_str_length(this);
+}
+
+
+int csc_str_getfile(csc_str_t *this, FILE *fin)
+{   int ch;
+	int chCount = 0;
+
+// Clear out any contents from 'this'.
+    csc_str_reset(this);
+ 
+// Read in file. 
+    while ((ch=getc(fin)) != EOF)
+    {	chCount++;
+		csc_str_append_ch(this, ch);
+    }
+ 
+// Return result. 
+	return chCount;
+}
+
+
+// Returns a basic checksum CS4 of the string 'this'.
+// CS4 is not well known and is not a cryptographic checksom.
+uint64_t csc_str_cs4(csc_str_t *this)
+{	const int MUL=293;
+	const int ADD=1;
+ 
+	register uint8_t *pnt = (uint8_t*)this->chars;
+	register uint8_t *end = pnt + this->nchars;
+	register uint64_t sum = 1;
+	while (pnt<end)
+	{	sum = (sum+(*pnt++)+ADD)*MUL;
+	}
+ 
+	return sum;
 }
 
 

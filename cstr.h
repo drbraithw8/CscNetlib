@@ -5,6 +5,7 @@
 #define csc_CSTR_H 1
 
 #include <stdio.h>
+#include <stdint.h>
 
 #include "std.h"
 
@@ -81,16 +82,6 @@ typedef struct csc_str_t csc_str_t;
 
 /* Misc. */
 
-    // Returns the length of 'this' string.
-    int csc_str_length(const csc_str_t *this);
-
-    // Reads a line from stream 'fin' into 'this'.  The terminating newline
-    // is read, but not included into 'this'.  Any terminating '\r' is read
-    // past, and ignored.  Returns the length of the resulting string in
-    // 'this', which will be zero for empty lines read in.  If there were
-    // no lines encountered because an EOF was found, then -1 will be returned.
-    int csc_str_getline(csc_str_t *this, FILE *fin);
-
 	// Skips leading whitespace and then reads a word from stream 'fin'
 	// into 'this'.  The word will consist of the next zero or more
 	// whitespace characters.  Consumes, but does not include, one
@@ -99,8 +90,27 @@ typedef struct csc_str_t csc_str_t;
 	// an EOF was found, then -1 will be returned.
     int csc_str_getword(csc_str_t *this, FILE *fin);
 
+    // Reads a line from stream 'fin' into 'this'.  The terminating newline
+    // is read, but not included into 'this'.  Any terminating '\r' is read
+    // past, and ignored.  Returns the length of the resulting string in
+    // 'this', which will be zero for empty lines read in.  If there were
+    // no lines encountered because an EOF was found, then -1 will be returned.
+    int csc_str_getline(csc_str_t *this, FILE *fin);
+
+	// Reads all characters from stream 'fin' until EOF, into 'this'.
+	// A very bad idea if you dont beforehand know that the stream is limited.
+	// The number of characters read in is returned.
+    int csc_str_getfile(csc_str_t *this, FILE *fin);
+
     // Output.  Can even output strings containing null characters.
     size_t csc_str_out(csc_str_t *this, FILE *fout); 
+
+	// Returns a basic checksum CS4 of the string 'this'.
+	// CS4 is not well known and is not a cryptographic checksum.
+	uint64_t csc_str_cs4(csc_str_t *this);
+
+    // Returns the length of 'this' string.
+    int csc_str_length(const csc_str_t *this);
 
 // String comparisons.
 #define csc_str_eqL(cstr,str)  (strcmp(csc_str_charr(cstr),(str)) == 0)

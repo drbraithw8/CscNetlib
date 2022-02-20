@@ -10,10 +10,10 @@
 // function will return csc_FALSE.
 csc_bool_t csc_isValid_hex(const char *word);
 
+
 // Returns csc_TRUE if the string 'word' is an integer.  Otherwise, this
 // function will return csc_FALSE.
 csc_bool_t csc_isValid_int(const char *word);
-
 
 // If 'word' is a valid int, and its value lies between 'min' and 'max'
 // inclusive, then this function returns csc_TRUE.  Otherwise, this
@@ -27,7 +27,6 @@ csc_bool_t csc_isValidRange_int(const char *word, int min, int max, int *value);
 // point or exponential format.  Returns csc_FALSE otherwise.
 csc_bool_t csc_isValid_float(const char *str);
 
-
 // If 'word' is a valid floating point number, and its value lies between
 // 'min' and 'max' inclusive, then this function returns csc_TRUE.
 // Otherwise, this function will return csc_FALSE.  Further, if the return
@@ -39,10 +38,8 @@ csc_bool_t csc_isValidRange_float(const char *word, double min, double max, doub
 // Returns csc_TRUE if 'str' is a valid IP version 4 IP address, csc_FALSE if not.
 csc_bool_t csc_isValid_ipV4(const char *str);
 
-
 // Returns csc_TRUE if 'str' is a valid IP version 6 IP address, csc_FALSE if not.
 csc_bool_t csc_isValid_ipV6(const char *str);
-
 
 // Returns csc_TRUE if 'str' is a valid host or domain name, csc_FALSE if not.
 csc_bool_t csc_isValid_domain(const char *str);

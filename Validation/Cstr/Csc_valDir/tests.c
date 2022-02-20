@@ -81,10 +81,12 @@ int main(int argc, char **argv)
     // fprintf(stderr, "strA    :\"%s\"\n", csc_str_charr(strA));
     printPassFail("append_f", csc_streq(csc_str_charr(strA),expected));
 
+    printPassFail("cstr_cs4", csc_str_cs4(strB) == 164841080898304L);
 
     csc_str_free(strA);
     csc_str_free(strB);
     printPassFail("cstr_Free2", csc_mck_nchunks()==0);
+
 
     fclose(fout);
 }
