@@ -9,9 +9,15 @@
 #include <CscNetLib/isvalid.h>
 #include <CscNetLib/udp.h>
 
+void usage(char *progName)
+{   fprintf(stderr, "Usage: %s ipAddr port\n\n", progName);
+    exit(1);
+}
+
+
 
 #define MaxBufLen 100
-int main(int argc, char **argv)
+void work(const char *adr, int port)
 {   char buf[MaxBufLen+1];
     int ret, nRead;
 
@@ -22,7 +28,7 @@ int main(int argc, char **argv)
 
 // Set up the server.
     udp = csc_udp_new();  assert(udp);
-    ret = csc_udp_setSrv(udp, "127.0.0.1", 9992);
+    ret = csc_udp_setSrv(udp, adr, port);
     if (!ret)
     {   fprintf(stderr, "Error: %s.\n", csc_udp_getErrMsg(udp));
         perror(NULL);
@@ -62,4 +68,18 @@ freeAll:
 }
 
  
-    
+int main(int argc, char **argv)
+{   int ret, nRead;
+
+    if (argc != 3)
+        usage(argv[0]);
+
+// Port Num.
+    if (!csc_isValid_int(argv[2]))
+        usage(argv[0]);
+    int portNum = atoi(argv[2]);
+
+// Try to get a message.
+    work(argv[1], portNum);
+    exit(0);
+}

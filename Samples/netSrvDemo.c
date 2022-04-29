@@ -12,7 +12,7 @@ int main(int argc, char **argv)
  
 // Create netSrv object.
     csc_srv_t *ntp = csc_srv_new();    assert(ntp!=NULL);
-    int ret = csc_srv_setAddr(ntp, "127.0.0.1", 9991, -1); assert(ret);
+    int ret = csc_srv_setAddr(ntp, "192.168.56.1", 9991, -1); assert(ret);
 
 // For each successful connection.
     while ((fd0 = csc_srv_accept(ntp)) >= 0)

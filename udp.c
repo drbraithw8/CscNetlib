@@ -398,7 +398,7 @@ int csc_udp_rcv( csc_udp_t *udp          // UDP object.
         {   return -2;  // Receive packet timed out.
         }
         else
-        {   udp_setErrMsg(udp, "csc_udp_setRcvAddr(): recvform() failed", strerror(errno));
+        {   udp_setErrMsg(udp, "csc_udp_rcv(): recvfrom() failed", strerror(errno));
             return -1;
         }
     }
