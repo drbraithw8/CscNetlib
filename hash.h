@@ -4,22 +4,44 @@
 #ifndef csc_HASH_H
 #define csc_HASH_H 1
 #include "std.h"
+#include <stdint.h>
 #include "hashStr.h"
 
 typedef struct csc_hash_t csc_hash_t;
 
 
 csc_hash_t *csc_hash_new(int offset, int (*cmp)(void*,void*),
-                unsigned long (*hval)(void*), void (*free_rec)(void*) );
-/*  This function allocates and initializes a hash table.  
- * Resolution is by chaining.  The key field of the record is at
- * position 'offset' from the beginning of the record.  The function
- * 'cmp'() must be able to compare two keys and return zero if they
- * compare equal, non zero otherwise.  The function 'hval'() will
- * generate a hash value from a key.  The value returned from 'hval'()
- * will be subsequently subjected to MOD (whatever is the tablesize). 
- * The function 'free_rec'() is able to dispose of a record.
- */ 
+                uint64_t (*hval)(void*), void (*free_rec)(void*) );
+// This function allocates and initializes a hash table.  
+// 
+// The key field of the record is embedded in a record at position 'offset'
+// from the beginning of the record.
+// 
+// The function 'cmp'(), given pointers to two key elements (in the
+// records), must be able to compare two keys and return zero if they
+// compare equal, non zero otherwise.
+// 
+// The function 'hval'(), given a pointer to a key (in a record), must
+// generate a hash value from a key.  This class relies on the fact that
+// the hash function you provide is GOOD (i.e. behaves like normal hashing).
+// A good hashing function is required because this uses a HASH TREE, as
+// explained in the next paragraph.  Good hashing functions csc_hash_StrPt()
+// and csc_hash_str() are provided here, and you should pass one of those
+// for 'hval'() if the hash key is a null terminated string.
+// 
+// This uses a hash tree:  When the table has 16 or less entries, it stores
+// records in a linear linked list.  As the size of the table increases
+// beyond 16 elements, then the linked list is replaced by a hash table of
+// size 256, hashed on the least significant byte of the hash value, and uses
+// linear linked lists in each slot of the hash table.  When the size of
+// any of those linked lists increases beyond 16 entries, it in turn, will
+// be replaced by a hash table of size 256, hashed on the second most
+// significant byte in the hash value, and uses a linked list in each slot
+// of the hash tree.  And so on...
+// 
+// The function 'free_rec'() is able to dispose of a record.  The hash
+// tree will shrink back again as records are removed.
+
 
 csc_bool_t csc_hash_addex(csc_hash_t *hash, void *rec);
 /*  If a key matching 'rec' already exists in 'hash' then this 
@@ -65,7 +87,7 @@ int csc_hash_count(csc_hash_t *h);
 // --------------------------------------------------
 
 
-unsigned long csc_hash_ptr(void *pt);
+uint64_t csc_hash_ptr(void *pt);
 /*  Creates a hash index from a pointer and returns it.
  */
 
@@ -73,7 +95,7 @@ int csc_hash_PtrCmpr(void *pt1, void *pt2);
 /* Compares two pointers.
  */
 
-unsigned long csc_hash_StrPt(void *pt);
+uint64_t csc_hash_StrPt(void *pt);
 /*  Creates a hash index from a null terminated string.  (case sensitive).
  * 'pt' points to the char* pointer which gives the string.  Handy if the
  * key feild is a POINTER to str.

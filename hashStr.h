@@ -10,5 +10,5 @@ typedef struct
 csc_hash_hval128_t csc_hash_str128(const char *key);
 
 // But hash.h functions are very generic and require void*.
-unsigned long csc_hash_str(void *key);
+uint64_t csc_hash_str(void *key);
 

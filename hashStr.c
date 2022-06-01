@@ -116,8 +116,8 @@ csc_hash_hval128_t csc_hash_str128(const char *key)
 }
 
 
-unsigned long csc_hash_str(void *key)
+uint64_t csc_hash_str(void *key)
 {	csc_hash_hval128_t hval = csc_hash_str128((const char*)key);
-	return (unsigned long)hval.h0;
+	return (uint64_t)hval.h0;
 }
 

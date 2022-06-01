@@ -4,7 +4,6 @@
 
 #include <stdlib.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -39,7 +38,7 @@ typedef struct node_t
 } node_t;
 
 
-typedef struct tbl_t tbl_t;
+typedef struct tbl_t tbl_t; 
 
 typedef struct
 {   union
@@ -180,7 +179,7 @@ void csc_hash_iter_free(csc_hash_iter_t *it)
 
 csc_hash_t *csc_hash_new( int offset
                   , int (*cmp)(void*,void*)
-                  , ulong (*hval)(void*)
+                  , uint64_t (*hval)(void*)
                   , void (*freeRec)(void*)
                 )
 {   csc_hash_t *h;
@@ -498,7 +497,7 @@ int csc_hash_count(csc_hash_t *h)
 
 
 
-unsigned long csc_hash_StrPt(void *pt)
+uint64_t csc_hash_StrPt(void *pt)
 {   return csc_hash_str(*(char**)pt);
 }
 
@@ -513,7 +512,7 @@ int csc_hash_StrPtCmpr(void *pt1, void *pt2)
 }
 
 
-unsigned long csc_hash_ptr(void *pt)
+uint64_t csc_hash_ptr(void *pt)
 /*  Creates a hash index from a pointer.
  */
 {   uint64_t pt_val = (uint64_t)pt;
