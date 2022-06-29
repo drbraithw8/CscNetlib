@@ -201,3 +201,19 @@ uint64_t csc_cs4(char *str)
 	return sum;
 }
 
+
+void csc_strncpy(char *dest, const char *source, int n)
+{	while (n-- && (*dest++ = *source++))
+		;
+	if (n < 0)
+		*dest = '\0';
+}
+
+
+static void csc_strncat(char *dest, char *source, int n)
+{   int len;
+ 
+	len = strlen(dest);
+	if (n > len)
+		csc_strncpy(dest+len, source, n-len);
+}

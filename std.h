@@ -53,6 +53,19 @@ void csc_assertFail(const char *fname, int lineNo, const char *expr);
    csc_assertFail(__FILE__, __LINE__, #a) , 0) : 0)  
 
 
+// This function copies 'source' to 'dest'.  If, however, 'source'
+// has more than 'n' characters, only 'n' characters will be copied and
+// a null byte will be appended to 'dest' after the last character.
+// Note: 'n' must not be negative or else disaster.
+void csc_strncpy(char *dest, const char *source, int n);
+
+
+// This function copies 'source' onto the end of  'dest'.  It will only
+// copy into 'dest' what 'dest' has room for.  'dest' has room for 'n'
+// characters plus 1 for the null byte.
+static void csc_strncat(char *dest, char *source, int n);
+
+
 // Reads a line from the stream 'fp' into the array 'line'.  The
 // terminating newline is not included into 'line', but it is consumed.
 // 
