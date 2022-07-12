@@ -202,6 +202,34 @@ uint64_t csc_cs4(char *str)
 }
 
 
+void csc_trim(char *str)
+{	char *p;
+	int ch;
+ 
+// Remove trailing whitespace.
+	p = str + strlen(str);
+	while (p > str)
+	{	ch = *--p;
+		if (isspace(ch))
+		{	*p = '\0';
+		}
+		else
+		{	break;
+		}
+	}
+ 
+// Remove leading whitespace.
+	p = str;
+	ch = *p;
+	while (isspace(ch))
+	{	ch = *++p;
+	}
+	if (p > str)
+	{	memmove(str, p, strlen(p)+1);
+	}
+}
+
+
 void csc_strncpy(char *dest, const char *source, int n)
 {	while (n-- && (*dest++ = *source++))
 		;
@@ -210,7 +238,7 @@ void csc_strncpy(char *dest, const char *source, int n)
 }
 
 
-static void csc_strncat(char *dest, char *source, int n)
+void csc_strncat(char *dest, char *source, int n)
 {   int len;
  
 	len = strlen(dest);

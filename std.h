@@ -63,7 +63,12 @@ void csc_strncpy(char *dest, const char *source, int n);
 // This function copies 'source' onto the end of  'dest'.  It will only
 // copy into 'dest' what 'dest' has room for.  'dest' has room for 'n'
 // characters plus 1 for the null byte.
-static void csc_strncat(char *dest, char *source, int n);
+void csc_strncat(char *dest, char *source, int n);
+
+
+// Overwrites string 'str' with one that has had whitespace
+// removed from the beginning and end.
+void csc_trim(char *str);
 
 
 // Reads a line from the stream 'fp' into the array 'line'.  The
