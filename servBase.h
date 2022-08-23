@@ -67,9 +67,10 @@
 // 6)  local - A pointer to whatever your want (usually a structure).  This
 //  merely passed onto doInit() and also to doConn().  Pass NULL if you
 //  have nothing to pass to doInit() and doConn().
-int csc_servBase_server( char *srvModelStr
-                       , char *logPath
-                       , char *configPath
+int csc_servBase_server( const char *srvModelStr
+                       , const char *logPath
+                       , const char *logId
+                       , const char *configPath
                        , int (*doConn)( int fd            // client file descriptor
                                       , const char *clientIp   // IP of client, or NULL
                                       , csc_ini_t *conf // Configuration object.

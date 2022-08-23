@@ -65,7 +65,7 @@ typedef struct csc_str_t csc_str_t;
     // 
     // Modifiers  'l' and 'll' are supported for ints.  Modifiers
     // 't','Z','z','j','L','q','h', '*', '$', are not supported.
-    void csc_str_append_f(csc_str_t *this, char *fmt, ... );
+    void csc_str_append_f(csc_str_t *this, const char *fmt, ... );
 
 
 /* Converters to standard C string. */

@@ -312,7 +312,7 @@ void csc_str_append_many(csc_str_t *this, ... )
 
 #define csc_str_BufLen 127
 
-static csc_str_t *readFspec(char *fmt, int *lenP, char *specChar)
+static csc_str_t *readFspec(const char *fmt, int *lenP, char *specChar)
 {   int len = 1;
     int longness = 0;
     int ch;
@@ -375,11 +375,11 @@ static csc_str_t *readFspec(char *fmt, int *lenP, char *specChar)
 }
 
 
-void csc_str_append_f(csc_str_t *this, char *fmt, ... )
+void csc_str_append_f(csc_str_t *this, const char *fmt, ... )
 {   char ch, specChar;
     csc_str_t *fSpec;
     char buf[csc_str_BufLen];
-    char *pf = fmt;
+    const char *pf = fmt;
     int len;
     va_list ap;
     va_start(ap, fmt);

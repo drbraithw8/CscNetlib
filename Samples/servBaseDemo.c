@@ -113,6 +113,7 @@ int main(int argc, char **argv)
  
     csc_servBase_server( "OneByOne"    // Server Model.
                        , "test.log"    // Path to log file.
+					   , "servBaseDemo" // Id used in log file.
                        , "test.ini"    // Path to configuration file.
                        , doConn       // Callback called for each connection.
                        , doInit       // Callback called for initialisation.

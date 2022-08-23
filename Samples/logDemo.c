@@ -11,8 +11,8 @@ void usage(char *progname)
     fprintf( stderr
            , "Usage %s logPath logLevel\n\n"
              "   where logPath is the path of the log file\n"
-             "     and logLevel is an integer from 1 to 5\n\n"
-           , progname
+             "     and logLevel is an integer from %d to %d\n\n"
+           , progname, csc_log_TRACE, csc_log_FATAL
            );
     exit(1);
 }
@@ -30,7 +30,7 @@ int main(int argc, char **argv)
         usage(argv[0]);
  
 // Create the logging object.
-    csc_log_t *log = csc_log_new(argv[1], logLevel);
+    csc_log_t *log = csc_log_new(argv[1], "logDemo", logLevel);
     if (log == NULL)
         return csc_FALSE;
  

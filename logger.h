@@ -5,36 +5,36 @@
 #define csc_LOG_H 1
 
 #include "std.h"
+#include <syslog.h>
+
 
 typedef struct csc_log_t csc_log_t;
 
 typedef enum
-{   csc_log_TRACE = 1,   // For debugging your server.
-    csc_log_NOTICE,     // Important events such as server starts or stops.
-    csc_log_WARN,      // Something might be wrong.
-    csc_log_ERROR,    // An error condition, but the server will continue.
-    csc_log_FATAL    // An error condition, and the server cannot continue.
+{   csc_log_TRACE   // For debugging your server.
+,   csc_log_NOTICE     // Important events such as server starts or stops.
+,   csc_log_WARN      // Something might be wrong.
+,   csc_log_ERROR    // An error condition, but the server will continue.
+,   csc_log_FATAL    // An error condition and the server cannot continue.
+,	csc_log_nLogLevels
 } csc_log_level_t;
 
-// Constructor.  Returns a new logger object on success.  'path' is the
-// file path of the log file, and needs to be absolute for a real server.
-// 'logLevel' is the logging threshold.  Logging entries in the log file
-// are only logged if their logLevels are greater or equal to 'logLevel'.
-// Returns NULL if logging cannot be initiated.
-csc_log_t *csc_log_new(const char *path, csc_log_level_t logLevel);
+
+// Constructor.  Returns a new logger object on success. 
+// 
+// If 'path' is the string "useSyslog", then output is handled by syslog.
+// Otherwise, 'path' is the file path of the log file, and needs to be
+// absolute for a real server.  'logLevel' is the logging threshold.
+// 
+// Logging entries in the log file are only logged if their logLevels are
+// greater or equal to 'logLevel'.  Returns NULL if logging cannot be
+// initiated.
+csc_log_t *csc_log_new(const char *path, const char *idStr, csc_log_level_t logLevel);
 
 
 // Change the logging level to 'logLevel'
 // Returns csc_TRUE if logLevel has acceptable value, csc_FALSE otherwise.
 csc_bool_t csc_log_setLogLevel(csc_log_t *logger, csc_log_level_t logLevel);
-
-
-// Set a string to show in each log entry.
-void csc_log_setIdStr(csc_log_t *logger, const char *str);
-
-
-// Set whether logger should show the process ID
-void csc_log_setIsShowPid(csc_log_t *logger, csc_bool_t isShow);
 
 
 // Destructor.

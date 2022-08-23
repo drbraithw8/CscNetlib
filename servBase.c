@@ -38,7 +38,7 @@
 #define srvModelStr_Forking "Forking"
 #define srvModel_Forking 2
 
-#define initialLogLevel 2
+#define initialLogLevel csc_log_NOTICE
 
 
 typedef struct
@@ -297,7 +297,7 @@ static int serv_Forking( csc_log_t *log
 }
 
 
-csc_bool_t readConfig(csc_log_t *log, csc_ini_t **ini, config_t *conf, char *configPath)
+csc_bool_t readConfig(csc_log_t *log, csc_ini_t **ini, config_t *conf, const char *configPath)
 {   int iniFileLineNum;
     const char *str;
 
@@ -481,9 +481,10 @@ csc_bool_t readConfig(csc_log_t *log, csc_ini_t **ini, config_t *conf, char *con
 }
 
 
-int csc_servBase_server( char *srvModelStr
-                       , char *logPath
-                       , char *configPath
+int csc_servBase_server( const char *srvModelStr
+                       , const char *logPath
+                       , const char *logId
+                       , const char *configPath
                        , int (*doConn)( int fd            // client file descriptor
                                       , const char *clientIp   // IP of client, or NULL
                                       , csc_ini_t *ini // Configuration object.
@@ -506,7 +507,7 @@ int csc_servBase_server( char *srvModelStr
     csc_srv_t *srv = NULL;
  
 // Initialise the logging.
-    log = csc_log_new(logPath, initialLogLevel);
+    log = csc_log_new(logPath, logId, initialLogLevel);
     if (log == NULL)
     {   fprintf(csc_stderr, "Failed to initialise the logging.\n");
         retVal = csc_FALSE; 
@@ -518,7 +519,6 @@ int csc_servBase_server( char *srvModelStr
         srvModel = srvModel_OneByOne;
     else if (csc_streq(srvModelStr,srvModelStr_Forking))
     {   srvModel = srvModel_Forking;
-        csc_log_setIsShowPid(log, csc_TRUE);
     }
     else
     {   csc_log_printf( log , csc_log_FATAL , "Invalid server model");

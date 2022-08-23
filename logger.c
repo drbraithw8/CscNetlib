@@ -16,16 +16,25 @@
 
 
 
+const int syslogPriority[csc_log_nLogLevels] = { LOG_DEBUG
+											   , LOG_NOTICE
+											   , LOG_WARNING
+											   , LOG_ERR
+											   , LOG_EMERG
+											   };
+
 typedef struct csc_log_t
 {   char *path;
     char *idStr;
     csc_log_level_t level;
     csc_bool_t isShowProcessId;
+    csc_bool_t isUseSyslog;
     sem_t sem;
 } csc_log_t;    
 
 
-csc_log_t *csc_log_new(const char *path, csc_log_level_t logLevel)
+
+csc_log_t *csc_log_new(const char *path, const char *idStr, csc_log_level_t logLevel)
 {   csc_log_t *lgr;
     int retVal;
  
@@ -35,13 +44,23 @@ csc_log_t *csc_log_new(const char *path, csc_log_level_t logLevel)
  
 // Create the logger.
     lgr = csc_allocOne(csc_log_t);
-    lgr->path = csc_alloc_str(path);
     lgr->level = logLevel;
-    lgr->idStr = NULL;
-    retVal = sem_init(&lgr->sem, 1, 1); csc_assert(retVal==0);
+    lgr->idStr = csc_alloc_str(idStr);
+    lgr->isShowProcessId = csc_TRUE;
+ 
+// What sort of logging?
+	if (csc_streq(path, "UseSyslog"))
+	{	lgr->path = NULL;
+    	lgr->isUseSyslog = csc_TRUE;
+		openlog(idStr, LOG_PID|LOG_CONS, LOG_USER);
+	}
+	else
+	{	lgr->path = csc_alloc_str(path);
+    	lgr->isUseSyslog = csc_FALSE;
+		retVal = sem_init(&lgr->sem, 1, 1); csc_assert(retVal==0);
+	}
  
 // Test the logger with an initial entry.
-    lgr->isShowProcessId = csc_TRUE;
     if (!csc_log_str(lgr, csc_log_NOTICE, "Logging commenced"))
     {   fprintf(csc_stderr
                , "Error: Logger failed to write intial entry to log file:"
@@ -49,62 +68,46 @@ csc_log_t *csc_log_new(const char *path, csc_log_level_t logLevel)
         csc_log_free(lgr);
         return NULL;
     }
-    lgr->isShowProcessId = csc_FALSE;
  
     return lgr;
 }
 
 
-void csc_log_setIsShowPid(csc_log_t *logger, csc_bool_t isShow)
-{   logger->isShowProcessId = isShow;
+void csc_log_free(csc_log_t *lgr)
+{   int retVal;
+    csc_log_str(lgr, csc_log_NOTICE, "Logging terminated normally");
+    if (lgr->isUseSyslog)
+	{	closelog();
+	}
+	else
+	{	retVal = sem_destroy(&lgr->sem); csc_assert(retVal==0);
+		free(lgr->path);
+	}
+	free(lgr->idStr);
+    free(lgr);
 }
 
 
-void csc_log_setIdStr(csc_log_t *logger, const char *str)
-{   if (logger->idStr)
-        free(logger->idStr);
-    logger->idStr = csc_alloc_str(str);
-}
-
-
-csc_bool_t csc_log_setLogLevel(csc_log_t *logger, csc_log_level_t logLevel)
+csc_bool_t csc_log_setLogLevel(csc_log_t *lgr, csc_log_level_t logLevel)
 {   if (logLevel<csc_log_TRACE || logLevel>csc_log_FATAL)
         return csc_FALSE;
     else
-    {   logger->level = logLevel;
+    {   lgr->level = logLevel;
         return csc_TRUE;
     }
 }
 
 
-void csc_log_free(csc_log_t *log)
-{   int retVal;
-    csc_log_str(log, csc_log_NOTICE, "Logging terminated normally");
-    free(log->path);
-    if (log->idStr != NULL)
-        free(log->idStr);
-    retVal = sem_destroy(&log->sem); csc_assert(retVal==0);
-    free(log);
-}
-
-
-static FILE *logGuts(csc_log_t *logger, csc_log_level_t logLevel, int *retVal)
+static FILE *logGuts(csc_log_t *lgr, csc_log_level_t logLevel)
 {   char timeStr[csc_timeStrSize+1];
  
-// Only log if logLevel is greater or equal to the threshold.
-    if (logLevel < logger->level)
-    {   *retVal = csc_TRUE;
-        return NULL;
-    }
-
 // Prevent concurrent write to the logfile.
-    sem_wait(&logger->sem);
+    sem_wait(&lgr->sem);
  
 // Open the file for append.
-    FILE *fp = fopen(logger->path, "a");
+    FILE *fp = fopen(lgr->path, "a");
     if (fp == NULL)
-    {   *retVal = csc_FALSE;
-        return NULL;
+    {   return NULL;
     }
  
 // Create and format the time.
@@ -112,9 +115,9 @@ static FILE *logGuts(csc_log_t *logger, csc_log_level_t logLevel, int *retVal)
  
 // Make the entry.
     fprintf(fp, "%d[%s]", (int)logLevel, timeStr);
-    if (logger->idStr)
-        fprintf(fp, "%s ", logger->idStr);
-    if (logger->isShowProcessId)
+    if (lgr->idStr)
+        fprintf(fp, "%s ", lgr->idStr);
+    if (lgr->isShowProcessId)
         fprintf(fp, "%d ", (int)getpid());
     
 // Return stuff.
@@ -122,53 +125,58 @@ static FILE *logGuts(csc_log_t *logger, csc_log_level_t logLevel, int *retVal)
 }
 
 
-int csc_log_str(csc_log_t *logger, csc_log_level_t logLevel, const char *msg)
-{   int retVal;
+int csc_log_printf( csc_log_t *lgr
+                 , csc_log_level_t logLevel
+                 , const char *format
+                 , ...
+                 )
+{	va_list args;
  
-// Create initial part of entry, if the logging level is suitable.
-    FILE *fp = logGuts(logger, logLevel, &retVal);
-    if (fp == NULL)
-        return retVal;
+// Only log if logLevel is greater or equal to the threshold.
+    if (logLevel < lgr->level)
+    {   return csc_TRUE;
+    }
  
-// Print the message.
-    fprintf(fp, "%s\n", msg);
- 
-// Close the file.
-    fclose(fp);
-
-// Allow other threads to write to the logfile.
-    sem_post(&logger->sem);
+// Is using Syslog?
+	if (lgr->isUseSyslog)
+	{	int priority = syslogPriority[logLevel];
+		char fformat[100];  csc_assert(strlen(format)<96);
+		sprintf(fformat, "%d ", logLevel);
+		strcat(fformat, format);
+		va_start(args, format);
+		vsyslog(priority, fformat, args);
+		va_end(args);
+	}
+	else
+	{
+	// Create initial part of entry.
+		FILE *fp = logGuts(lgr, logLevel);
+		if (fp == NULL)
+		{	fprintf( stderr, "%s: Logging to file \"%s\" failed!\n"
+				   , lgr->idStr, lgr->path
+				   );
+			return csc_FALSE;
+		}
+	 
+	// Print the message.
+	   va_start(args, format);
+	   vfprintf(fp, format, args);
+	   va_end(args);
+	   fprintf(fp, "\n");
+	 
+	// Close the file.
+		fclose(fp);
+	 
+	// Allow other threads to write to the logfile.
+		sem_post(&lgr->sem);
+	}
  
     return csc_TRUE;
 }
 
 
-int csc_log_printf( csc_log_t *logger
-                 , csc_log_level_t logLevel
-                 , const char *format
-                 , ...
-                 )
-{   int retVal;
-    va_list args;
- 
-// Create initial part of entry, if the logging level is suitable.
-    FILE *fp = logGuts(logger, logLevel, &retVal);
-    if (fp == NULL)
-        return retVal;
- 
-// Print the message.
-   va_start(args, format);
-   vfprintf(fp, format, args);
-   va_end(args);
-   fprintf(fp, "\n");
- 
-// Close the file.
-    fclose(fp);
-
-// Allow other threads to write to the logfile.
-    sem_post(&logger->sem);
-
-    return csc_TRUE;
+int csc_log_str(csc_log_t *lgr, csc_log_level_t logLevel, const char *msg)
+{   return csc_log_printf(lgr, logLevel, "%s", msg);
 }
 
 
