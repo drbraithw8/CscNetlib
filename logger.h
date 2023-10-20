@@ -27,8 +27,12 @@ typedef enum
 // absolute for a real server.  'logLevel' is the logging threshold.
 // 
 // Logging entries in the log file are only logged if their logLevels are
-// greater or equal to 'logLevel'.  Returns NULL if logging cannot be
-// initiated.
+// greater or equal to 'logLevel'.
+// 
+// 'idStr' may be NULL.  If it is not NULL, then it will appear in each
+// entry of the log file made via this logging object.
+// 
+// Returns NULL if logging cannot be initiated.
 csc_log_t *csc_log_new(const char *path, const char *idStr, csc_log_level_t logLevel);
 
 
