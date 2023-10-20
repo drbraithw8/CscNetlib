@@ -145,7 +145,7 @@ void main(int argc, char **argv)
 {
 // Test software implementation.
 	aesPssl_test();
-
+ 
 // Test hardware implementation.
 	if (csc_aes_impl())
 	{	fprintf(stdout, "%s", "aes_ni supported\n");
@@ -154,10 +154,10 @@ void main(int argc, char **argv)
 	else
 	{	fprintf(stdout, "%s", "aes_ni not supported\n");
 	}
-
+ 
 // Test combined software-hardware implementation.
 	aes_test();
-
+ 
 // Memory check.
     csc_mck_print(stdout);
 }
