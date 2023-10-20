@@ -148,11 +148,11 @@ void main(int argc, char **argv)
 
 // Test hardware implementation.
 	if (csc_aes_impl())
-	{	fprintf(stdout, "%s", "AES_NI supported\n");
+	{	fprintf(stdout, "%s", "aes_ni supported\n");
 		aesNi_test();
 	}
 	else
-	{	fprintf(stdout, "%s", "AES_NI not supported\n");
+	{	fprintf(stdout, "%s", "aes_ni not supported\n");
 	}
 
 // Test combined software-hardware implementation.
