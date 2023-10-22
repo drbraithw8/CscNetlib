@@ -9,7 +9,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-#define csc_versionStr "1.11.0"
+#define csc_versionStr "1.12.0"
 
 #define MinPortNo 1
 #define MaxPortNo 65535
@@ -88,8 +88,8 @@ int csc_fgetline(FILE *fp, char *line, int max);
 
 
 // Reads a whitespace separated word from the stream 'fp' into the array
-// 'wd'.  The terminating whitespace is not included into 'wd', but it is
-// consumed, unless the termination was by EOF.
+// 'wd'.  The terminating whitespace is not included into 'wd' and it is
+// not consumed.
 // 
 // If the word is longer than 'max' characters, then only the first 'max'
 // chars of the line will be placed into 'wd'.  The remainder of the word
