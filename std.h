@@ -9,7 +9,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-#define csc_versionStr "1.12.0"
+#define csc_versionStr "1.13.0"
 
 #define MinPortNo 1
 #define MaxPortNo 65535
