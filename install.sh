@@ -18,7 +18,7 @@ fi
 
 cp std.h isvalid.h iniFile.h logger.h netCli.h netSrv.h hashStr.h \
    ioAny.h servBase.h fileProperties.h cstr.h alloc.h list.h aes.h \
-   http.h hash.h signal.h dynArray.h json.h udp.h blacklist.h \
+   http.h hash.h signal.h dynArray.h json.h udp.h blacklist.h dtour.h \
    $INCDIR
 cp libCscNet.a $LIBDIR
 
