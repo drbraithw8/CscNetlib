@@ -168,6 +168,7 @@ csc_bool_t csc_isValid_domain(const char *str)
 
 csc_bool_t csc_isValid_decentRelPath(const char *str)
 {   csc_bool_t result = csc_TRUE;
+	csc_bool_t isDotsOnly = csc_TRUE;
     const char *p;
     int segLen, ch;
  
@@ -178,22 +179,37 @@ csc_bool_t csc_isValid_decentRelPath(const char *str)
     { // Test each char of 'str' in turn.
         p = str;
         segLen = 0;
-        while (ch = *(p++))
-        {
+        
+        while (csc_TRUE)
+        {	ch = *p++;
+
             if (isalnum(ch) || ch=='_' || ch==',')
             {   segLen++;
+				isDotsOnly = csc_FALSE;
             }
-            else if (ch == '/')
-            { // Path segment consisting of zero or more dots not allowed.
-                if (segLen == 0)
-                {   result = csc_FALSE;
+            else if (ch=='/')
+            {	if (isDotsOnly)
+				{ // Path segment consisting of zero or more dots not allowed.
+                   result = csc_FALSE;
                     break;
                 }
                 else
-                    segLen = 0;
+                {	segLen = 0;
+					isDotsOnly = csc_TRUE;
+				}
+            }
+			else if (ch == '\0')
+			{ // Path segment consisting of zero or more dots not allowed.
+                if (isDotsOnly)
+                { // Path segment consisting of zero or more dots not allowed.
+					result = csc_FALSE;
+                    break;
+                }
+                else
+                	break;
             }
             else if (ch == '.')
-            { // Here we do not increment segLen.
+            {	segLen++;
             }
             else if (ch == '-')
             { // Path segements beginning with '-' are not allowed.
@@ -201,13 +217,24 @@ csc_bool_t csc_isValid_decentRelPath(const char *str)
                 {   result = csc_FALSE;
                     break;
                 }
+				isDotsOnly = csc_FALSE;
+            	segLen++;
             }
+			else if (ch == ' ')
+			{ // A segment should not begin or end with a space or have consecutive.
+				if (segLen==0 || *p==' ' || *p=='\0' || *p=='/')
+				{   result = csc_FALSE;
+					break;
+				}
+            	segLen++;
+			}
             else
-            {   result = csc_FALSE;
+            { // General punctuation characters are not allowed.
+				result = csc_FALSE;
                 break;
             }
         }
-
+ 
     // Path should not be empty or end with a slash or consist only of dots.
         if (segLen == 0)
             result = csc_FALSE;
@@ -225,7 +252,7 @@ csc_bool_t csc_isValid_decentPath(const char *str)
     else
     {   if (*str == '/')
             str++;
-        result = csc_isValid_decentRelPath(str+1);
+        result = csc_isValid_decentRelPath(str);
     }
     return result;
 }

@@ -50,7 +50,7 @@ csc_bool_t csc_isValid_domain(const char *str);
 // 
 // The only characters that are actually forbidden in a UNIX file name are
 // '\0' and '/'.  Therefore, it may be actually be possible to put
-// unprintable or non ASCII characters, invisible characters, spaces, tabs,
+// unprintable or non ASCII characters, invisible characters, tabs,
 // redirection characters, quotes, general punctuation, etc into a file or
 // path name, but this function does not consider them to be decent.
 //

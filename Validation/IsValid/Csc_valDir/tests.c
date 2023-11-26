@@ -175,4 +175,39 @@ void main(int argc, char **argv)
     testReport_test(tr, "bad4", "google@com", csc_FALSE);
     testReport_free(tr);
 
+// csc_isValid_decentRelPath().
+    tr = testReport_new(csc_isValid_decentRelPath, "csc_isValid_decentRelPath");
+    testReport_test(tr, "NULL", NULL, csc_FALSE);
+    testReport_test(tr, "emptyString", "", csc_FALSE);
+    testReport_test(tr, "fred", "fred", csc_TRUE);
+    testReport_test(tr, "fr ed", "fr ed", csc_TRUE);
+    testReport_test(tr, "fr  ed", "fr  ed", csc_FALSE);
+    testReport_test(tr, " fred", " fred", csc_FALSE);
+    testReport_test(tr, "fred ", "fred ", csc_FALSE);
+    testReport_test(tr, "fred/", "fred/", csc_FALSE);
+    testReport_test(tr, "fr&ed", "fr&ed", csc_FALSE);
+    testReport_test(tr, "/fred", "/fred", csc_FALSE);
+    testReport_test(tr, "-fred", "-fred", csc_FALSE);
+    testReport_test(tr, "dots1", ".", csc_FALSE);
+    testReport_test(tr, "dots2", "..", csc_FALSE);
+    testReport_test(tr, "fred/jane", "fred/jane", csc_TRUE);
+    testReport_test(tr, "fred//jane", "fred//jane", csc_FALSE);
+    testReport_test(tr, "fred/./jane", "fred/./jane", csc_FALSE);
+    testReport_free(tr);
+
+// csc_isValid_decentAbsPath().
+    tr = testReport_new(csc_isValid_decentAbsPath, "csc_isValid_decentAbsPath");
+    testReport_test(tr, "NULL", NULL, csc_FALSE);
+    testReport_test(tr, "emptyString", "", csc_FALSE);
+    testReport_test(tr, "fred", "fred", csc_FALSE);
+    testReport_test(tr, "/fred", "/fred", csc_TRUE);
+    testReport_free(tr);
+
+// csc_isValid_decentPath().
+    tr = testReport_new(csc_isValid_decentPath, "csc_isValid_decentPath");
+    testReport_test(tr, "NULL", NULL, csc_FALSE);
+    testReport_test(tr, "emptyString", "", csc_FALSE);
+    testReport_test(tr, "fred", "fred", csc_TRUE);
+    testReport_test(tr, "/fred", "/fred", csc_TRUE);
+    testReport_free(tr);
 }
