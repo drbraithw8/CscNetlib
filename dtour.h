@@ -1,4 +1,7 @@
 
+#ifndef csc_DTOUR_H
+#define csc_DTOUR_H 1
+
 // This parameter may have to be changed.  If so.. recompile.
 #define csc_DT_MAXPATH 4096	   // Maximum path size dir_tour() can cope with.
 
@@ -21,24 +24,30 @@
 // be called).  Otherwise if 'path' is the name of an ordinary 
 // subdirectory, then 'dir_begin'() will be called before visiting 
 // 'path' and 'dir_end'() will be called after resurfacing.  
-//   In any directory, all the ordinary files will be visited first in 
+// 
+// In any directory, all the ordinary files will be visited first in 
 // ASCII order.  Then all the directories will be visited recursively 
 // in ASCII order.
 // 
-// The arguments for 'dir_begin'(), 'dir_end'() and 'dir_file'() are 
-// as follows:-  If 'path' is a full path name, then each 'pth' will be 
-// full path names for each file/directory.  If 'path' is a path name 
-// from the current directory, then each 'pth' will be a path name from 
-// the current directory.  'name' is the file name only of the 
-// file/directory.  'info' will point to a block such as provided by 
-// stat() holding various information about the file/directory 
-// including last modification dates, attributes and file sizes.
+// The arguments for 'dir_begin'(), 'dir_end'() and 'dir_file'() are as
+// follows:-  If 'path' is a full path name, then each 'pth' will be full
+// path names for each file/directory.  If 'path' is a path name from the
+// current directory, then each 'pth' will be a path name from the current
+// directory.  'name' is the file name only of the file/directory.  'info'
+// will point to a block such as provided by stat() holding various
+// information about the file/directory including last modification dates,
+// attributes and file sizes.  'ctx' is caller context that will be passed
+// to the callback routines.  It might point to a structure that the
+// callback routines can then access.
 // 
 // dir_tour() returns 0 on success.
 int csc_dtour
-(   const char *path,
-	int flags,  	/* What types of files are to be included. */
-    void (*dir_begin)(char *pth, char *name, struct stat *info),
-    void (*dir_file)(char *pth, char *name, struct stat *info),
-    void (*dir_end)(char *pth, char *name, struct stat *info) 
+(   const char *path
+,	int flags   	// What types of files are to be included.
+,   void (*dir_begin)(char *pth, char *name, struct stat *info, void *ctx)
+,   void (*dir_file)(char *pth, char *name, struct stat *info, void *ctx)
+,   void (*dir_end)(char *pth, char *name, struct stat *info, void *ctx)
+,	void *ctx  // Context to pass on to the callback routines.
 );
+
+#endif

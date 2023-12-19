@@ -18,22 +18,24 @@ typedef struct
 } sinfo_type;
 
 static int dir_recurs
-(   char *path,
-    int  flags, 
-    void (*dir_begin)(char *path, char *name, struct stat *info),
-    void (*dir_file)(char *path, char *name, struct stat *info),
-    void (*dir_end)(char *path, char *name, struct stat *info)
+(   char *path
+,	int flags   	// What types of files are to be included.
+,   void (*dir_begin)(char *pth, char *name, struct stat *info, void *ctx)
+,   void (*dir_file)(char *pth, char *name, struct stat *info, void *ctx)
+,   void (*dir_end)(char *pth, char *name, struct stat *info, void *ctx)
+,	void *ctx
 );
 static int ss_cmp(const void *first, const void *second);
 static void free_files(csc_list_t *files);
 
 
 int csc_dtour
-(   const char *theirPath,
-	int flags,
-    void (*dir_begin)(char *pth, char *name, struct stat *info),
-    void (*dir_file)(char *pth, char *name, struct stat *info),
-    void (*dir_end)(char *pth, char *name, struct stat *info) 
+(   const char *theirPath
+,	int flags   	// What types of files are to be included.
+,   void (*dir_begin)(char *pth, char *name, struct stat *info, void *ctx)
+,   void (*dir_file)(char *pth, char *name, struct stat *info, void *ctx)
+,   void (*dir_end)(char *pth, char *name, struct stat *info, void *ctx)
+,	void *ctx
 )
 {	char path[csc_DT_MAXPATH+1] = "";   
     int rval;
@@ -68,26 +70,27 @@ int csc_dtour
 		return errno;
 	if (!S_ISDIR(st.st_mode))
 	{	if (dir_file != NULL)
-			dir_file(path, pend, &st);
+			dir_file(path, pend, &st, ctx);
 		return 0;
 	}
 	else
 	{	if (dir_begin != NULL)
-			dir_begin(path, pend, &st);
-		rval =  dir_recurs(path, flags, dir_begin, dir_file, dir_end);
+			dir_begin(path, pend, &st, ctx);
+		rval =  dir_recurs(path, flags, dir_begin, dir_file, dir_end, ctx);
 		if (dir_end != NULL)
-			dir_end(path, pend, &st);
+			dir_end(path, pend, &st, ctx);
 		return rval;
 	}
 }
 
 
 static int dir_recurs
-(   char *path,
-    int  flags,
-    void (*dir_begin)(char *path, char *dname, struct stat *info),
-    void (*dir_file)(char *path, char *dname, struct stat *info),
-    void (*dir_end)(char *path, char *dname, struct stat *info)
+(   char *path
+,	int flags   	// What types of files are to be included.
+,   void (*dir_begin)(char *pth, char *name, struct stat *info, void *ctx)
+,   void (*dir_file)(char *pth, char *name, struct stat *info, void *ctx)
+,   void (*dir_end)(char *pth, char *name, struct stat *info, void *ctx)
+,	void *ctx
 )
 /* This function recursively tours through directories calling any
  * of the function pointers if they are not NULL.
@@ -174,14 +177,14 @@ static int dir_recurs
 		strcpy(pend, fname);
 		if (S_ISDIR(st->st_mode))
 		{	if (dir_begin != NULL)
-				dir_begin(path, fname, st);
-			rval = dir_recurs(path, flags, dir_begin, dir_file, dir_end);
+				dir_begin(path, fname, st, ctx);
+			rval = dir_recurs(path, flags, dir_begin, dir_file, dir_end, ctx);
 			if (dir_end != NULL)
-				dir_end(path, fname, st);
+				dir_end(path, fname, st, ctx);
 		}
 		else
 		{	if (dir_file != NULL)
-				dir_file(path, fname, st);
+				dir_file(path, fname, st, ctx);
 		}
 	}
 	retval = 0;
