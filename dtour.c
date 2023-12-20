@@ -170,8 +170,10 @@ static int dir_recurs
  
 /* Do each entry in turn. */
 	files = csc_list_sort(files, (int(*)(void*,void*))ss_cmp);
-	for (csc_list_t *pt=files; pt!=NULL; pt=pt->next)
-	{	sinfo_type *inf = pt->data;
+	while (files != NULL) // pt=pt->next)
+	{	sinfo_type *inf = files->data;
+ 
+	// Process the record
 		st = &inf->st;
 		fname = inf->fname;
 		strcpy(pend, fname);
@@ -186,6 +188,15 @@ static int dir_recurs
 		{	if (dir_file != NULL)
 				dir_file(path, fname, st, ctx);
 		}
+ 
+	// Free the record.
+		free(inf->fname);
+		free(inf);
+		csc_list_t *pt=files; 
+ 
+	// Pop the head from the list.
+		files = files->next;
+		free(pt);
 	}
 	retval = 0;
  
@@ -212,7 +223,7 @@ static void free_files(csc_list_t *files)
 	}
 	csc_list_free(files);
 }
-	
+
 
 static int ss_cmp(const void *first, const void *second)
 /* Used to compare find_t structures based on ffblk.name in the 
