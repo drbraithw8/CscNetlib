@@ -48,6 +48,32 @@ csc_str_t *csc_str_new(const char *str)
     else
         this->nchars = strlen(str);
  
+// Allocate and copy chars for the string. 
+    if (this->nchars == 0)
+    {   this->mchars = 0;
+        this->chars = NULL;
+    }
+    else
+    {   this->mchars = this->nchars + 8;
+        this->mchars |= 7;  // Round up - Use that which would be wasted. 
+        this->chars = (char*)alloc((this->mchars + 1) * sizeof(char));  // '\0'. 
+        memcpy(this->chars, str, this->nchars);
+    }
+ 
+// Home with the bacon. 
+    return this;
+}
+
+
+csc_str_t *csc_str_newS(const csc_str_t *str)
+{   csc_str_t *this;
+ 
+// Get the structure. 
+    this = (csc_str_t*)alloc(sizeof(csc_str_t));
+ 
+// Get length of the string. 
+	this->nchars = str->nchars;
+ 
 // Allocate chars for the string. 
     if (this->nchars == 0)
     {   this->mchars = 0;
@@ -57,15 +83,12 @@ csc_str_t *csc_str_new(const char *str)
     {   this->mchars = this->nchars + 8;
         this->mchars |= 7;  // Round up - Use that which would be wasted. 
         this->chars = (char*)alloc((this->mchars + 1) * sizeof(char));  // '\0'. 
+        memcpy(this->chars, str->chars, this->nchars);
     }
- 
-// Copy the string. 
-    if (this->nchars > 0)
-        memcpy(this->chars, str, this->nchars);
  
 // Home with the bacon. 
     return this;
-}
+}	
 
 
 void csc_str_free(csc_str_t *this)

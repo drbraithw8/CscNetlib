@@ -18,9 +18,12 @@ typedef struct csc_str_t csc_str_t;
     // then the empty string is used as the initial value.
     csc_str_t *csc_str_new(const char *str);
 
+    // This constructs a new string object initialised with the string
+    // 'str' and returns a pointer to it.
+	csc_str_t *csc_str_newS(const csc_str_t *str);
+
     // Frees all memory associated with the string 'this'.
     void csc_str_free(csc_str_t *this);
-
 
 
 // Assign.
