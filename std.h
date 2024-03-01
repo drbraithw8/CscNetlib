@@ -9,7 +9,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-#define csc_versionStr "1.15.1"
+#define csc_versionStr "1.15.2"
 
 #define MinPortNo 1
 #define MaxPortNo 65535
@@ -44,6 +44,8 @@ typedef unsigned short csc_ushort;
 #define csc_fdim(typ,arr) (sizeof(((typ*)NULL)->arr)/sizeof(((typ*)NULL)->arr[0]))
 #define csc_fsizeof(type,field)     (sizeof(((type *)NULL)->field))
 
+#define csc_max(a,b) ((a>b)?(a):(b))
+#define csc_min(a,b) ((a<b)?(a):(b))
 
 extern FILE *csc_errOut;
 void csc_setErrOut(const char *pathErrOut);
